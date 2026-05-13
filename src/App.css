@@ -1728,16 +1728,11 @@ input:focus-visible {
   isolation: isolate;
   scroll-snap-align: start;
   backface-visibility: hidden;
-  will-change: transform, opacity, filter;
-  contain: layout paint style;
   transition:
     flex-grow 650ms var(--accordion-ease),
     flex-basis 650ms var(--accordion-ease),
-    opacity 260ms ease,
-    filter 260ms ease,
-    box-shadow 220ms ease,
-    border-color 220ms ease,
-    background 220ms ease;
+    min-width 650ms var(--accordion-ease),
+    opacity 260ms ease;
 }
 
 .has-active-card .project-card {
@@ -1745,7 +1740,6 @@ input:focus-visible {
   flex-basis: 0;
   min-width: 152px;
   opacity: 0.66;
-  filter: saturate(0.64);
 }
 
 .has-active-card .project-card.is-active {
@@ -1753,7 +1747,6 @@ input:focus-visible {
   flex-basis: 280px;
   min-width: min(520px, 52vw);
   opacity: 1;
-  filter: saturate(1);
   border-color: color-mix(in srgb, var(--project-accent) 54%, rgba(255, 255, 255, 0.4));
   box-shadow:
     0 28px 70px rgba(30, 34, 38, 0.16),
@@ -1796,10 +1789,7 @@ input:focus-visible {
   height: 100%;
   object-fit: cover;
   filter: contrast(1.02) saturate(0.96);
-  will-change: filter;
-  transition:
-    filter 260ms ease,
-    opacity 260ms ease;
+  transition: opacity 260ms ease;
 }
 
 .project-card.is-active .project-media img {
@@ -1879,8 +1869,8 @@ input:focus-visible {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   transition:
-    opacity 260ms ease,
-    max-height 650ms var(--accordion-ease);
+    opacity 260ms ease 80ms,
+    max-height 650ms var(--accordion-ease) 80ms;
 }
 
 .project-card.is-active .project-summary {
@@ -1901,8 +1891,8 @@ input:focus-visible {
   list-style: none;
   opacity: 0;
   transition:
-    opacity 260ms ease,
-    max-height 650ms var(--accordion-ease);
+    opacity 260ms ease 160ms,
+    max-height 650ms var(--accordion-ease) 160ms;
 }
 
 .project-card.is-active .project-details {
@@ -1936,8 +1926,8 @@ input:focus-visible {
   clip-path: inset(0);
   opacity: 0;
   transition:
-    opacity 260ms ease,
-    max-height 650ms var(--accordion-ease);
+    opacity 260ms ease 240ms,
+    max-height 650ms var(--accordion-ease) 240ms;
 }
 
 .project-card.is-active .tag-row {
@@ -1978,10 +1968,8 @@ input:focus-visible {
   box-shadow: 0 12px 30px color-mix(in srgb, var(--project-accent) 22%, transparent);
   opacity: 0;
   transition:
-    opacity 220ms ease,
-    max-height 650ms var(--accordion-ease),
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+    opacity 220ms ease 320ms,
+    max-height 650ms var(--accordion-ease) 320ms;
 }
 
 .project-card.is-active .project-cta {

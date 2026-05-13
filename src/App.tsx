@@ -817,7 +817,7 @@ function EngineeringCore() {
                 </button>
               </div>
               <CoreCommandPanelContent id={openItem.id} />
-            </motion.article>
+    </motion.article>
           ) : null}
         </AnimatePresence>
       </div>
@@ -1172,7 +1172,7 @@ const ProjectCard = React.memo(function ProjectCard({
       onClick={() => onSelect(card.id)}
     >
       <div className="project-media">
-        <img src={card.image} alt={card.imageAlt} loading="lazy" style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
+        <img src={card.image} alt={card.imageAlt} style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
       </div>
       <div className="project-card-body">
         <span className="project-number">{card.number}</span>
@@ -1195,7 +1195,7 @@ const ProjectCard = React.memo(function ProjectCard({
           View Project
           <ArrowUpRight size={16} aria-hidden="true" />
         </a>
-      </div>
+       </div>
     </article>
   )
 })
@@ -2813,6 +2813,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
     async function setupScene() {
       const THREE = await import('three')
       const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
+      const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
       if (cancelled) return
 
       const renderer = new THREE.WebGLRenderer({
@@ -2911,9 +2912,13 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         side: THREE.DoubleSide,
       })
 
+      const dracoLoader = new DRACOLoader()
+      dracoLoader.setDecoderPath('/draco/')
+      dracoLoader.setDecoderConfig({ type: 'js' })
       const loader = new GLTFLoader()
+      loader.setDRACOLoader(dracoLoader)
       loader.load(
-        '/models/CAT_C32_1417KW_Engine.glb',
+        '/models/CAT_C32_1417KW_Engine-optimized.glb',
         (gltf) => {
           const object = gltf.scene
           if (cancelled) return
