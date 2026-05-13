@@ -35,3 +35,5 @@ hero-credential-*.png
 *.njsproj
 *.sln
 *.sw?
+
+.vercel
