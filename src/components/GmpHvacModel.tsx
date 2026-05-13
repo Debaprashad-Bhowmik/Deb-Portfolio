@@ -134,13 +134,33 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
     activeOptionRef.current = activeOption
   }, [activeOption])
 
+  const [shouldMount, setShouldMount] = useState(false)
+
   useEffect(() => {
+    const el = mountRef.current
+    if (!el || shouldMount) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting || entry.rootBounds === null) {
+          setShouldMount(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '600px' },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [shouldMount])
+
+  useEffect(() => {
+    if (!shouldMount) return
     const containerElement = mountRef.current
     if (!containerElement) return
     const container: HTMLDivElement = containerElement
 
     let cancelled = false
     let cleanup = () => {}
+    let sceneVisible = true
 
     async function setupScene() {
       const THREE = await import('three')
@@ -1149,7 +1169,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
           }
         })
 
-        if (changed && !cancelled) {
+        if (changed && !cancelled && frame % 8 === 0) {
           lastCallouts = next
           setAnchors(next)
         }
@@ -1157,6 +1177,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
 
       const animate = (time: number) => {
         if (cancelled) return
+        if (!sceneVisible) return
 
         const seconds = time / 1000
         frame = window.requestAnimationFrame(animate)
@@ -1212,6 +1233,17 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
         renderer.render(scene, camera)
       }
 
+      const visibilityObserver = new IntersectionObserver(
+        ([entry]) => {
+          sceneVisible = entry.isIntersecting
+          if (sceneVisible && !cancelled) {
+            frame = window.requestAnimationFrame(animate)
+          }
+        },
+        { rootMargin: '200px' },
+      )
+      visibilityObserver.observe(container)
+
       frame = window.requestAnimationFrame(animate)
       setHasError(false)
       setIsLoaded(true)
@@ -1229,6 +1261,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       cleanup = () => {
         cancelled = true
         window.cancelAnimationFrame(frame)
+        visibilityObserver.disconnect()
         resizeObserver.disconnect()
         reducedMotionQuery.removeEventListener('change', onMotionPreferenceChange)
         container.removeEventListener('pointerdown', onPointerDown)
@@ -1255,7 +1288,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       cancelled = true
       cleanup()
     }
-  }, [])
+  }, [shouldMount])
 
   const resetView = () => runtimeRef.current?.resetView()
 

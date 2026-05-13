@@ -1147,7 +1147,7 @@ function SelectedWork() {
   )
 }
 
-function ProjectCard({
+const ProjectCard = React.memo(function ProjectCard({
   card,
   isActive,
   isDimmed,
@@ -1172,7 +1172,7 @@ function ProjectCard({
       onClick={() => onSelect(card.id)}
     >
       <div className="project-media">
-        <img src={card.image} alt={card.imageAlt} style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
+        <img src={card.image} alt={card.imageAlt} loading="lazy" style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
       </div>
       <div className="project-card-body">
         <span className="project-number">{card.number}</span>
@@ -1198,7 +1198,7 @@ function ProjectCard({
       </div>
     </article>
   )
-}
+})
 
 type SnipAction = 'Explain' | 'Steps' | 'Custom' | 'Summary' | 'Bug' | 'Answer'
 type SnipTargetId = 'notes' | 'article' | 'calculator' | 'error' | 'image' | 'todo'
@@ -2030,7 +2030,7 @@ function DigitalTwinSection() {
   const [autoRetrain, setAutoRetrain] = useState(true)
   const shouldReduceMotion = useReducedMotion()
   const scenario = engineScenarios.find((item) => item.id === scenarioId) ?? engineScenarios[0]
-  const liveState = getLiveTwinState(scenario, liveTick)
+  const liveState = useMemo(() => getLiveTwinState(scenario, liveTick), [scenario, liveTick])
   const scenarioIconMap: Record<string, LucideIcon> = {
     healthy: CheckCircle2,
     turbo: Activity,
@@ -2038,8 +2038,8 @@ function DigitalTwinSection() {
     injector: Cpu,
     drift: Settings2,
   }
-  const telemetryRows = getEngineTelemetryRows(liveState)
-  const contributingFactors = getEngineFactors(scenario)
+  const telemetryRows = useMemo(() => getEngineTelemetryRows(liveState), [liveState])
+  const contributingFactors = useMemo(() => getEngineFactors(scenario), [scenario])
   const activeStep = getTwinPipelineStep(activeTwinView)
   const scenarioButtons = (
     <div className="diesel-scenario-grid">
@@ -2777,18 +2777,38 @@ function getEngineActions(scenario: EngineScenario) {
 function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const scenarioRef = useRef(scenarioId)
+  const [shouldMount, setShouldMount] = useState(false)
 
   useEffect(() => {
     scenarioRef.current = scenarioId
   }, [scenarioId])
 
   useEffect(() => {
+    const el = mountRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting || entry.rootBounds === null) {
+          setShouldMount(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '600px' },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!shouldMount) return
     const mount = mountRef.current
     if (!mount) return
 
     const container = mount
     let cancelled = false
     let cleanup = () => {}
+    let visible = true
+    let rafId = 0
 
     async function setupScene() {
       const THREE = await import('three')
@@ -2935,8 +2955,9 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       )
 
       const clock = new THREE.Clock()
-      const animate = () => {
+      function animate() {
         if (cancelled) return
+        if (!visible) return
         const delta = Math.min(clock.getDelta(), 0.05)
         const elapsed = clock.elapsedTime
         if (!pointer.dragging) {
@@ -2949,13 +2970,26 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         rimLight.intensity = scenarioRef.current === 'healthy' ? 1.35 : 1.75 + alertPulse * 0.35
         rimLight.color.set(scenarioRef.current === 'coolant' ? 0x4dbbff : scenarioRef.current === 'injector' ? 0xff735f : 0x4b7cff)
         renderer.render(scene, camera)
-        requestAnimationFrame(animate)
+        rafId = window.requestAnimationFrame(animate)
       }
 
-      animate()
+      rafId = window.requestAnimationFrame(animate)
+
+      const visibilityObserver = new IntersectionObserver(
+        ([entry]) => {
+          visible = entry.isIntersecting
+          if (visible && !cancelled) {
+            rafId = window.requestAnimationFrame(animate)
+          }
+        },
+        { rootMargin: '200px' },
+      )
+      visibilityObserver.observe(container)
 
       cleanup = () => {
         cancelled = true
+        window.cancelAnimationFrame(rafId)
+        visibilityObserver.disconnect()
         resizeObserver.disconnect()
         container.removeEventListener('pointerdown', onPointerDown)
         container.removeEventListener('pointermove', onPointerMove)
@@ -2974,7 +3008,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       cancelled = true
       cleanup()
     }
-  }, [])
+  }, [shouldMount])
 
   return (
     <div className="engine-model-viewer" ref={mountRef} data-engine-model="CAT C32 1417KW GLB" aria-label="3D diesel engine model. Drag to rotate.">
