@@ -2386,7 +2386,7 @@ function DigitalTwinSection() {
             <div><dt>Configuration</dt><dd>In-line diesel engine assembly</dd></div>
             <div><dt>Use case</dt><dd>Marine propulsion / heavy machinery</dd></div>
             <div><dt>Telemetry channels</dt><dd>{liveState.channels.join(', ')}</dd></div>
-            <div><dt>Model asset</dt><dd>CAT_C32_1417KW_Engine.obj</dd></div>
+            <div><dt>Model asset</dt><dd>CAT_C32_1417KW_Engine.glb</dd></div>
           </dl>
         </>
       )
@@ -2792,7 +2792,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
 
     async function setupScene() {
       const THREE = await import('three')
-      const { OBJLoader } = await import('three/examples/jsm/loaders/OBJLoader.js')
+      const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
       if (cancelled) return
 
       const renderer = new THREE.WebGLRenderer({
@@ -2891,10 +2891,11 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         side: THREE.DoubleSide,
       })
 
-      const loader = new OBJLoader()
+      const loader = new GLTFLoader()
       loader.load(
-        '/models/CAT_C32_1417KW_Engine.obj',
-        (object) => {
+        '/models/CAT_C32_1417KW_Engine.glb',
+        (gltf) => {
+          const object = gltf.scene
           if (cancelled) return
           object.traverse((child) => {
             if ('isMesh' in child && child.isMesh) {
@@ -2976,7 +2977,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   }, [])
 
   return (
-    <div className="engine-model-viewer" ref={mountRef} data-engine-model="CAT C32 1417KW OBJ" aria-label="3D diesel engine model. Drag to rotate.">
+    <div className="engine-model-viewer" ref={mountRef} data-engine-model="CAT C32 1417KW GLB" aria-label="3D diesel engine model. Drag to rotate.">
       <div className="model-loading">Loading CAT diesel engine</div>
       <div className="model-error">Engine model could not be loaded.</div>
     </div>
