@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { Material, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three'
 import type { HvacOption } from '../data/portfolio'
+import { notifyHvacReady } from '../sceneReadiness'
 
 type GmpHvacModelProps = {
   activeOption: HvacOption['id']
@@ -134,26 +135,9 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
     activeOptionRef.current = activeOption
   }, [activeOption])
 
-  const [shouldMount, setShouldMount] = useState(false)
+  const [shouldMount] = useState(true)
 
   useEffect(() => {
-    const el = mountRef.current
-    if (!el || shouldMount) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting || entry.rootBounds === null) {
-          setShouldMount(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '600px' },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [shouldMount])
-
-  useEffect(() => {
-    if (!shouldMount) return
     const containerElement = mountRef.current
     if (!containerElement) return
     const container: HTMLDivElement = containerElement
@@ -1247,6 +1231,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       frame = window.requestAnimationFrame(animate)
       setHasError(false)
       setIsLoaded(true)
+      notifyHvacReady()
 
       runtimeRef.current = {
         resetView: () => {

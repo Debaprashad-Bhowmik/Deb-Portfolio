@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { notifyCubesatReady } from '../sceneReadiness'
 
 export type ThermalAnchorKey = 'xFace' | 'panel' | 'battery' | 'radio' | 'nadir'
 export type ThermalAnchorPoint = { x: number; y: number; visible: boolean }
@@ -825,9 +826,7 @@ export default function CubeSatThermalViewer({
   onAnchorUpdate,
 }: CubeSatThermalViewerProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
-  const [shouldMountScene, setShouldMountScene] = useState(
-    () => typeof window !== 'undefined' && window.location.hash === '#cubesat-thermal',
-  )
+  const [shouldMountScene] = useState(true)
   const sunlightRef = useRef(sunlight)
   const orbitMinutesRef = useRef(orbitMinutes)
   const thermalRef = useRef(thermal)
@@ -853,23 +852,6 @@ export default function CubeSatThermalViewer({
   useEffect(() => {
     onAnchorUpdateRef.current = onAnchorUpdate
   }, [onAnchorUpdate])
-
-  useEffect(() => {
-    const container = mountRef.current
-    if (!container) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return
-        setShouldMountScene(true)
-        observer.disconnect()
-      },
-      { rootMargin: '520px 0px' },
-    )
-    observer.observe(container)
-
-    return () => observer.disconnect()
-  }, [])
 
   useEffect(() => {
     if (!shouldMountScene) return
@@ -940,6 +922,7 @@ export default function CubeSatThermalViewer({
       modelRoot.add(cubeSat.root)
       container.dataset.modelAsset = 'Scratch texture-driven CubeSat thermal twin'
       container.classList.add('is-loaded')
+      notifyCubesatReady()
 
       let lastThermalSignature = ''
       let lastAnchorSignature = ''

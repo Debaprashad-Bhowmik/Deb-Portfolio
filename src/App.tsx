@@ -3123,7 +3123,6 @@ function CouplingBoltSection() {
             <iframe
               src="/coupling-bolt/coupling-bolt.html?embed=portfolio"
               title="Interactive Coupling Bolt 3D viewer"
-              loading="lazy"
             />
           </div>
 
@@ -3317,7 +3316,6 @@ function BleedingSimulatorSection() {
         <iframe
           title="Bleeding Control Simulator interactive demo"
           src="/bleeding-control-simulator/index.html?embed=portfolio"
-          loading="lazy"
           onLoad={(event) => {
             const frame = event.currentTarget
             const syncHeight = () => {

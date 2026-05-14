@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { startModelPreload } from '../enginePreloader'
 import { waitForSplineScene } from '../splinePreloader'
+import { waitForAllScenes } from '../sceneReadiness'
 import './LoadingScreen.css'
 
 const MIN_DISPLAY_MS = 3000 // Minimum time to show the loading screen for UX
@@ -358,6 +359,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       const allLoaded = Promise.all([
         startModelPreload(),
         waitForSplineScene(),
+        waitForAllScenes(),
       ])
 
       allLoaded.then(() => {
