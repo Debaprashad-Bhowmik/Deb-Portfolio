@@ -68,10 +68,11 @@ import CubeSatThermalViewer, {
   type ThermalAnchorPoint,
   type ThermalTelemetry,
 } from './components/CubeSatThermalViewer'
+import LoadingScreen from './components/LoadingScreen'
 import './App.css'
 
 const revealVariants: Variants = {
-  hidden: { opacity: 0, y: 34 },
+  hidden: { opacity: 0.15, y: 18 },
   visible: { opacity: 1, y: 0 },
 }
 
@@ -182,43 +183,9 @@ const coreProjectLinks = [
   { title: 'Snipping GPT', meta: 'Screenshot intent system for fast AI help', href: '#snipping-gpt' },
 ]
 
-const splineViewerScriptSrc = 'https://unpkg.com/@splinetool/viewer@1.12.92/build/spline-viewer.js'
-const splineRobotSceneUrl = 'https://prod.spline.design/MyyGlMKNvEm8rRdZ/scene.splinecode'
-let splineViewerScriptPromise: Promise<void> | null = null
+import { loadSplineViewerScript, getSplineSceneUrl } from './splinePreloader'
 
-function loadSplineViewerScript() {
-  if (typeof window === 'undefined') {
-    return Promise.resolve()
-  }
-
-  if (window.customElements.get('spline-viewer')) {
-    return Promise.resolve()
-  }
-
-  if (splineViewerScriptPromise) {
-    return splineViewerScriptPromise
-  }
-
-  splineViewerScriptPromise = new Promise((resolve, reject) => {
-    const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${splineViewerScriptSrc}"]`)
-
-    if (existingScript) {
-      existingScript.addEventListener('load', () => resolve(), { once: true })
-      existingScript.addEventListener('error', () => reject(new Error('Spline viewer failed to load')), { once: true })
-      return
-    }
-
-    const script = document.createElement('script')
-    script.type = 'module'
-    script.src = splineViewerScriptSrc
-    script.async = true
-    script.addEventListener('load', () => resolve(), { once: true })
-    script.addEventListener('error', () => reject(new Error('Spline viewer failed to load')), { once: true })
-    document.head.appendChild(script)
-  })
-
-  return splineViewerScriptPromise
-}
+const splineRobotSceneUrl = getSplineSceneUrl()
 
 const twinViewItems = [
   { id: 'overview', label: 'Overview', icon: Layers },
@@ -337,7 +304,7 @@ function SectionReveal({
       initial={reduceMotion ? false : 'hidden'}
       whileInView={reduceMotion ? undefined : 'visible'}
       viewport={{ once: true, amount: 0.06 }}
-      transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {children}
     </motion.section>
@@ -381,6 +348,8 @@ function Sparkline({
 }
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     const hash = window.location.hash
     if (!hash) return
@@ -391,20 +360,23 @@ function App() {
   }, [])
 
   return (
-    <div className="site-shell">
-      <Header />
-      <main>
-        <Hero />
-        <SnippingGPTSection />
-        <DigitalTwinSection />
-        <CouplingBoltSection />
-        <BleedingSimulatorSection />
-        <HvacSection />
-        <CubeSatSection />
-        <SupervisorFeedbackSection />
-        <ClosingSection />
-      </main>
-    </div>
+    <>
+      {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
+      <div className="site-shell">
+        <Header />
+        <main>
+          <Hero />
+          <SnippingGPTSection />
+          <DigitalTwinSection />
+          <CouplingBoltSection />
+          <BleedingSimulatorSection />
+          <HvacSection />
+          <CubeSatSection />
+          <SupervisorFeedbackSection />
+          <ClosingSection />
+        </main>
+      </div>
+    </>
   )
 }
 
@@ -1026,28 +998,13 @@ function SplineRobotViewer() {
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
 
   useEffect(() => {
-    let cancelled = false
-
-    loadSplineViewerScript()
-      .then(() => {
-        if (!cancelled) {
-          setStatus('ready')
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setStatus('error')
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  useEffect(() => {
     const viewer = viewerRef.current
-    if (!viewer) return
+    if (!viewer) {
+      loadSplineViewerScript()
+        .then(() => setStatus('ready'))
+        .catch(() => setStatus('error'))
+      return
+    }
 
     const markReady = () => setStatus('ready')
     const markError = () => setStatus('error')
@@ -1059,24 +1016,15 @@ function SplineRobotViewer() {
       viewer.removeEventListener('load', markReady)
       viewer.removeEventListener('error', markError)
     }
-  }, [status])
+  }, [])
 
   return (
     <div className={`spline-robot-viewer is-${status}`} aria-label="Interactive Spline robot model">
-      {status === 'ready'
-        ? React.createElement('spline-viewer', {
-            ref: viewerRef,
-            url: splineRobotSceneUrl,
-          })
-        : null}
-      {status === 'loading' ? <div className="spline-robot-status">Loading robot interface</div> : null}
-      {status === 'error' ? (
-        <div className="spline-robot-fallback">
-          <MonitorUp size={30} aria-hidden="true" />
-          <span>Interactive robot preview unavailable</span>
-          <small>The about-me controls still work. Check network access for the Spline scene.</small>
-        </div>
-      ) : null}
+      {React.createElement('spline-viewer', {
+        ref: viewerRef,
+        url: splineRobotSceneUrl,
+        loading: 'eager',
+      })}
     </div>
   )
 }
@@ -2777,30 +2725,12 @@ function getEngineActions(scenario: EngineScenario) {
 function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const scenarioRef = useRef(scenarioId)
-  const [shouldMount, setShouldMount] = useState(false)
 
   useEffect(() => {
     scenarioRef.current = scenarioId
   }, [scenarioId])
 
   useEffect(() => {
-    const el = mountRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting || entry.rootBounds === null) {
-          setShouldMount(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '600px' },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
-  useEffect(() => {
-    if (!shouldMount) return
     const mount = mountRef.current
     if (!mount) return
 
@@ -2811,9 +2741,8 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
     let rafId = 0
 
     async function setupScene() {
+      // These resolve instantly from module cache (preloader already imported them)
       const THREE = await import('three')
-      const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
-      const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
       if (cancelled) return
 
       const renderer = new THREE.WebGLRenderer({
@@ -2912,52 +2841,102 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         side: THREE.DoubleSide,
       })
 
-      const dracoLoader = new DRACOLoader()
-      dracoLoader.setDecoderPath('/draco/')
-      dracoLoader.setDecoderConfig({ type: 'js' })
-      const loader = new GLTFLoader()
-      loader.setDRACOLoader(dracoLoader)
-      loader.load(
-        '/models/CAT_C32_1417KW_Engine-optimized.glb',
-        (gltf) => {
-          const object = gltf.scene
-          if (cancelled) return
-          object.traverse((child) => {
-            if ('isMesh' in child && child.isMesh) {
-              const mesh = child as import('three').Mesh
-              if (mesh.geometry && !mesh.geometry.getAttribute('normal')) {
-                mesh.geometry.computeVertexNormals()
-              }
-              mesh.material = mesh.name.toLowerCase().includes('rubber') ? darkMaterial : material
-              mesh.castShadow = false
-              mesh.receiveShadow = false
+      // Use the pre-loaded GLTF from the loading screen, or fall back to loading from scratch
+      const { getPreloadedGLTF, getPreloadPromise } = await import('./enginePreloader')
+
+      let gltf = getPreloadedGLTF()
+      if (!gltf) {
+        // Preload may still be in progress — await it
+        const promise = getPreloadPromise()
+        if (promise) {
+          gltf = await promise
+        }
+      }
+
+      if (gltf && !cancelled) {
+        // Clone the preloaded scene so we can apply our own materials
+        const object = gltf.scene.clone(true)
+        object.traverse((child) => {
+          if ('isMesh' in child && child.isMesh) {
+            const mesh = child as import('three').Mesh
+            if (mesh.geometry && !mesh.geometry.getAttribute('normal')) {
+              mesh.geometry.computeVertexNormals()
             }
-          })
+            mesh.material = mesh.name.toLowerCase().includes('rubber') ? darkMaterial : material
+            mesh.castShadow = false
+            mesh.receiveShadow = false
+          }
+        })
 
-          const assetPivot = new THREE.Group()
-          assetPivot.add(object)
-          assetPivot.rotation.set(0, 0, 0)
-          assetPivot.updateMatrixWorld(true)
+        const assetPivot = new THREE.Group()
+        assetPivot.add(object)
+        assetPivot.rotation.set(0, 0, 0)
+        assetPivot.updateMatrixWorld(true)
 
-          const orientedBox = new THREE.Box3().setFromObject(assetPivot)
-          const orientedSize = new THREE.Vector3()
-          const orientedCenter = new THREE.Vector3()
-          orientedBox.getSize(orientedSize)
-          orientedBox.getCenter(orientedCenter)
-          assetPivot.position.sub(orientedCenter)
+        const orientedBox = new THREE.Box3().setFromObject(assetPivot)
+        const orientedSize = new THREE.Vector3()
+        const orientedCenter = new THREE.Vector3()
+        orientedBox.getSize(orientedSize)
+        orientedBox.getCenter(orientedCenter)
+        assetPivot.position.sub(orientedCenter)
 
-          const maxAxis = Math.max(orientedSize.x, orientedSize.y, orientedSize.z, 1)
-          const modelShell = new THREE.Group()
-          modelShell.scale.setScalar(2.64 / maxAxis)
-          modelShell.add(assetPivot)
-          modelRoot.add(modelShell)
-          container.classList.add('is-loaded')
-        },
-        undefined,
-        () => {
-          container.classList.add('is-model-error')
-        },
-      )
+        const maxAxis = Math.max(orientedSize.x, orientedSize.y, orientedSize.z, 1)
+        const modelShell = new THREE.Group()
+        modelShell.scale.setScalar(2.64 / maxAxis)
+        modelShell.add(assetPivot)
+        modelRoot.add(modelShell)
+        container.classList.add('is-loaded')
+      } else if (!cancelled) {
+        // Fallback: load from scratch (shouldn't happen normally)
+        const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
+        const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
+        const dracoLoader = new DRACOLoader()
+        dracoLoader.setDecoderPath('/draco/')
+        dracoLoader.setDecoderConfig({ type: 'js' })
+        const loader = new GLTFLoader()
+        loader.setDRACOLoader(dracoLoader)
+        loader.load(
+          '/models/CAT_C32_1417KW_Engine-optimized.glb',
+          (loadedGltf) => {
+            const object = loadedGltf.scene
+            if (cancelled) return
+            object.traverse((child) => {
+              if ('isMesh' in child && child.isMesh) {
+                const mesh = child as import('three').Mesh
+                if (mesh.geometry && !mesh.geometry.getAttribute('normal')) {
+                  mesh.geometry.computeVertexNormals()
+                }
+                mesh.material = mesh.name.toLowerCase().includes('rubber') ? darkMaterial : material
+                mesh.castShadow = false
+                mesh.receiveShadow = false
+              }
+            })
+
+            const assetPivot = new THREE.Group()
+            assetPivot.add(object)
+            assetPivot.rotation.set(0, 0, 0)
+            assetPivot.updateMatrixWorld(true)
+
+            const orientedBox = new THREE.Box3().setFromObject(assetPivot)
+            const orientedSize = new THREE.Vector3()
+            const orientedCenter = new THREE.Vector3()
+            orientedBox.getSize(orientedSize)
+            orientedBox.getCenter(orientedCenter)
+            assetPivot.position.sub(orientedCenter)
+
+            const maxAxis = Math.max(orientedSize.x, orientedSize.y, orientedSize.z, 1)
+            const modelShell = new THREE.Group()
+            modelShell.scale.setScalar(2.64 / maxAxis)
+            modelShell.add(assetPivot)
+            modelRoot.add(modelShell)
+            container.classList.add('is-loaded')
+          },
+          undefined,
+          () => {
+            container.classList.add('is-model-error')
+          },
+        )
+      }
 
       const clock = new THREE.Clock()
       function animate() {
@@ -3013,7 +2992,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       cancelled = true
       cleanup()
     }
-  }, [shouldMount])
+  }, [])
 
   return (
     <div className="engine-model-viewer" ref={mountRef} data-engine-model="CAT C32 1417KW GLB" aria-label="3D diesel engine model. Drag to rotate.">

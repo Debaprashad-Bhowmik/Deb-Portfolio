@@ -2,6 +2,42 @@
   overflow: hidden;
 }
 
+.snipping-section,
+.bolt-section,
+.advanced-bleeding-section,
+.feedback-section,
+.closing-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+.hero-copy h1,
+.hero-school,
+.hero-copy .lede,
+.hero-cta-row,
+.hero-visual,
+.case-intro,
+.case-intro h2,
+.case-intro p,
+.closing-section h2,
+.closing-grid p,
+.section-kicker,
+.eyebrow,
+.project-card,
+.project-summary,
+.project-details,
+.tag-row,
+.project-cta,
+.project-media::after,
+.project-media img,
+.snip-action-pill,
+.snip-response-card,
+.bleeding-artifact-card,
+.core-command-close,
+.work-rail-actions button {
+  will-change: transform, opacity;
+}
+
 .site-header {
   position: fixed;
   top: 0;
