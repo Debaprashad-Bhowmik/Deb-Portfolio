@@ -654,39 +654,6 @@ input:focus-visible {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .engineering-core-object {
-    transition: none;
-  }
-
-  .spline-robot-viewer,
-  .core-command-close,
-  .core-project-list a {
-    transition: none;
-  }
-
-  .core-monogram i {
-    animation: none;
-  }
-
-  .snip-action-pill,
-  .snipbot-button,
-  .snipbot-hint {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  .project-card,
-  .project-media::after,
-  .project-media img,
-  .project-summary,
-  .project-details,
-  .tag-row,
-  .project-cta {
-    transition: none !important;
-  }
-}
-
 @media (max-width: 1240px) {
   .engineering-core-stage {
     margin-right: auto;

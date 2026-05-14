@@ -294,10 +294,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
   const exitedRef = useRef(false)
   const containerSizeRef = useRef({ cx: 0, cy: 0, r: 0 })
 
-  const reducedMotion = typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false
-
   // Direct DOM progress bar update — zero React re-renders
   const setBarWidth = useCallback((pct: number) => {
     const el = barFillRef.current
@@ -403,11 +399,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     measureContainer()
     setContainerReady(true)
 
-    if (reducedMotion) {
-      updatePillPositions(0)
-      return
-    }
-
     const speed = 360 / 25
     let lastTime = performance.now()
 
@@ -424,7 +415,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [measureContainer, updatePillPositions, reducedMotion])
+  }, [measureContainer, updatePillPositions])
 
   // Handle window resize
   useEffect(() => {
@@ -432,13 +423,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [measureContainer])
-
-  // Reduced motion: skip
-  useEffect(() => {
-    if (!reducedMotion) return
-    const timer = setTimeout(onComplete, 800)
-    return () => clearTimeout(timer)
-  }, [onComplete, reducedMotion])
 
   // Cleanup RAF on unmount
   useEffect(() => {

@@ -7,7 +7,7 @@ import React, {
   type CSSProperties,
   type ReactNode,
 } from 'react'
-import { AnimatePresence, motion, useReducedMotion, type Variants } from 'framer-motion'
+import { AnimatePresence, motion, MotionConfig, useReducedMotion, type Variants } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
@@ -361,6 +361,7 @@ function App() {
 
   return (
     <>
+      <MotionConfig reducedMotion="never">
       {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       <div className="site-shell">
         <Header />
@@ -376,6 +377,7 @@ function App() {
           <ClosingSection />
         </main>
       </div>
+      </MotionConfig>
     </>
   )
 }

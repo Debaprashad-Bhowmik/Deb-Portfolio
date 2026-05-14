@@ -571,39 +571,3 @@
     height: 20px;
   }
 }
-
-/* ─── Reduced motion ─── */
-@media (prefers-reduced-motion: reduce) {
-  .loading-overlay,
-  .loading-blueprint-grid,
-  .loading-corner-sketch,
-  .loading-name,
-  .loading-tagline,
-  .db-core-svg,
-  .db-outer-ring,
-  .db-outer-ring-2,
-  .db-ticks,
-  .db-bolts,
-  .db-letters,
-  .orbit-guide-ring,
-  .orbit-node,
-  .orbit-pill-abs,
-  .loading-quote,
-  .loading-bar-container,
-  .loading-bar-fill,
-  .loading-bar-text {
-    animation-duration: 0.001ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    opacity: 1 !important;
-  }
-
-  .db-core-glow {
-    animation: none !important;
-    opacity: 0.5 !important;
-  }
-
-  .loading-bar-fill::after {
-    animation: none !important;
-  }
-}
