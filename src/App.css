@@ -301,6 +301,17 @@ input:focus-visible {
   color: #111820;
 }
 
+.hero-credential.hero-credential-dark {
+  background: #081014;
+  color: #eff9ff;
+  border-color: rgba(255, 255, 255, 0.13);
+  box-shadow: 0 12px 30px rgba(8, 16, 20, 0.2);
+}
+
+.hero-credential.hero-credential-dark svg {
+  color: #eff9ff;
+}
+
 .hero-dal-logo {
   width: 21px;
   height: 24px;

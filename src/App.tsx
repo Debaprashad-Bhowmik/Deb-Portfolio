@@ -428,7 +428,7 @@ function Hero() {
               <img className="hero-dal-logo" src="/brand/dalhousie-university.png" alt="" aria-hidden="true" />
               Dalhousie University
             </span>
-            <span className="hero-credential">
+            <span className="hero-credential hero-credential-dark">
               <Settings2 size={18} aria-hidden="true" />
               Mechanical Engineering
             </span>

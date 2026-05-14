@@ -373,6 +373,6 @@ export const contactLinks = {
   email: 'debaprashadbhowmik5314@gmail.com',
   phone: '902-802-0129',
   linkedin: 'https://www.linkedin.com/in/debaprashad-bhowmik-74598a274/',
-  github: 'https://github.com/debaprashadbhowmik',
+  github: 'https://github.com/Debaprashad-Bhowmik',
   resume: '/Debaprashad-Bhowmik-Resume.pdf',
 }
