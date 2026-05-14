@@ -46,6 +46,22 @@ export function loadSplineViewerScript(): Promise<void> {
   return splineViewerScriptPromise
 }
 
+let splineSceneResolve: (() => void) | null = null
+const splineSceneLoadedPromise = new Promise<void>((resolve) => {
+  splineSceneResolve = resolve
+})
+
+export function notifySplineSceneLoaded(): void {
+  if (splineSceneResolve) {
+    splineSceneResolve()
+    splineSceneResolve = null
+  }
+}
+
+export function waitForSplineScene(): Promise<void> {
+  return splineSceneLoadedPromise
+}
+
 export function getSplineSceneUrl(): string {
   return splineRobotSceneUrl
 }

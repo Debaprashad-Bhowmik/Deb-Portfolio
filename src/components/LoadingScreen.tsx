@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { startModelPreload } from '../enginePreloader'
+import { waitForSplineScene } from '../splinePreloader'
 import './LoadingScreen.css'
 
-const MIN_DISPLAY_MS = 2200 // Minimum time to show the loading screen for UX
+const MIN_DISPLAY_MS = 3000 // Minimum time to show the loading screen for UX
 
 /* ─── Pill category data ─── */
 const orbitPills = [
@@ -358,7 +359,12 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     const preloadDelay = setTimeout(() => {
       progressRAF = requestAnimationFrame(tickProgress)
 
-      startModelPreload().then(() => {
+      const allLoaded = Promise.all([
+        startModelPreload(),
+        waitForSplineScene(),
+      ])
+
+      allLoaded.then(() => {
         modelLoadedRef.current = true
         cancelAnimationFrame(progressRAF)
         setBarWidth(95)
@@ -397,29 +403,25 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     measureContainer()
     setContainerReady(true)
 
-    const spinDelay = setTimeout(() => {
-      measureContainer()
-      if (reducedMotion) {
-        updatePillPositions(0)
-        return
-      }
+    if (reducedMotion) {
+      updatePillPositions(0)
+      return
+    }
 
-      const speed = 360 / 25
-      let lastTime = performance.now()
+    const speed = 360 / 25
+    let lastTime = performance.now()
 
-      const animate = (now: number) => {
-        const dt = (now - lastTime) / 1000
-        lastTime = now
-        angleRef.current = (angleRef.current + speed * dt) % 360
-        updatePillPositions(angleRef.current)
-        rafRef.current = requestAnimationFrame(animate)
-      }
-
+    const animate = (now: number) => {
+      const dt = (now - lastTime) / 1000
+      lastTime = now
+      angleRef.current = (angleRef.current + speed * dt) % 360
+      updatePillPositions(angleRef.current)
       rafRef.current = requestAnimationFrame(animate)
-    }, 1400)
+    }
+
+    rafRef.current = requestAnimationFrame(animate)
 
     return () => {
-      clearTimeout(spinDelay)
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
   }, [measureContainer, updatePillPositions, reducedMotion])
