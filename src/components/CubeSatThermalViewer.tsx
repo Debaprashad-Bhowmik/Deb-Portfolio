@@ -1045,7 +1045,7 @@ export default function CubeSatThermalViewer({
 
         const seconds = time / 1000
         if (!rotationState.dragging && !reduceMotion) {
-          rotationState.yaw += 0.0058665
+          rotationState.yaw += 0.0029333
         }
 
         const orbitOffset = (orbitMinutesRef.current / 90) * Math.PI * 2

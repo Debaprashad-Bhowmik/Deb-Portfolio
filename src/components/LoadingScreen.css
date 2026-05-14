@@ -99,6 +99,8 @@
 .db-letters,
 .orbit-guide-ring,
 .orbit-node,
+.orbit-spinner,
+.orbit-pill-inner,
 .loading-quote,
 .loading-bar-container,
 .loading-bar-fill {
@@ -124,6 +126,7 @@
   opacity: 0;
   transform: translateY(14px);
   animation: nameReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+  will-change: transform, opacity;
 }
 
 .loading-tagline {
@@ -137,6 +140,7 @@
   opacity: 0;
   transform: translateY(8px);
   animation: nameReveal 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
+  will-change: transform, opacity;
 }
 
 @keyframes nameReveal {
@@ -157,40 +161,48 @@
 }
 
 /* ─── DB Mechanical Core ─── */
+/* Single animation on the HTML wrapper — runs on compositor thread.
+   SVG content renders once (static), the div fades it in smoothly. */
 .loading-db-core {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.88);
   width: clamp(100px, 14vw, 130px);
   height: clamp(100px, 14vw, 130px);
+  opacity: 0;
+  animation: coreReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+  will-change: transform, opacity;
 }
 
 .db-core-svg {
   width: 100%;
   height: 100%;
-  opacity: 0;
-  animation: coreAssemble 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
 }
 
-@keyframes coreAssemble {
+@keyframes coreReveal {
   0% {
     opacity: 0;
-    transform: scale(0.7) rotate(-30deg);
+    transform: translate(-50%, -50%) scale(0.88);
   }
-  60% {
-    opacity: 1;
-    transform: scale(1.03) rotate(3deg);
+  35% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  65% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1.01);
   }
   100% {
     opacity: 1;
-    transform: scale(1) rotate(0deg);
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
-/* DB core internal glow pulse */
+/* DB core internal glow pulse — lightweight opacity-only, safe on SVG */
 .db-core-glow {
   animation: coreGlowPulse 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(75, 139, 255, 0.4));
 }
 
 @keyframes coreGlowPulse {
@@ -198,56 +210,12 @@
   50% { opacity: 0.65; }
 }
 
-/* Outer ring rotation */
-.db-outer-ring {
-  transform-origin: center;
-  opacity: 0;
-  animation: ringReveal 0.5s ease-out 0.55s forwards;
-}
-
+/* SVG groups render static — no individual animations */
+.db-outer-ring,
 .db-outer-ring-2 {
   transform-origin: center;
-  opacity: 0;
-  animation: ringReveal 0.5s ease-out 0.6s forwards;
 }
 
-.db-ticks {
-  transform-origin: center;
-  opacity: 0;
-  animation: ringReveal 0.4s ease-out 0.65s forwards;
-}
-
-.db-bolts {
-  opacity: 0;
-  animation: ringReveal 0.3s ease-out 0.7s forwards;
-}
-
-.db-letters {
-  opacity: 0;
-  animation: dbLettersReveal 0.4s ease-out 0.8s forwards;
-}
-
-@keyframes ringReveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes dbLettersReveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
 /* ─── Orbit guides ─── */
 .loading-orbit-guides {
@@ -318,9 +286,27 @@
   to { opacity: 0.7; }
 }
 
-/* ─── Absolutely positioned orbit pills (always upright) ─── */
+.orbit-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  animation: orbitSpin 25s linear infinite;
+  will-change: transform;
+}
+
+@keyframes orbitSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .orbit-pill-abs {
   position: absolute;
+  pointer-events: none;
+}
+
+.orbit-pill-inner {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -333,21 +319,23 @@
     0 1px 3px rgba(30, 26, 18, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
   white-space: nowrap;
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-  will-change: left, top, opacity;
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(0deg);
+  will-change: transform, opacity;
   contain: content;
+  animation:
+    pillCounterSpin 25s linear infinite 0s,
+    pillFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) var(--pill-delay, 1s) forwards;
+}
+
+@keyframes pillCounterSpin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(-360deg); }
 }
 
 @keyframes pillFadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .orbit-pill-icon {
@@ -511,7 +499,7 @@
     width: clamp(160px, 55vw, 340px);
   }
 
-  .orbit-pill-abs {
+  .orbit-pill-inner {
     padding: 4px 10px 4px 6px;
   }
 
@@ -561,7 +549,7 @@
     font-size: 8px;
   }
 
-  .orbit-pill-abs {
+  .orbit-pill-inner {
     gap: 5px;
     padding: 3px 8px 3px 5px;
   }

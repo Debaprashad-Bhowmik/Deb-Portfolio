@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, type CSSProperties } from 'react'
 import { startModelPreload } from '../enginePreloader'
 import { waitForSplineScene } from '../splinePreloader'
 import { waitForAllScenes } from '../sceneReadiness'
@@ -200,13 +200,6 @@ function DBCoreSVG() {
           <stop offset="60%" stopColor="#111c33" />
           <stop offset="100%" stopColor="#0d1520" />
         </radialGradient>
-        <filter id="blueGlow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
 
       <g className="db-outer-ring">
@@ -257,7 +250,7 @@ function DBCoreSVG() {
         })}
       </g>
 
-      <circle cx="100" cy="100" r="69" fill="none" stroke="#4b8bff" strokeWidth="1" opacity="0.5" filter="url(#blueGlow)" className="db-core-glow" />
+      <circle cx="100" cy="100" r="69" fill="none" stroke="#4b8bff" strokeWidth="1" opacity="0.5" className="db-core-glow" />
       <circle cx="100" cy="100" r="66" fill="url(#innerFace)" />
       <circle cx="100" cy="100" r="66" fill="url(#coreGlow)" className="db-core-glow" />
       <circle cx="100" cy="100" r="66" fill="none" stroke="#3366cc" strokeWidth="0.5" opacity="0.4" />
@@ -286,49 +279,26 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
   const [isExiting, setIsExiting] = useState(false)
   const [containerReady, setContainerReady] = useState(false)
   const orbitContainerRef = useRef<HTMLDivElement>(null)
-  const pillRefs = useRef<(HTMLDivElement | null)[]>([])
   const barFillRef = useRef<HTMLDivElement>(null)
-  const rafRef = useRef<number | null>((null))
-  const angleRef = useRef(0)
   const modelLoadedRef = useRef(false)
   const startTimeRef = useRef(Date.now())
   const exitedRef = useRef(false)
-  const containerSizeRef = useRef({ cx: 0, cy: 0, r: 0 })
+  const containerSizeRef = useRef({ r: 0 })
 
-  // Direct DOM progress bar update — zero React re-renders
   const setBarWidth = useCallback((pct: number) => {
     const el = barFillRef.current
     if (el) el.style.width = `${pct}%`
   }, [])
 
-  // Position pills using cached container dimensions — zero React re-renders
-  const updatePillPositions = useCallback((orbitAngle: number) => {
-    const { cx, cy, r } = containerSizeRef.current
-    if (r === 0) return
-
-    for (let i = 0; i < orbitPills.length; i++) {
-      const pill = pillRefs.current[i]
-      if (!pill) continue
-
-      const baseAngle = -90 + (i * 360) / orbitPills.length
-      const rad = ((baseAngle + orbitAngle) * Math.PI) / 180
-
-      pill.style.left = `${cx + r * Math.cos(rad)}px`
-      pill.style.top = `${cy + r * Math.sin(rad)}px`
-    }
-  }, [])
-
-  // Measure container once and cache
   const measureContainer = useCallback(() => {
     const container = orbitContainerRef.current
     if (!container) return
     const rect = container.getBoundingClientRect()
     const cx = rect.width / 2
     const cy = rect.height / 2
-    containerSizeRef.current = { cx, cy, r: Math.min(cx, cy) * 0.74 }
+    containerSizeRef.current = { r: Math.min(cx, cy) * 0.74 }
   }, [])
 
-  // Trigger exit
   const triggerExit = useCallback(() => {
     if (exitedRef.current) return
     exitedRef.current = true
@@ -337,13 +307,11 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     setTimeout(onComplete, 600)
   }, [onComplete, setBarWidth])
 
-  // Preload model — deferred 300ms so CSS entry animations play smooth
   useEffect(() => {
     startTimeRef.current = Date.now()
     let progressRAF: number
     let progressValue = 0
 
-    // Simulated progress via direct DOM — zero React re-renders
     const tickProgress = () => {
       if (modelLoadedRef.current || progressValue >= 90) return
       const increment = Math.max(0.3, (90 - progressValue) * 0.02)
@@ -352,7 +320,6 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       progressRAF = requestAnimationFrame(tickProgress)
     }
 
-    // Defer heavy Three.js work so initial CSS animations are buttery
     const preloadDelay = setTimeout(() => {
       progressRAF = requestAnimationFrame(tickProgress)
 
@@ -396,42 +363,16 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     }
   }, [triggerExit, setBarWidth])
 
-  // Measure container + start orbit
   useEffect(() => {
     measureContainer()
     setContainerReady(true)
+  }, [measureContainer])
 
-    const speed = 360 / 25
-    let lastTime = performance.now()
-
-    const animate = (now: number) => {
-      const dt = (now - lastTime) / 1000
-      lastTime = now
-      angleRef.current = (angleRef.current + speed * dt) % 360
-      updatePillPositions(angleRef.current)
-      rafRef.current = requestAnimationFrame(animate)
-    }
-
-    rafRef.current = requestAnimationFrame(animate)
-
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [measureContainer, updatePillPositions])
-
-  // Handle window resize
   useEffect(() => {
     const onResize = () => measureContainer()
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [measureContainer])
-
-  // Cleanup RAF on unmount
-  useEffect(() => {
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-    }
-  }, [])
 
   return (
     <div className={`loading-overlay${isExiting ? ' exit' : ''}`} role="status" aria-label="Loading portfolio">
@@ -461,33 +402,35 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
           <DBCoreSVG />
         </div>
 
-        {/* Pills always in DOM — CSS animation handles reveal timing */}
-        {containerReady && orbitPills.map((pill, i) => {
-          const baseAngle = -90 + (i * 360) / orbitPills.length
-          const rad = (baseAngle * Math.PI) / 180
-          const { cx, cy, r } = containerSizeRef.current
-          const initX = cx + r * Math.cos(rad)
-          const initY = cy + r * Math.sin(rad)
+        {containerReady && (
+          <div className="orbit-spinner">
+            {orbitPills.map((pill, i) => {
+              const baseAngle = -90 + (i * 360) / orbitPills.length
+              const rad = (baseAngle * Math.PI) / 180
+              const { r } = containerSizeRef.current
+              const x = r * Math.cos(rad)
+              const y = r * Math.sin(rad)
 
-          return (
-            <div
-              key={pill.label}
-              ref={(el) => { pillRefs.current[i] = el }}
-              className="orbit-pill-abs"
-              style={{
-                left: `${initX}px`,
-                top: `${initY}px`,
-                opacity: 0,
-                animation: `pillFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) ${1.0 + i * 0.08}s forwards`,
-              }}
-            >
-              <span className="orbit-pill-icon">
-                <PillIcon type={pill.icon} />
-              </span>
-              <span className="orbit-pill-label">{pill.label}</span>
-            </div>
-          )
-        })}
+              return (
+                <div
+                  key={pill.label}
+                  className="orbit-pill-abs"
+                  style={{ left: `${x}px`, top: `${y}px` }}
+                >
+                  <div
+                    className="orbit-pill-inner"
+                    style={{ '--pill-delay': `${(1.0 + i * 0.08).toFixed(2)}s` } as CSSProperties}
+                  >
+                    <span className="orbit-pill-icon">
+                      <PillIcon type={pill.icon} />
+                    </span>
+                    <span className="orbit-pill-label">{pill.label}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className="loading-quote">
