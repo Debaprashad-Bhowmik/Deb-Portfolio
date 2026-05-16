@@ -322,7 +322,6 @@
   opacity: 0;
   transform: translate(-50%, -50%) rotate(0deg);
   will-change: transform, opacity;
-  contain: content;
   animation:
     pillCounterSpin 25s linear infinite 0s,
     pillFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) var(--pill-delay, 1s) forwards;
