@@ -1027,6 +1027,7 @@ function SplineRobotViewer() {
         url: splineRobotSceneUrl,
         loading: 'eager',
       })}
+      <span className="spline-watermark-fog" aria-hidden="true" />
     </div>
   )
 }

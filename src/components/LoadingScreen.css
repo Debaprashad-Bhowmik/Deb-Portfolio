@@ -201,13 +201,13 @@
 
 /* DB core internal glow pulse — lightweight opacity-only, safe on SVG */
 .db-core-glow {
+  filter: drop-shadow(0 0 3px rgba(75, 139, 255, 0.6)) drop-shadow(0 0 6px rgba(75, 139, 255, 0.3));
   animation: coreGlowPulse 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 3px rgba(75, 139, 255, 0.4));
 }
 
 @keyframes coreGlowPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.65; }
+  0%, 100% { opacity: 0.3; filter: drop-shadow(0 0 3px rgba(75, 139, 255, 0.4)) drop-shadow(0 0 5px rgba(75, 139, 255, 0.2)); }
+  50% { opacity: 0.65; filter: drop-shadow(0 0 5px rgba(75, 139, 255, 0.7)) drop-shadow(0 0 10px rgba(75, 139, 255, 0.4)); }
 }
 
 /* SVG groups render static — no individual animations */
