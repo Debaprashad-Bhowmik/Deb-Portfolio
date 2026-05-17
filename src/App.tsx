@@ -70,7 +70,7 @@ import CubeSatThermalViewer, {
   type ThermalAnchorPoint,
   type ThermalTelemetry,
 } from './components/CubeSatThermalViewer'
-
+import LoadingScreen from './components/LoadingScreen'
 import './App.css'
 
 const revealVariants: Variants = {
@@ -350,6 +350,8 @@ function Sparkline({
 }
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true)
+
   useEffect(() => {
     const hash = window.location.hash
     if (!hash) return
@@ -362,6 +364,7 @@ function App() {
   return (
     <>
       <MotionConfig reducedMotion="never">
+      {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       <div className="site-shell">
         <Header />
         <main>
@@ -1002,13 +1005,13 @@ function SplineRobotViewer() {
     const viewer = viewerRef.current
     if (!viewer) {
       loadSplineViewerScript()
-        .then(() => { setStatus('ready'); notifySplineSceneLoaded() })
+        .then(() => setStatus('ready'))
         .catch(() => setStatus('error'))
       return
     }
 
     const markReady = () => { setStatus('ready'); notifySplineSceneLoaded() }
-    const markError = () => { setStatus('error') }
+    const markError = () => { setStatus('error'); notifySplineSceneLoaded() }
 
     viewer.addEventListener('load', markReady)
     viewer.addEventListener('error', markError)
@@ -1021,11 +1024,6 @@ function SplineRobotViewer() {
 
   return (
     <div className={`spline-robot-viewer is-${status}`} aria-label="Interactive Spline robot model">
-      {status === 'loading' && (
-        <div className="spline-loader">
-          <div className="spline-loader-spinner" />
-        </div>
-      )}
       {React.createElement('spline-viewer', {
         ref: viewerRef,
         url: splineRobotSceneUrl,
@@ -1274,27 +1272,6 @@ const snipActionPositions: Record<SnipAction, { x: number; y: number }> = {
   Answer: { x: 128, y: 68 },
 }
 
-const snipWhyCards = [
-  {
-    number: '01',
-    title: 'Problem',
-    detail:
-      'People waste time switching between screenshots, documents, tabs, and AI chats just to get simple answers or explanations.',
-  },
-  {
-    number: '02',
-    title: 'System Built',
-    detail:
-      'Snipping GPT lets users select any visible content, choose an intent, and receive contextual AI-style responses.',
-  },
-  {
-    number: '03',
-    title: 'Engineering Value',
-    detail:
-      'Reduces context switching, keeps flow intact, and makes visual information easier to understand and act on.',
-  },
-]
-
 const snipInfoTabs: Array<{
   id: SnipInfoTabId
   label: string
@@ -1353,7 +1330,7 @@ const snipInfoTabs: Array<{
     id: 'notes',
     label: 'Notes',
     body:
-      'This is a demo of the real software. The real app would use an API key from your favorite AI model to understand what you capture on screen and respond instantly with useful answers.',
+      'The real product idea is simple: ask questions about anything on your screen. This implementation keeps the feeling of that workflow while staying safe for a static portfolio.',
     features: [
       { title: 'Copy', detail: 'Response text can be copied.', icon: Clipboard },
       { title: 'Save', detail: 'Save is represented as demo feedback.', icon: Save },
@@ -2363,20 +2340,6 @@ function SnippingGPTSection() {
           <div className="snip-monitor-neck" aria-hidden="true" />
           <div className="snip-monitor-base" aria-hidden="true" />
         </div>
-        <section className="snip-why-strip" aria-labelledby="snip-why-title">
-          <p id="snip-why-title">Why It Exists</p>
-          <div className="snip-why-grid">
-            {snipWhyCards.map((card) => (
-              <article key={card.number} className="snip-why-card">
-                <span>{card.number}</span>
-                <div>
-                  <h3>{card.title}</h3>
-                  <p>{card.detail}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
         <div className="snip-overview-card">
           <div className="snip-overview-tabs" role="tablist" aria-label="Snipping GPT details">
             {snipInfoTabs.map((tab) => (
@@ -3851,7 +3814,6 @@ const bleedingArtifactLinks: Array<{
 ]
 
 function BleedingSimulatorSection() {
-  const simulatorStartedAt = useMemo(() => Date.now(), [])
   const capabilityCards = [
     {
       icon: Droplets,
@@ -3957,7 +3919,7 @@ function BleedingSimulatorSection() {
         </div>
         <iframe
           title="Bleeding Control Simulator interactive demo"
-          src={`/bleeding-control-simulator/index.html?embed=portfolio&startedAt=${simulatorStartedAt}`}
+          src="/bleeding-control-simulator/index.html?embed=portfolio"
           loading="lazy"
           onLoad={(event) => {
             const frame = event.currentTarget
@@ -3968,7 +3930,7 @@ function BleedingSimulatorSection() {
               }
 
               frame.style.height = '0px'
-              const nextHeight = Math.max(doc.body.scrollHeight, 980)
+              const nextHeight = Math.max(doc.body.scrollHeight, 1120)
               if (nextHeight) {
                 frame.style.height = `${nextHeight}px`
               }
