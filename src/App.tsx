@@ -185,7 +185,7 @@ const coreProjectLinks = [
   { title: 'Snipping GPT', meta: 'Screenshot intent system for fast AI help', href: '#snipping-gpt' },
 ]
 
-import { loadSplineViewerScript, getSplineSceneUrl } from './splinePreloader'
+import { loadSplineViewerScript, getSplineSceneUrl, notifySplineSceneLoaded } from './splinePreloader'
 
 const splineRobotSceneUrl = getSplineSceneUrl()
 
@@ -1002,12 +1002,12 @@ function SplineRobotViewer() {
     const viewer = viewerRef.current
     if (!viewer) {
       loadSplineViewerScript()
-        .then(() => setStatus('ready'))
+        .then(() => { setStatus('ready'); notifySplineSceneLoaded() })
         .catch(() => setStatus('error'))
       return
     }
 
-    const markReady = () => { setStatus('ready') }
+    const markReady = () => { setStatus('ready'); notifySplineSceneLoaded() }
     const markError = () => { setStatus('error') }
 
     viewer.addEventListener('load', markReady)
