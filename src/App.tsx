@@ -70,7 +70,7 @@ import CubeSatThermalViewer, {
   type ThermalAnchorPoint,
   type ThermalTelemetry,
 } from './components/CubeSatThermalViewer'
-import LoadingScreen from './components/LoadingScreen'
+
 import './App.css'
 
 const revealVariants: Variants = {
@@ -185,7 +185,7 @@ const coreProjectLinks = [
   { title: 'Snipping GPT', meta: 'Screenshot intent system for fast AI help', href: '#snipping-gpt' },
 ]
 
-import { loadSplineViewerScript, getSplineSceneUrl, notifySplineSceneLoaded } from './splinePreloader'
+import { loadSplineViewerScript, getSplineSceneUrl } from './splinePreloader'
 
 const splineRobotSceneUrl = getSplineSceneUrl()
 
@@ -350,8 +350,6 @@ function Sparkline({
 }
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true)
-
   useEffect(() => {
     const hash = window.location.hash
     if (!hash) return
@@ -364,7 +362,6 @@ function App() {
   return (
     <>
       <MotionConfig reducedMotion="never">
-      {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
       <div className="site-shell">
         <Header />
         <main>
@@ -1010,8 +1007,8 @@ function SplineRobotViewer() {
       return
     }
 
-    const markReady = () => { setStatus('ready'); notifySplineSceneLoaded() }
-    const markError = () => { setStatus('error'); notifySplineSceneLoaded() }
+    const markReady = () => { setStatus('ready') }
+    const markError = () => { setStatus('error') }
 
     viewer.addEventListener('load', markReady)
     viewer.addEventListener('error', markError)
@@ -1024,6 +1021,11 @@ function SplineRobotViewer() {
 
   return (
     <div className={`spline-robot-viewer is-${status}`} aria-label="Interactive Spline robot model">
+      {status === 'loading' && (
+        <div className="spline-loader">
+          <div className="spline-loader-spinner" />
+        </div>
+      )}
       {React.createElement('spline-viewer', {
         ref: viewerRef,
         url: splineRobotSceneUrl,
@@ -1330,7 +1332,7 @@ const snipInfoTabs: Array<{
     id: 'notes',
     label: 'Notes',
     body:
-      'The real product idea is simple: ask questions about anything on your screen. This implementation keeps the feeling of that workflow while staying safe for a static portfolio.',
+      'This is a demo of the real software. The real app would use an API key from your favorite AI model to understand what you capture on screen and respond instantly with useful answers.',
     features: [
       { title: 'Copy', detail: 'Response text can be copied.', icon: Clipboard },
       { title: 'Save', detail: 'Save is represented as demo feedback.', icon: Save },
@@ -3814,6 +3816,7 @@ const bleedingArtifactLinks: Array<{
 ]
 
 function BleedingSimulatorSection() {
+  const simulatorStartedAt = useMemo(() => Date.now(), [])
   const capabilityCards = [
     {
       icon: Droplets,
@@ -3919,7 +3922,7 @@ function BleedingSimulatorSection() {
         </div>
         <iframe
           title="Bleeding Control Simulator interactive demo"
-          src="/bleeding-control-simulator/index.html?embed=portfolio"
+          src={`/bleeding-control-simulator/index.html?embed=portfolio&startedAt=${simulatorStartedAt}`}
           loading="lazy"
           onLoad={(event) => {
             const frame = event.currentTarget
@@ -3930,7 +3933,7 @@ function BleedingSimulatorSection() {
               }
 
               frame.style.height = '0px'
-              const nextHeight = Math.max(doc.body.scrollHeight, 1120)
+              const nextHeight = Math.max(doc.body.scrollHeight, 980)
               if (nextHeight) {
                 frame.style.height = `${nextHeight}px`
               }

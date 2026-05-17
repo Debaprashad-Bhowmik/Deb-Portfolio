@@ -917,6 +917,29 @@ input:focus-visible {
   border: 0;
 }
 
+.spline-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.spline-loader-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(23, 28, 50, 0.1);
+  border-top-color: #4b7cff;
+  border-radius: 50%;
+  animation: splineSpinner 0.8s linear infinite;
+}
+
+@keyframes splineSpinner {
+  to { transform: rotate(360deg); }
+}
+
 .spline-watermark-fog {
   position: absolute;
   top: auto;
@@ -5700,7 +5723,7 @@ input[type='range'] {
 .bleeding-embed-shell iframe {
   display: block;
   width: 100%;
-  min-height: 1120px;
+  min-height: 980px;
   border: 0;
   background: #fbfaf8;
 }
