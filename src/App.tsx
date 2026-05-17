@@ -1274,6 +1274,27 @@ const snipActionPositions: Record<SnipAction, { x: number; y: number }> = {
   Answer: { x: 128, y: 68 },
 }
 
+const snipWhyCards = [
+  {
+    number: '01',
+    title: 'Problem',
+    detail:
+      'People waste time switching between screenshots, documents, tabs, and AI chats just to get simple answers or explanations.',
+  },
+  {
+    number: '02',
+    title: 'System Built',
+    detail:
+      'Snipping GPT lets users select any visible content, choose an intent, and receive contextual AI-style responses.',
+  },
+  {
+    number: '03',
+    title: 'Engineering Value',
+    detail:
+      'Reduces context switching, keeps flow intact, and makes visual information easier to understand and act on.',
+  },
+]
+
 const snipInfoTabs: Array<{
   id: SnipInfoTabId
   label: string
@@ -2342,6 +2363,20 @@ function SnippingGPTSection() {
           <div className="snip-monitor-neck" aria-hidden="true" />
           <div className="snip-monitor-base" aria-hidden="true" />
         </div>
+        <section className="snip-why-strip" aria-labelledby="snip-why-title">
+          <p id="snip-why-title">Why It Exists</p>
+          <div className="snip-why-grid">
+            {snipWhyCards.map((card) => (
+              <article key={card.number} className="snip-why-card">
+                <span>{card.number}</span>
+                <div>
+                  <h3>{card.title}</h3>
+                  <p>{card.detail}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
         <div className="snip-overview-card">
           <div className="snip-overview-tabs" role="tablist" aria-label="Snipping GPT details">
             {snipInfoTabs.map((tab) => (
