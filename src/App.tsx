@@ -3987,13 +3987,12 @@ function ClosingSection() {
         </div>
       </div>
       <footer className="site-footer">
-        <span>I build at the intersection of</span>
+        <span>Based in Halifax, Canada</span>
         <strong>Mechanical design</strong>
         <strong>AI systems</strong>
         <strong>Simulation</strong>
         <strong>Automation</strong>
         <strong>Clean infrastructure</strong>
-        <span>Based in Halifax, Canada</span>
       </footer>
     </SectionReveal>
   )
