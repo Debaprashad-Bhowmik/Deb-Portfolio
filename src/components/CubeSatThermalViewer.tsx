@@ -33,6 +33,7 @@ type ThermalTextureBinding = {
 
 type CubeSatModel = {
   anchorLocalPoints: Record<ThermalAnchorKey, import('three').Vector3>
+  anchorLocalNormals: Record<ThermalAnchorKey, import('three').Vector3>
   boundsSize: import('three').Vector3
   root: import('three').Group
   thermalTextures: ThermalTextureBinding[]
@@ -809,14 +810,21 @@ function createReferenceCubeSat(
   addInstancedSpheres(THREE, root, 0.011, contactDots, goldMaterial)
 
   const anchorLocalPoints: Record<ThermalAnchorKey, import('three').Vector3> = {
-    xFace: new THREE.Vector3(0.18, frontY - 0.12, 0.56),
-    panel: new THREE.Vector3(-0.44, -0.58, zHalf + 0.13),
-    battery: new THREE.Vector3(sideX + 0.1, 0.54, 0.16),
-    radio: new THREE.Vector3(sideX + 0.1, -0.48, -0.24),
-    nadir: new THREE.Vector3(-0.22, -0.2, -zHalf - 0.08),
+    xFace: new THREE.Vector3(0.1, frontY - 0.13, 0.5),
+    panel: new THREE.Vector3(0.44, 0.56, zHalf + 0.16),
+    battery: new THREE.Vector3(sideX + 0.13, 0.45, 0.14),
+    radio: new THREE.Vector3(0.32, frontY - 0.12, 0.16),
+    nadir: new THREE.Vector3(-0.22, -0.16, -zHalf - 0.12),
+  }
+  const anchorLocalNormals: Record<ThermalAnchorKey, import('three').Vector3> = {
+    xFace: new THREE.Vector3(0, -1, 0),
+    panel: new THREE.Vector3(0, 0, 1),
+    battery: new THREE.Vector3(1, 0, 0),
+    radio: new THREE.Vector3(0, -1, 0),
+    nadir: new THREE.Vector3(0, 0, -1),
   }
 
-  return { anchorLocalPoints, boundsSize, root, thermalTextures }
+  return { anchorLocalPoints, anchorLocalNormals, boundsSize, root, thermalTextures }
 }
 
 export default function CubeSatThermalViewer({
@@ -926,6 +934,8 @@ export default function CubeSatThermalViewer({
 
       let lastThermalSignature = ''
       let lastAnchorSignature = ''
+      const cameraWorldPosition = new THREE.Vector3()
+      const anchorToCamera = new THREE.Vector3()
 
       const rotationState = {
         yaw: -0.54,
@@ -972,22 +982,30 @@ export default function CubeSatThermalViewer({
         const canvasRect = container.getBoundingClientRect()
         const next = {} as ThermalAnchorMap
 
+        camera.getWorldPosition(cameraWorldPosition)
+
         ;(Object.keys(cubeSat.anchorLocalPoints) as ThermalAnchorKey[]).forEach((key) => {
-          const projected = cubeSat.anchorLocalPoints[key].clone()
-          cubeSat.root.localToWorld(projected)
+          const anchorWorld = cubeSat.anchorLocalPoints[key].clone()
+          cubeSat.root.localToWorld(anchorWorld)
+
+          const normalWorld = cubeSat.anchorLocalNormals[key].clone().transformDirection(cubeSat.root.matrixWorld)
+          const facingCamera = normalWorld.dot(anchorToCamera.copy(cameraWorldPosition).sub(anchorWorld).normalize())
+          const projected = anchorWorld.clone()
           projected.project(camera)
 
           const canvasX = (projected.x * 0.5 + 0.5) * canvasRect.width
           const canvasY = (-projected.y * 0.5 + 0.5) * canvasRect.height
+          const rawX = ((canvasRect.left - sceneRect.left + canvasX) / sceneRect.width) * 100
+          const rawY = ((canvasRect.top - sceneRect.top + canvasY) / sceneRect.height) * 100
           next[key] = {
-            x: clamp(((canvasRect.left - sceneRect.left + canvasX) / sceneRect.width) * 100, -8, 108),
-            y: clamp(((canvasRect.top - sceneRect.top + canvasY) / sceneRect.height) * 100, -8, 108),
-            visible: projected.z > -1 && projected.z < 1,
+            x: clamp(rawX, 0, 100),
+            y: clamp(rawY, 0, 100),
+            visible: projected.z > -1 && projected.z < 1 && facingCamera > -0.95 && rawX >= 0 && rawX <= 100 && rawY >= 0 && rawY <= 100,
           }
         })
 
         const signature = Object.values(next)
-          .map((point) => `${Math.round(point.x)}:${Math.round(point.y)}:${point.visible ? 1 : 0}`)
+          .map((point) => `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.visible ? 1 : 0}`)
           .join('|')
         if (signature !== lastAnchorSignature) {
           lastAnchorSignature = signature
