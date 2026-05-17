@@ -296,7 +296,11 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     const rect = container.getBoundingClientRect()
     const cx = rect.width / 2
     const cy = rect.height / 2
-    containerSizeRef.current = { r: Math.min(cx, cy) * 0.74 }
+    const maxR = Math.min(cx, cy) * 0.74
+    const pillHalf = 40
+    const vpHalf = Math.min(window.innerWidth, window.innerHeight) / 2
+    const safeR = Math.min(maxR, vpHalf - pillHalf - 12)
+    containerSizeRef.current = { r: Math.max(safeR, maxR * 0.55) }
   }, [])
 
   const triggerExit = useCallback(() => {
