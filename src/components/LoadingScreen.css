@@ -310,6 +310,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  width: max-content;
+  max-width: none;
   padding: 6px 14px 6px 8px;
   background: rgba(245, 240, 232, 0.95);
   border: 1px solid rgba(23, 28, 50, 0.1);
@@ -325,6 +327,10 @@
   animation:
     pillCounterSpin 25s linear infinite 0s,
     pillFadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) var(--pill-delay, 1s) forwards;
+}
+
+.orbit-pill-abs {
+  max-width: none;
 }
 
 @keyframes pillCounterSpin {
