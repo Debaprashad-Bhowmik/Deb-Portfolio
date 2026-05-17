@@ -36,8 +36,6 @@ import {
   ListTodo,
   Mail,
   MapPin,
-  Maximize2,
-  Minus,
   MonitorUp,
   Moon,
   PanelTop,
@@ -234,19 +232,19 @@ type LiveTwinState = {
 }
 
 const thermalAnchorFallbacks: ThermalAnchorMap = {
-  xFace: { x: 54, y: 36, visible: true },
-  panel: { x: 42, y: 20, visible: true },
-  battery: { x: 34, y: 38, visible: true },
-  radio: { x: 58, y: 42, visible: true },
-  nadir: { x: 52, y: 62, visible: true },
+  xFace: { x: 58, y: 25, visible: true },
+  panel: { x: 45, y: 39, visible: true },
+  battery: { x: 75, y: 38, visible: true },
+  radio: { x: 68, y: 71, visible: true },
+  nadir: { x: 55, y: 73, visible: true },
 }
 
 const thermalCalloutOffsets: Record<ThermalAnchorKey, { x: number; y: number }> = {
-  xFace: { x: 14, y: -3 },
-  panel: { x: -16, y: -4 },
-  battery: { x: -14, y: 4 },
-  radio: { x: 14, y: 12 },
-  nadir: { x: -14, y: 16 },
+  xFace: { x: -9, y: -18 },
+  panel: { x: -16, y: -10 },
+  battery: { x: 11, y: -10 },
+  radio: { x: 11, y: 10 },
+  nadir: { x: -13, y: 16 },
 }
 
 const feedbackProofItems: Array<{ icon: LucideIcon; title: string; detail: string }> = [
@@ -1154,18 +1152,12 @@ const ProjectCard = React.memo(function ProjectCard({
 })
 
 type SnipAction = 'Explain' | 'Steps' | 'Custom' | 'Summary' | 'Bug' | 'Answer'
-type SnipWindowId = 'notes' | 'article' | 'calculator' | 'error' | 'image' | 'todo' | 'files' | 'tools'
-type SnipTargetId = SnipWindowId | 'taskbar' | 'desktop'
+type SnipTargetId = 'notes' | 'article' | 'calculator' | 'error' | 'image' | 'todo'
 type SelectionBox = {
   x: number
   y: number
   width: number
   height: number
-}
-type SelectionDragStart = {
-  x: number
-  y: number
-  snipId?: SnipTargetId
 }
 type SnipBotPosition = {
   x: number
@@ -1181,16 +1173,6 @@ type SnipTarget = {
   id: SnipTargetId
   name: string
   icon: LucideIcon
-}
-type SnipWindowTarget = SnipTarget & {
-  id: SnipWindowId
-  initialOpen: boolean
-}
-type SnipWindowState = {
-  isOpen: boolean
-  isMinimized: boolean
-  isMaximized: boolean
-  z: number
 }
 type SnipClientRect = {
   top: number
@@ -1208,60 +1190,14 @@ type SnipInfoTabId = 'overview' | 'capture' | 'actions' | 'privacy' | 'notes'
 
 const snipActions: SnipAction[] = ['Explain', 'Steps', 'Custom', 'Summary', 'Bug', 'Answer']
 
-const snipWindowTargets: SnipWindowTarget[] = [
-  { id: 'notes', name: 'Notes App', icon: StickyNote, initialOpen: true },
-  { id: 'article', name: 'Browser Article', icon: Globe2, initialOpen: true },
-  { id: 'calculator', name: 'Calculator', icon: Calculator, initialOpen: true },
-  { id: 'error', name: 'Error Popup', icon: AlertTriangle, initialOpen: true },
-  { id: 'image', name: 'Image Preview', icon: ImageIcon, initialOpen: true },
-  { id: 'todo', name: 'To-Do List', icon: ListTodo, initialOpen: true },
-  { id: 'files', name: 'My Files', icon: FileText, initialOpen: false },
-  { id: 'tools', name: 'Tools', icon: Settings2, initialOpen: false },
-]
-
 const snipTargets: SnipTarget[] = [
-  ...snipWindowTargets,
-  { id: 'taskbar', name: 'Taskbar', icon: PanelTop },
-  { id: 'desktop', name: 'Desktop Workspace', icon: MonitorUp },
+  { id: 'notes', name: 'Notes App', icon: StickyNote },
+  { id: 'article', name: 'Browser Article', icon: Globe2 },
+  { id: 'calculator', name: 'Calculator', icon: Calculator },
+  { id: 'error', name: 'Error Popup', icon: AlertTriangle },
+  { id: 'image', name: 'Image Preview', icon: ImageIcon },
+  { id: 'todo', name: 'To-Do List', icon: ListTodo },
 ]
-
-const snipTaskbarWindows: SnipWindowId[] = ['notes', 'files', 'tools', 'image']
-
-const snipCalculatorKeys = [
-  'C',
-  '/',
-  '*',
-  'Del',
-  '7',
-  '8',
-  '9',
-  '-',
-  '4',
-  '5',
-  '6',
-  '+',
-  '1',
-  '2',
-  '3',
-  '=',
-  '0',
-  '.',
-  '00',
-  '%',
-]
-
-const initialSnipWindowStates: Record<SnipWindowId, SnipWindowState> = snipWindowTargets.reduce(
-  (states, target, index) => ({
-    ...states,
-    [target.id]: {
-      isOpen: target.initialOpen,
-      isMinimized: false,
-      isMaximized: false,
-      z: 8 + index,
-    },
-  }),
-  {} as Record<SnipWindowId, SnipWindowState>,
-)
 
 const snipActionPositions: Record<SnipAction, { x: number; y: number }> = {
   Explain: { x: 0, y: -118 },
@@ -1401,46 +1337,6 @@ const responses: Record<SnipTargetId, Record<SnipAction, string>> = {
     Bug: 'Potential issue: tasks are not prioritized and some items are unchecked without deadlines.',
     Custom: 'Ask to prioritize this list, turn it into a timeline, or create subtasks.',
   },
-  files: {
-    Summary: 'The file explorer shows portfolio documents, screenshots, exports, and project notes.',
-    Explain:
-      'This simulated file app groups useful work artifacts into a small desktop-style explorer so SnipBot can answer questions about visible files.',
-    Steps:
-      '1. Open My Files. 2. Pick the visible folder or document. 3. Capture the area with SnipBot. 4. Choose Summary, Steps, or Answer.',
-    Answer: 'The visible files are organized around portfolio assets, technical reports, screenshots, and project exports.',
-    Bug: 'Potential issue: the file list is a demo view, so it does not expose real local files or hidden folders.',
-    Custom: 'Ask for a file summary, folder cleanup plan, or what artifact to open next.',
-  },
-  tools: {
-    Summary: 'The tools panel shows simulated utilities for OCR, PDF export, annotations, and quick capture.',
-    Explain:
-      'This is a mock tool shelf for the Snipping GPT concept. It makes the monitor feel like a usable workspace without connecting to real system tools.',
-    Steps:
-      '1. Choose a utility. 2. Capture the relevant app area. 3. Ask SnipBot for an action. 4. Use the returned response as guidance.',
-    Answer: 'The tools are capture, OCR, annotation, export, and settings utilities.',
-    Bug: 'Potential issue: tools are represented as frontend demo buttons and do not perform real OCR or export operations.',
-    Custom: 'Ask which tool to use, how to automate a capture workflow, or how to organize the utilities.',
-  },
-  taskbar: {
-    Summary: 'The taskbar contains Start, app shortcuts, SnipBot capture, and system status.',
-    Explain:
-      'The taskbar is the control strip for the simulated computer. It restores apps, opens the start menu, and starts capture mode.',
-    Steps:
-      '1. Open Start or an app shortcut. 2. Restore the needed window. 3. Use SnipBot capture. 4. Select an action pill.',
-    Answer: 'The taskbar is used for app switching, launching, and capture access.',
-    Bug: 'Potential issue: if too many shortcuts are active on a small screen, the taskbar may need horizontal scrolling.',
-    Custom: 'Ask for a cleaner taskbar layout, shortcut priorities, or a workflow explanation.',
-  },
-  desktop: {
-    Summary: 'The desktop is a simulated workspace with open apps, shortcuts, and a capture assistant.',
-    Explain:
-      'This area represents the screen context Snipping GPT would inspect. Empty-space captures return a desktop-level answer instead of doing nothing.',
-    Steps:
-      '1. Click SnipBot. 2. Drag over any visible region. 3. Release to create the capture. 4. Pick an answer type.',
-    Answer: 'This is the Snipping GPT simulated desktop environment.',
-    Bug: 'Potential issue: empty desktop captures can be broad, so a tighter crop gives a more specific answer.',
-    Custom: 'Ask for a tour of the workspace, a suggested next action, or a UI critique.',
-  },
 }
 
 function getOverlapArea(a: SnipClientRect, b: SnipClientRect) {
@@ -1453,46 +1349,12 @@ function getSnipTargetById(id?: string) {
   return snipTargets.find((target) => target.id === id) ?? null
 }
 
-function formatSnipCalcValue(value: number) {
-  return Number.isInteger(value) ? `${value}` : value.toFixed(2).replace(/\.?0+$/, '')
-}
-
-function evaluateSnipCalcExpression(expression: string) {
-  const percentMatch = expression.match(/^\s*(\d+(?:\.\d+)?)%\s+of\s+(\d+(?:\.\d+)?)\s*$/i)
-  if (percentMatch) {
-    const percent = Number(percentMatch[1])
-    const base = Number(percentMatch[2])
-    return formatSnipCalcValue((percent / 100) * base)
-  }
-
-  const tokens = expression.match(/\d+(?:\.\d+)?|[+\-*/]/g)
-  if (!tokens || tokens.length < 3) return null
-
-  let total = Number(tokens[0])
-  for (let index = 1; index < tokens.length - 1; index += 2) {
-    const operator = tokens[index]
-    const next = Number(tokens[index + 1])
-    if (!Number.isFinite(next)) return null
-
-    if (operator === '+') total += next
-    if (operator === '-') total -= next
-    if (operator === '*') total *= next
-    if (operator === '/') {
-      if (next === 0) return null
-      total /= next
-    }
-  }
-
-  return Number.isFinite(total) ? formatSnipCalcValue(total) : null
-}
-
 function SnippingGPTSection() {
   const screenRef = useRef<HTMLDivElement | null>(null)
-  const dragStartRef = useRef<SelectionDragStart | null>(null)
+  const snippableRefs = useRef<Partial<Record<SnipTargetId, HTMLElement | null>>>({})
+  const dragStartRef = useRef<{ x: number; y: number } | null>(null)
   const snipBotDragStartRef = useRef<SnipBotDragStart | null>(null)
   const snipBotWasDraggedRef = useRef(false)
-  const snipPointerActiveRef = useRef(false)
-  const suppressNextScreenClickRef = useRef(false)
   const [isSnipMode, setIsSnipMode] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [isSnipBotDragging, setIsSnipBotDragging] = useState(false)
@@ -1504,23 +1366,12 @@ function SnippingGPTSection() {
   const [selectedAction, setSelectedAction] = useState<SnipAction | null>(null)
   const [responseCard, setResponseCard] = useState<ResponseCardState | null>(null)
   const [activeSnipInfoTabId, setActiveSnipInfoTabId] = useState<SnipInfoTabId>('overview')
-  const [snipWindowStates, setSnipWindowStates] = useState<Record<SnipWindowId, SnipWindowState>>(
-    initialSnipWindowStates,
-  )
-  const [, setSnipZCounter] = useState(18)
-  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false)
-  const [calculatorExpression, setCalculatorExpression] = useState('18% of 240')
-  const [calculatorResult, setCalculatorResult] = useState('= 43.2')
-  const [todoChecked, setTodoChecked] = useState([true, true, false, false, false])
-  const [errorRetryState, setErrorRetryState] = useState<'error' | 'retrying' | 'resolved'>('error')
   const activeSnipInfoTab = snipInfoTabs.find((tab) => tab.id === activeSnipInfoTabId) ?? snipInfoTabs[0]
 
   const resetDemo = useCallback(() => {
     dragStartRef.current = null
     snipBotDragStartRef.current = null
     snipBotWasDraggedRef.current = false
-    snipPointerActiveRef.current = false
-    suppressNextScreenClickRef.current = false
     setIsSnipMode(false)
     setIsDragging(false)
     setIsSnipBotDragging(false)
@@ -1529,7 +1380,6 @@ function SnippingGPTSection() {
     setShowPills(false)
     setSelectedAction(null)
     setResponseCard(null)
-    setIsStartMenuOpen(false)
   }, [])
 
   const selectTarget = useCallback((target: SnipTarget) => {
@@ -1543,113 +1393,23 @@ function SnippingGPTSection() {
     setSelectionBox(null)
   }, [])
 
-  const captureTargetById = useCallback(
-    (id: SnipTargetId) => {
-      const target = getSnipTargetById(id)
-      if (!target) return
-
-      suppressNextScreenClickRef.current = true
-      selectTarget(target)
-    },
-    [selectTarget],
-  )
-
-  const handleKeyboardCapture = useCallback(
-    (event: React.KeyboardEvent<HTMLElement>, id: SnipTargetId) => {
-      if (!isSnipMode || (event.key !== 'Enter' && event.key !== ' ')) return
-
-      event.preventDefault()
-      event.stopPropagation()
-      captureTargetById(id)
-    },
-    [captureTargetById, isSnipMode],
-  )
-
-  const bringSnipWindowToFront = useCallback((id: SnipWindowId) => {
-    setSnipZCounter((current) => {
-      const next = current + 1
-      setSnipWindowStates((states) => ({
-        ...states,
-        [id]: {
-          ...states[id],
-          z: next,
-        },
-      }))
-      return next
-    })
-  }, [])
-
-  const restoreSnipWindow = useCallback(
-    (id: SnipWindowId) => {
-      setIsStartMenuOpen(false)
-      setSnipZCounter((current) => {
-        const next = current + 1
-        setSnipWindowStates((states) => ({
-          ...states,
-          [id]: {
-            ...states[id],
-            isOpen: true,
-            isMinimized: false,
-            z: next,
-          },
-        }))
-        return next
-      })
+  const setSnippableRef = useCallback(
+    (id: SnipTargetId) => (node: HTMLElement | null) => {
+      snippableRefs.current[id] = node
     },
     [],
   )
 
-  const minimizeSnipWindow = useCallback((id: SnipWindowId) => {
-    setSnipWindowStates((states) => ({
-      ...states,
-      [id]: {
-        ...states[id],
-        isMinimized: true,
-      },
-    }))
-  }, [])
-
-  const closeSnipWindow = useCallback((id: SnipWindowId) => {
-    setSnipWindowStates((states) => ({
-      ...states,
-      [id]: {
-        ...states[id],
-        isOpen: false,
-        isMinimized: false,
-        isMaximized: false,
-      },
-    }))
-  }, [])
-
-  const toggleMaximizeSnipWindow = useCallback(
-    (id: SnipWindowId) => {
-      bringSnipWindowToFront(id)
-      setSnipWindowStates((states) => ({
-        ...states,
-        [id]: {
-          ...states[id],
-          isMaximized: !states[id].isMaximized,
-        },
-      }))
-    },
-    [bringSnipWindowToFront],
-  )
-
-  const getScreenPointFromClient = useCallback((clientX: number, clientY: number) => {
+  const getScreenPoint = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
     const screen = screenRef.current
     if (!screen) return { x: 0, y: 0 }
 
     const rect = screen.getBoundingClientRect()
     return {
-      x: clamp(clientX - rect.left, 0, rect.width),
-      y: clamp(clientY - rect.top, 0, rect.height),
+      x: clamp(event.clientX - rect.left, 0, rect.width),
+      y: clamp(event.clientY - rect.top, 0, rect.height),
     }
   }, [])
-
-  const getScreenPoint = useCallback(
-    (event: React.PointerEvent<HTMLDivElement>) => getScreenPointFromClient(event.clientX, event.clientY),
-    [getScreenPointFromClient],
-  )
 
   const getTargetFromSelection = useCallback((box: SelectionBox) => {
     const screen = screenRef.current
@@ -1666,9 +1426,9 @@ function SnippingGPTSection() {
     let bestTarget: SnipTarget | null = null
     let bestArea = 0
 
-    screen.querySelectorAll<HTMLElement>('[data-snip-id]').forEach((node) => {
-      const target = getSnipTargetById(node.dataset.snipId)
-      if (!target) return
+    snipTargets.forEach((target) => {
+      const node = snippableRefs.current[target.id]
+      if (!node) return
 
       const area = getOverlapArea(selectionRect, node.getBoundingClientRect())
       if (area > bestArea) {
@@ -1690,12 +1450,7 @@ function SnippingGPTSection() {
       if (interactiveTarget) return
 
       const point = getScreenPoint(event)
-      const snipId = event.target instanceof HTMLElement
-        ? (event.target.closest<HTMLElement>('[data-snip-id]')?.dataset.snipId as SnipTargetId | undefined)
-        : undefined
-      snipPointerActiveRef.current = true
-      suppressNextScreenClickRef.current = false
-      dragStartRef.current = { ...point, snipId }
+      dragStartRef.current = point
       setIsDragging(true)
       setSelectionBox({ x: point.x, y: point.y, width: 0, height: 0 })
       event.currentTarget.setPointerCapture(event.pointerId)
@@ -1741,14 +1496,15 @@ function SnippingGPTSection() {
     (event: React.PointerEvent<HTMLDivElement>) => {
       if (!isDragging || !dragStartRef.current) return
 
+      const closestSnipId = event.target instanceof HTMLElement
+        ? event.target.closest<HTMLElement>('[data-snip-id]')?.dataset.snipId
+        : undefined
       const hasDragArea = selectionBox ? selectionBox.width * selectionBox.height > 64 : false
       const overlappedTarget = hasDragArea && selectionBox ? getTargetFromSelection(selectionBox) : null
-      const clickedTarget = getSnipTargetById(dragStartRef.current.snipId)
-      const desktopTarget = getSnipTargetById('desktop')
-      const nextTarget = overlappedTarget ?? clickedTarget ?? desktopTarget
+      const clickedTarget = getSnipTargetById(closestSnipId)
+      const nextTarget = overlappedTarget ?? clickedTarget
 
       dragStartRef.current = null
-      snipPointerActiveRef.current = false
       setIsDragging(false)
       setSelectionBox(null)
 
@@ -1756,70 +1512,14 @@ function SnippingGPTSection() {
         event.currentTarget.releasePointerCapture(event.pointerId)
       }
 
-      suppressNextScreenClickRef.current = true
-      window.setTimeout(() => {
-        suppressNextScreenClickRef.current = false
-      }, 180)
-      if (nextTarget) selectTarget(nextTarget)
+      if (nextTarget) {
+        selectTarget(nextTarget)
+      } else {
+        setIsSnipMode(false)
+      }
     },
     [getTargetFromSelection, isDragging, selectTarget, selectionBox],
   )
-
-  const handleScreenMouseDown = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (snipPointerActiveRef.current || !isSnipMode || event.button !== 0) return
-
-      const interactiveTarget = event.target instanceof HTMLElement
-        ? event.target.closest('.snipbot-button, .snip-action-pill, .snip-response-card button')
-        : null
-      if (interactiveTarget) return
-
-      const point = getScreenPointFromClient(event.clientX, event.clientY)
-      const snipId = event.target instanceof HTMLElement
-        ? (event.target.closest<HTMLElement>('[data-snip-id]')?.dataset.snipId as SnipTargetId | undefined)
-        : undefined
-      suppressNextScreenClickRef.current = false
-      dragStartRef.current = { ...point, snipId }
-      setIsDragging(true)
-      setSelectionBox({ x: point.x, y: point.y, width: 0, height: 0 })
-    },
-    [getScreenPointFromClient, isSnipMode],
-  )
-
-  const handleScreenMouseMove = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (snipPointerActiveRef.current || !isDragging || !dragStartRef.current) return
-
-      const point = getScreenPointFromClient(event.clientX, event.clientY)
-      const start = dragStartRef.current
-      setSelectionBox({
-        x: Math.min(start.x, point.x),
-        y: Math.min(start.y, point.y),
-        width: Math.abs(point.x - start.x),
-        height: Math.abs(point.y - start.y),
-      })
-    },
-    [getScreenPointFromClient, isDragging],
-  )
-
-  const handleScreenMouseUp = useCallback(() => {
-    if (snipPointerActiveRef.current || !isDragging || !dragStartRef.current) return
-
-    const hasDragArea = selectionBox ? selectionBox.width * selectionBox.height > 64 : false
-    const overlappedTarget = hasDragArea && selectionBox ? getTargetFromSelection(selectionBox) : null
-    const clickedTarget = getSnipTargetById(dragStartRef.current.snipId)
-    const desktopTarget = getSnipTargetById('desktop')
-    const nextTarget = overlappedTarget ?? clickedTarget ?? desktopTarget
-
-    dragStartRef.current = null
-    setIsDragging(false)
-    setSelectionBox(null)
-    suppressNextScreenClickRef.current = true
-    window.setTimeout(() => {
-      suppressNextScreenClickRef.current = false
-    }, 180)
-    if (nextTarget) selectTarget(nextTarget)
-  }, [getTargetFromSelection, isDragging, selectTarget, selectionBox])
 
   const handleSnipBotPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0) return
@@ -1870,33 +1570,11 @@ function SnippingGPTSection() {
   }
 
   const handleTargetKeyDown = (event: React.KeyboardEvent<HTMLElement>, target: SnipTarget) => {
-    if (!isSnipMode) return
     if (event.key !== 'Enter' && event.key !== ' ') return
 
     event.preventDefault()
-    event.stopPropagation()
-    suppressNextScreenClickRef.current = true
     selectTarget(target)
   }
-
-  const handleScreenClickCapture = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      if (suppressNextScreenClickRef.current) {
-        suppressNextScreenClickRef.current = false
-        event.preventDefault()
-        event.stopPropagation()
-        return
-      }
-
-      if (!isSnipMode) return
-      const target = event.target instanceof HTMLElement ? event.target : null
-      if (target?.closest('.snipbot-button, .snip-action-pill')) return
-
-      event.preventDefault()
-      event.stopPropagation()
-    },
-    [isSnipMode],
-  )
 
   const handleSnipBotClick = () => {
     setHasInteractedWithSnipBot(true)
@@ -1935,48 +1613,6 @@ function SnippingGPTSection() {
     setResponseCard({ ...responseCard, status: 'saved' })
   }
 
-  const handleCalculatorKey = (key: string) => {
-    if (key === 'C') {
-      setCalculatorExpression('0')
-      setCalculatorResult('')
-      return
-    }
-
-    if (key === 'Del') {
-      setCalculatorExpression((value) => {
-        const next = value.slice(0, -1).trim()
-        return next.length > 0 ? next : '0'
-      })
-      setCalculatorResult('')
-      return
-    }
-
-    if (key === '=') {
-      const result = evaluateSnipCalcExpression(calculatorExpression)
-      setCalculatorResult(result ? `= ${result}` : 'Check input')
-      return
-    }
-
-    setCalculatorResult('')
-    setCalculatorExpression((value) => {
-      const shouldReplace = value === '0' || value === '18% of 240'
-      const isOperator = ['+', '-', '*', '/'].includes(key)
-      if (key === '%' && /^\d+(?:\.\d+)?$/.test(value)) return `${value}% of 240`
-      if (shouldReplace && !isOperator && key !== '%') return key
-      if (isOperator) return `${value.replace(/\s+[+\-*/]\s*$/, '')} ${key} `
-      return `${value}${key}`
-    })
-  }
-
-  const toggleTodoItem = (index: number) => {
-    setTodoChecked((items) => items.map((checked, itemIndex) => (itemIndex === index ? !checked : checked)))
-  }
-
-  const retryError = () => {
-    setErrorRetryState('retrying')
-    window.setTimeout(() => setErrorRetryState('resolved'), 520)
-  }
-
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -2002,15 +1638,10 @@ function SnippingGPTSection() {
             <span className="snip-webcam" aria-hidden="true" />
             <div
               ref={screenRef}
-              className={`snip-screen ${isSnipMode ? 'is-snip-mode' : ''} ${isDragging ? 'is-selecting' : ''}`}
-              data-snip-context="desktop"
+              className={`snip-screen ${isSnipMode ? 'is-snip-mode' : ''}`}
               onPointerDown={handleScreenPointerDown}
               onPointerMove={handleScreenPointerMove}
               onPointerUp={handleScreenPointerUp}
-              onMouseDown={handleScreenMouseDown}
-              onMouseMove={handleScreenMouseMove}
-              onMouseUp={handleScreenMouseUp}
-              onClickCapture={handleScreenClickCapture}
             >
               <div className="snip-desktop-glow" aria-hidden="true" />
               <div className="snip-screen-topbar" aria-hidden="true">
@@ -2022,48 +1653,27 @@ function SnippingGPTSection() {
                   10:24 AM
                 </span>
               </div>
-              <div className="snip-desktop-icons" aria-label="Desktop shortcuts">
-                <button
-                  type="button"
-                  data-snip-id="files"
-                  onClick={() => restoreSnipWindow('files')}
-                  onKeyDown={(event) => handleKeyboardCapture(event, 'files')}
-                >
-                  <FileText size={20} aria-hidden="true" />
-                  My Files
-                </button>
-                <button
-                  type="button"
-                  data-snip-id="tools"
-                  onClick={() => restoreSnipWindow('tools')}
-                  onKeyDown={(event) => handleKeyboardCapture(event, 'tools')}
-                >
-                  <Settings2 size={20} aria-hidden="true" />
-                  Tools
-                </button>
+              <div className="snip-desktop-icons" aria-hidden="true">
+                <span><FileText size={20} /> My Files</span>
+                <span><Settings2 size={20} /> Tools</span>
               </div>
 
               <div className="snip-desktop-grid">
-                {snipWindowTargets.map((target) => {
+                {snipTargets.map((target) => {
                   const Icon = target.icon
                   const isSelected = selectedTarget?.id === target.id
-                  const windowState = snipWindowStates[target.id]
-                  if (!windowState.isOpen || windowState.isMinimized) return null
 
                   return (
                     <article
                       key={target.id}
-                      className={`snip-object snip-object-${target.id} ${isSelected ? 'is-selected' : ''} ${
-                        windowState.isMaximized ? 'is-maximized' : ''
-                      }`}
+                      ref={setSnippableRef(target.id)}
+                      className={`snip-object snip-object-${target.id} ${isSelected ? 'is-selected' : ''}`}
                       data-snip-id={target.id}
-                      role="group"
-                      tabIndex={isSnipMode ? 0 : -1}
-                      aria-label={isSnipMode ? `Capture ${target.name}` : `${target.name} window`}
-                      style={{ zIndex: windowState.z }}
-                      onPointerDown={() => {
-                        if (!isSnipMode) bringSnipWindowToFront(target.id)
-                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Select ${target.name}`}
+                      aria-pressed={isSelected}
+                      onClick={() => selectTarget(target)}
                       onKeyDown={(event) => handleTargetKeyDown(event, target)}
                     >
                       <div className="snip-window-bar">
@@ -2071,49 +1681,12 @@ function SnippingGPTSection() {
                           <Icon size={16} aria-hidden="true" />
                         </span>
                         <strong>{target.name}</strong>
-                        <div className="snip-window-controls">
-                          <button
-                            type="button"
-                            aria-label={`Minimize ${target.name}`}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              minimizeSnipWindow(target.id)
-                            }}
-                          >
-                            <Minus size={11} aria-hidden="true" />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`${windowState.isMaximized ? 'Restore' : 'Maximize'} ${target.name}`}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              toggleMaximizeSnipWindow(target.id)
-                            }}
-                          >
-                            <Maximize2 size={11} aria-hidden="true" />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`Close ${target.name}`}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              closeSnipWindow(target.id)
-                            }}
-                          >
-                            <X size={11} aria-hidden="true" />
-                          </button>
-                        </div>
+                        <span className="snip-window-controls" aria-hidden="true">
+                          <i />
+                          <i />
+                        </span>
                       </div>
-                      <SnipObjectContent
-                        id={target.id}
-                        calculatorExpression={calculatorExpression}
-                        calculatorResult={calculatorResult}
-                        onCalculatorKey={handleCalculatorKey}
-                        todoChecked={todoChecked}
-                        onToggleTodo={toggleTodoItem}
-                        errorRetryState={errorRetryState}
-                        onRetryError={retryError}
-                      />
+                      <SnipObjectContent id={target.id} />
                     </article>
                   )
                 })}
@@ -2231,109 +1804,10 @@ function SnippingGPTSection() {
                   <Camera size={34} aria-hidden="true" />
                 </button>
               </div>
-              {isStartMenuOpen ? (
-                <div className="snip-start-menu" data-snip-id="desktop" aria-label="Start menu">
-                  <strong>Start</strong>
-                  <button
-                    type="button"
-                    onClick={() => restoreSnipWindow('files')}
-                    onKeyDown={(event) => handleKeyboardCapture(event, 'files')}
-                  >
-                    <FileText size={15} aria-hidden="true" />
-                    My Files
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => restoreSnipWindow('tools')}
-                    onKeyDown={(event) => handleKeyboardCapture(event, 'tools')}
-                  >
-                    <Settings2 size={15} aria-hidden="true" />
-                    Tools
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => restoreSnipWindow('notes')}
-                    onKeyDown={(event) => handleKeyboardCapture(event, 'notes')}
-                  >
-                    <StickyNote size={15} aria-hidden="true" />
-                    Notes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => restoreSnipWindow('image')}
-                    onKeyDown={(event) => handleKeyboardCapture(event, 'image')}
-                  >
-                    <ImageIcon size={15} aria-hidden="true" />
-                    Image Preview
-                  </button>
-                  <button
-                    type="button"
-                    onKeyDown={(event) => handleKeyboardCapture(event, 'desktop')}
-                    onClick={() => {
-                      setIsStartMenuOpen(false)
-                      setIsSnipMode(true)
-                      setHasInteractedWithSnipBot(true)
-                    }}
-                  >
-                    <Camera size={15} aria-hidden="true" />
-                    SnipBot Capture
-                  </button>
-                </div>
-              ) : null}
-
-              <div className="snip-taskbar" data-snip-id="taskbar" aria-label="Snipping GPT taskbar">
-                <button
-                  type="button"
-                  className="snip-taskbar-start"
-                  aria-label="Open Start menu"
-                  aria-expanded={isStartMenuOpen}
-                  onClick={() => setIsStartMenuOpen((isOpen) => !isOpen)}
-                  onKeyDown={(event) => handleKeyboardCapture(event, 'taskbar')}
-                >
-                  <PanelTop size={15} aria-hidden="true" />
-                  Start
-                </button>
-                <div className="snip-taskbar-apps" aria-label="Pinned apps">
-                  {snipTaskbarWindows.map((id) => {
-                    const target = snipWindowTargets.find((item) => item.id === id)
-                    if (!target) return null
-                    const Icon = target.icon
-                    const state = snipWindowStates[id]
-
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        aria-label={`Open ${target.name}`}
-                        aria-pressed={state.isOpen && !state.isMinimized}
-                        onClick={() => restoreSnipWindow(id)}
-                        onKeyDown={(event) => handleKeyboardCapture(event, 'taskbar')}
-                      >
-                        <Icon size={15} aria-hidden="true" />
-                        <span>{target.name}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-                <button
-                  type="button"
-                  className="snip-taskbar-capture"
-                  aria-label="Start SnipBot capture"
-                  aria-pressed={isSnipMode}
-                  onKeyDown={(event) => handleKeyboardCapture(event, 'taskbar')}
-                  onClick={() => {
-                    setIsStartMenuOpen(false)
-                    setHasInteractedWithSnipBot(true)
-                    setSelectedTarget(null)
-                    setShowPills(false)
-                    setResponseCard(null)
-                    setIsSnipMode(true)
-                  }}
-                >
-                  <Camera size={15} aria-hidden="true" />
-                  Capture
-                </button>
-                <span className="snip-taskbar-status">10:24 AM</span>
+              <div className="snip-taskbar" aria-hidden="true">
+                <span />
+                <span />
+                <span />
               </div>
             </div>
           </div>
@@ -2397,25 +1871,7 @@ function SnippingGPTSection() {
   )
 }
 
-function SnipObjectContent({
-  id,
-  calculatorExpression,
-  calculatorResult,
-  onCalculatorKey,
-  todoChecked,
-  onToggleTodo,
-  errorRetryState,
-  onRetryError,
-}: {
-  id: SnipWindowId
-  calculatorExpression: string
-  calculatorResult: string
-  onCalculatorKey: (key: string) => void
-  todoChecked: boolean[]
-  onToggleTodo: (index: number) => void
-  errorRetryState: 'error' | 'retrying' | 'resolved'
-  onRetryError: () => void
-}) {
+function SnipObjectContent({ id }: { id: SnipTargetId }) {
   if (id === 'notes') {
     return (
       <div className="snip-note-page">
@@ -2448,19 +1904,12 @@ function SnipObjectContent({
     return (
       <div className="snip-calculator-face">
         <div className="snip-calc-display">
-          <span>{calculatorExpression}</span>
-          <strong>{calculatorResult}</strong>
+          <span>18% of 240</span>
+          <strong>= 43.2</strong>
         </div>
-        <div className="snip-calc-keys" aria-label="Calculator keypad">
-          {snipCalculatorKeys.map((key) => (
-            <button
-              type="button"
-              key={key}
-              className={key === '=' ? 'is-equals' : ''}
-              onClick={() => onCalculatorKey(key)}
-            >
-              {key}
-            </button>
+        <div className="snip-calc-keys" aria-hidden="true">
+          {['7', '8', '9', '÷', '4', '5', '6', '×', '1', '2', '3', '-', '0', '.', '=', '+'].map((key) => (
+            <span key={key} className={key === '=' ? 'is-equals' : ''}>{key}</span>
           ))}
         </div>
       </div>
@@ -2468,22 +1917,14 @@ function SnipObjectContent({
   }
 
   if (id === 'error') {
-    const message = {
-      error: 'Something went wrong while processing your request. Code: 500',
-      retrying: 'Retrying request and checking server status...',
-      resolved: 'Retry complete. API is reachable, but logs should still be reviewed.',
-    }[errorRetryState]
-
     return (
       <div className="snip-error-card">
         <div>
           <AlertTriangle size={25} aria-hidden="true" />
           <h3>Application Error</h3>
         </div>
-        <p aria-live="polite">{message}</p>
-        <button type="button" onClick={onRetryError}>
-          {errorRetryState === 'resolved' ? 'Checked' : 'Try Again'}
-        </button>
+        <p>Something went wrong while processing your request. Code: 500</p>
+        <span>Try Again</span>
       </div>
     )
   }
@@ -2491,56 +1932,13 @@ function SnipObjectContent({
   if (id === 'image') {
     return (
       <div className="snip-image-card">
-        <div className="snip-landscape">
-          <img
-            src="/snipping-gpt/mountain-lake.jpg"
-            alt="Photorealistic mountain lake landscape at golden hour"
-          />
+        <div className="snip-landscape" aria-hidden="true">
+          <span className="snip-sun" />
+          <span className="snip-mountain-one" />
+          <span className="snip-mountain-two" />
+          <span className="snip-lake" />
         </div>
-        <p>Mountain Lake <span aria-hidden="true">/</span> 1536 x 1024</p>
-      </div>
-    )
-  }
-
-  if (id === 'files') {
-    return (
-      <div className="snip-files-page">
-        {[
-          ['Project brief', 'Snipping-GPT-demo.md', '12 KB'],
-          ['Screenshots', 'capture-set', '8 files'],
-          ['Reports', 'technical-memo.pdf', '644 KB'],
-          ['Exports', 'portfolio-card.png', '312 KB'],
-        ].map(([label, name, size]) => (
-          <button type="button" key={name}>
-            <FileText size={15} aria-hidden="true" />
-            <span>
-              <b>{label}</b>
-              <small>{name}</small>
-            </span>
-            <i>{size}</i>
-          </button>
-        ))}
-      </div>
-    )
-  }
-
-  if (id === 'tools') {
-    return (
-      <div className="snip-tools-page">
-        {[
-          ['Capture', 'Region screenshot'],
-          ['OCR', 'Read visible text'],
-          ['Annotate', 'Draw and mark up'],
-          ['Export', 'Save response'],
-          ['Settings', 'Privacy controls'],
-          ['History', 'Recent captures'],
-        ].map(([label, detail]) => (
-          <button type="button" key={label}>
-            <Settings2 size={15} aria-hidden="true" />
-            <b>{label}</b>
-            <span>{detail}</span>
-          </button>
-        ))}
+        <p>Mountain Lake <span>·</span> 1024 × 768</p>
       </div>
     )
   }
@@ -2554,10 +1952,10 @@ function SnipObjectContent({
         'Prepare launch email',
         'Update help documentation',
       ].map((item, index) => (
-        <button type="button" key={item} onClick={() => onToggleTodo(index)}>
-          <span className={todoChecked[index] ? 'is-checked' : ''} aria-hidden="true" />
+        <p key={item}>
+          <span className={index < 2 ? 'is-checked' : ''} aria-hidden="true" />
           {item}
-        </button>
+        </p>
       ))}
     </div>
   )
@@ -4158,9 +3556,7 @@ function HvacSection() {
 
         <div id="hvac-tradeoff" className="hvac-learning-card hvac-decision-card">
           <span className="hvac-panel-kicker">Decision tradeoff</span>
-          <h3>
-            Why <span className="hvac-decision-title-highlight">"Enhance Existing"</span> won
-          </h3>
+          <h3>Why enhance existing won</h3>
           <p>
             Each option was measured against the $200k budget cap, cleanroom risk,
             installation complexity, and ability to keep the facility operating.
@@ -4364,15 +3760,12 @@ function ThermalCallout({
 }) {
   const style = position
     ? ({
-        '--thermal-left': `${position.x}%`,
-        '--thermal-top': `${position.y}%`,
-        top: `var(--thermal-top)`,
+        top: `${position.y}%`,
         right: 'auto',
         bottom: 'auto',
-        left: `var(--thermal-left)`,
-        opacity: position.visible ? 1 : 0,
-        pointerEvents: position.visible ? 'auto' : 'none',
-      } as CSSProperties)
+        left: `${position.x}%`,
+        opacity: position.visible ? 1 : 0.34,
+      } satisfies CSSProperties)
     : undefined
 
   return (
@@ -4395,7 +3788,7 @@ function ThermalLeaderLines({ anchors, callouts }: { anchors: ThermalAnchorMap; 
   return (
     <svg className="thermal-leader-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       {lines.map(({ key, start, end }) => (
-        <g key={key} opacity={end.visible ? 1 : 0}>
+        <g key={key} opacity={end.visible ? 1 : 0.22}>
           <line x1={start.x} y1={start.y} x2={end.x} y2={end.y} />
           <circle cx={end.x} cy={end.y} r="0.45" />
         </g>
@@ -4594,12 +3987,13 @@ function ClosingSection() {
         </div>
       </div>
       <footer className="site-footer">
-        <span>Based in Halifax, Canada</span>
+        <span>I build at the intersection of</span>
         <strong>Mechanical design</strong>
         <strong>AI systems</strong>
         <strong>Simulation</strong>
         <strong>Automation</strong>
         <strong>Clean infrastructure</strong>
+        <span>Based in Halifax, Canada</span>
       </footer>
     </SectionReveal>
   )
