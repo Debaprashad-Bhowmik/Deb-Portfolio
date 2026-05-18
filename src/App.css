@@ -6017,8 +6017,6 @@ input[type='range'] {
 .gmp-callout-card {
   --callout-left: 50%;
   --callout-top: 50%;
-  --callout-shift-x: -50%;
-  --callout-shift-y: -50%;
   position: absolute;
   top: var(--callout-top);
   left: var(--callout-left);
@@ -6036,18 +6034,28 @@ input[type='range'] {
     linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(249, 252, 255, 0.72)),
     rgba(255, 255, 255, 0.74);
   box-shadow: 0 16px 36px rgba(68, 90, 104, 0.11);
-  transform: translate(var(--callout-shift-x), var(--callout-shift-y));
+  transform: translate(-50%, -50%);
   backdrop-filter: blur(18px);
 }
 
-.gmp-callout-card::after {
+.gmp-leader-lines {
   position: absolute;
-  top: 50%;
-  width: 78px;
-  height: 1px;
-  content: '';
+  inset: 0;
+  z-index: 4;
+  overflow: hidden;
   pointer-events: none;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(118, 134, 146, 0.5));
+}
+
+.gmp-leader-lines line {
+  stroke: rgba(66, 80, 90, 0.42);
+  stroke-width: 0.16;
+  vector-effect: non-scaling-stroke;
+}
+
+.gmp-leader-lines circle {
+  fill: var(--blue);
+  filter: drop-shadow(0 0 6px rgba(75, 124, 255, 0.48));
+  vector-effect: non-scaling-stroke;
 }
 
 .gmp-callout-card span {
@@ -6071,41 +6079,6 @@ input[type='range'] {
   box-shadow:
     0 18px 42px rgba(68, 90, 104, 0.14),
     0 0 0 4px rgba(75, 124, 255, 0.08);
-}
-
-.callout-hepa {
-  --callout-shift-x: -148%;
-  --callout-shift-y: -118%;
-}
-
-.callout-hepa::after,
-.callout-return::after {
-  right: -78px;
-}
-
-.callout-supply {
-  --callout-shift-x: -92%;
-  --callout-shift-y: -118%;
-}
-
-.callout-supply::after {
-  left: 100%;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(118, 134, 146, 0.5));
-}
-
-.callout-pressure::after {
-  right: 100%;
-  background: linear-gradient(90deg, rgba(118, 134, 146, 0.5), rgba(255, 255, 255, 0.1));
-}
-
-.callout-return {
-  --callout-shift-x: -12%;
-  --callout-shift-y: -48%;
-}
-
-.callout-pressure {
-  --callout-shift-x: 18%;
-  --callout-shift-y: 24%;
 }
 
 .option-tabs {
@@ -9160,6 +9133,10 @@ input[type='range'] {
   overflow: hidden;
 }
 
+.hvac-decision-title-highlight {
+  color: #3f6dff;
+}
+
 .hvac-budget-track {
   position: relative;
   height: 12px;
@@ -9416,14 +9393,6 @@ input[type='range'] {
 
   .hvac-section .compliance-list em {
     text-align: left;
-  }
-
-  .gmp-callout-card.callout-pressure {
-    top: 292px;
-    right: 16px;
-    bottom: auto;
-    left: auto;
-    transform: none;
   }
 
   .hvac-section .option-summary,
@@ -9753,7 +9722,7 @@ input[type='range'] {
   }
 
   .thermal-leader-lines {
-    display: none;
+    display: block;
   }
 
   .thermal-callout {
@@ -9761,35 +9730,6 @@ input[type='range'] {
     max-width: 128px;
     transform: scale(0.88);
     transform-origin: center;
-  }
-
-  .temp-x {
-    top: 42px !important;
-    left: 22px !important;
-  }
-
-  .temp-panel {
-    top: 184px !important;
-    left: 30px !important;
-  }
-
-  .temp-battery {
-    top: 184px !important;
-    right: 22px !important;
-    left: auto !important;
-  }
-
-  .temp-radio {
-    top: 318px !important;
-    right: 20px !important;
-    bottom: auto !important;
-    left: auto !important;
-  }
-
-  .temp-nadir {
-    top: 356px !important;
-    left: 28px !important;
-    bottom: auto !important;
   }
 
   .temperature-legend {
@@ -9977,22 +9917,6 @@ input[type='range'] {
     top: 52px;
     width: 100%;
     height: 318px;
-  }
-
-  .temp-x,
-  .temp-panel,
-  .temp-battery {
-    display: none;
-  }
-
-  .temp-radio {
-    top: 292px !important;
-    right: 0 !important;
-  }
-
-  .temp-nadir {
-    top: 304px !important;
-    left: 0 !important;
   }
 
   .temperature-legend {
@@ -10692,10 +10616,16 @@ input[type='range'] {
     padding-top: 0;
   }
 
-  .orbit-lines,
-  .thermal-leader-lines,
-  .thermal-callout {
+  .orbit-lines {
     display: none;
+  }
+
+  .thermal-leader-lines {
+    display: block;
+  }
+
+  .thermal-callout {
+    display: block;
   }
 
   .cubesat-model-viewer {

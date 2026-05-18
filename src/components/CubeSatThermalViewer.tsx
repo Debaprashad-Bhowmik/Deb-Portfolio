@@ -31,8 +31,13 @@ type ThermalTextureBinding = {
   texture: import('three').CanvasTexture
 }
 
+type ThermalAnchorDefinition = {
+  point: import('three').Vector3
+  normal: import('three').Vector3
+}
+
 type CubeSatModel = {
-  anchorLocalPoints: Record<ThermalAnchorKey, import('three').Vector3>
+  anchorDefinitions: Record<ThermalAnchorKey, ThermalAnchorDefinition>
   boundsSize: import('three').Vector3
   root: import('three').Group
   thermalTextures: ThermalTextureBinding[]
@@ -808,15 +813,30 @@ function createReferenceCubeSat(
   }
   addInstancedSpheres(THREE, root, 0.011, contactDots, goldMaterial)
 
-  const anchorLocalPoints: Record<ThermalAnchorKey, import('three').Vector3> = {
-    xFace: new THREE.Vector3(0.18, frontY - 0.12, 0.56),
-    panel: new THREE.Vector3(-0.44, -0.58, zHalf + 0.13),
-    battery: new THREE.Vector3(sideX + 0.1, 0.54, 0.16),
-    radio: new THREE.Vector3(sideX + 0.1, -0.48, -0.24),
-    nadir: new THREE.Vector3(-0.22, -0.2, -zHalf - 0.08),
+  const anchorDefinitions: Record<ThermalAnchorKey, ThermalAnchorDefinition> = {
+    xFace: {
+      point: new THREE.Vector3(0.2, frontY - 0.108, 0.42),
+      normal: new THREE.Vector3(0, -1, 0),
+    },
+    panel: {
+      point: new THREE.Vector3(-0.44, -0.56, zHalf + 0.13),
+      normal: new THREE.Vector3(0, 0, 1),
+    },
+    battery: {
+      point: new THREE.Vector3(sideX + 0.075, 0.45, 0.14),
+      normal: new THREE.Vector3(1, 0, 0),
+    },
+    radio: {
+      point: new THREE.Vector3(sideX + 0.075, -0.54, -0.34),
+      normal: new THREE.Vector3(1, 0, 0),
+    },
+    nadir: {
+      point: new THREE.Vector3(-0.18, -0.02, -zHalf - 0.075),
+      normal: new THREE.Vector3(0, 0, -1),
+    },
   }
 
-  return { anchorLocalPoints, boundsSize, root, thermalTextures }
+  return { anchorDefinitions, boundsSize, root, thermalTextures }
 }
 
 export default function CubeSatThermalViewer({
@@ -972,9 +992,21 @@ export default function CubeSatThermalViewer({
         const canvasRect = container.getBoundingClientRect()
         const next = {} as ThermalAnchorMap
 
-        ;(Object.keys(cubeSat.anchorLocalPoints) as ThermalAnchorKey[]).forEach((key) => {
-          const projected = cubeSat.anchorLocalPoints[key].clone()
-          cubeSat.root.localToWorld(projected)
+        const cameraWorldPosition = new THREE.Vector3()
+        camera.getWorldPosition(cameraWorldPosition)
+
+        ;(Object.keys(cubeSat.anchorDefinitions) as ThermalAnchorKey[]).forEach((key) => {
+          const definition = cubeSat.anchorDefinitions[key]
+          const anchorWorld = definition.point.clone()
+          cubeSat.root.localToWorld(anchorWorld)
+
+          const normalWorldEnd = definition.point.clone().add(definition.normal)
+          cubeSat.root.localToWorld(normalWorldEnd)
+          const normalWorld = normalWorldEnd.sub(anchorWorld).normalize()
+          const cameraDirection = cameraWorldPosition.clone().sub(anchorWorld).normalize()
+          const facingCamera = normalWorld.dot(cameraDirection)
+
+          const projected = anchorWorld.clone()
           projected.project(camera)
 
           const canvasX = (projected.x * 0.5 + 0.5) * canvasRect.width
@@ -982,7 +1014,7 @@ export default function CubeSatThermalViewer({
           next[key] = {
             x: clamp(((canvasRect.left - sceneRect.left + canvasX) / sceneRect.width) * 100, -8, 108),
             y: clamp(((canvasRect.top - sceneRect.top + canvasY) / sceneRect.height) * 100, -8, 108),
-            visible: projected.z > -1 && projected.z < 1,
+            visible: projected.z > -1 && projected.z < 1 && facingCamera > -0.18,
           }
         })
 

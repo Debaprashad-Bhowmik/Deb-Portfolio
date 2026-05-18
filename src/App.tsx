@@ -241,12 +241,12 @@ const thermalAnchorFallbacks: ThermalAnchorMap = {
   nadir: { x: 55, y: 73, visible: true },
 }
 
-const thermalCalloutOffsets: Record<ThermalAnchorKey, { x: number; y: number }> = {
-  xFace: { x: -9, y: -18 },
-  panel: { x: -16, y: -10 },
-  battery: { x: 11, y: -10 },
-  radio: { x: 11, y: 10 },
-  nadir: { x: -13, y: 16 },
+const thermalCalloutOffsets: Record<ThermalAnchorKey, { desktop: { x: number; y: number }; compact: { x: number; y: number } }> = {
+  xFace: { desktop: { x: -9, y: -18 }, compact: { x: -14, y: -13 } },
+  panel: { desktop: { x: -16, y: -10 }, compact: { x: -16, y: -4 } },
+  battery: { desktop: { x: 11, y: -10 }, compact: { x: 14, y: -4 } },
+  radio: { desktop: { x: 11, y: 10 }, compact: { x: 14, y: 10 } },
+  nadir: { desktop: { x: -13, y: 16 }, compact: { x: -14, y: 10 } },
 }
 
 const feedbackProofItems: Array<{ icon: LucideIcon; title: string; detail: string }> = [
@@ -271,15 +271,15 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
 
-function createThermalCalloutPositions(anchors: ThermalAnchorMap): ThermalAnchorMap {
+function createThermalCalloutPositions(anchors: ThermalAnchorMap, compact = false): ThermalAnchorMap {
   return Object.fromEntries(
     (Object.keys(anchors) as ThermalAnchorKey[]).map((key) => {
-      const offset = thermalCalloutOffsets[key]
+      const offset = compact ? thermalCalloutOffsets[key].compact : thermalCalloutOffsets[key].desktop
       return [
         key,
         {
-          x: clamp(anchors[key].x + offset.x, 9, 91),
-          y: clamp(anchors[key].y + offset.y, 9, 86),
+          x: clamp(anchors[key].x + offset.x, compact ? 14 : 9, compact ? 86 : 91),
+          y: clamp(anchors[key].y + offset.y, compact ? 9 : 9, compact ? 91 : 86),
           visible: anchors[key].visible,
         },
       ]
@@ -4194,7 +4194,9 @@ function HvacSection() {
 
         <div id="hvac-tradeoff" className="hvac-learning-card hvac-decision-card">
           <span className="hvac-panel-kicker">Decision tradeoff</span>
-          <h3>Why enhance existing won</h3>
+          <h3>
+            Why <span className="hvac-decision-title-highlight">"Enhance Existing"</span> won
+          </h3>
           <p>
             Each option was measured against the $200k budget cap, cleanroom risk,
             installation complexity, and ability to keep the facility operating.
@@ -4242,6 +4244,15 @@ function CubeSatSection() {
   const [sunlight, setSunlight] = useState(true)
   const [orbitCycle, setOrbitCycle] = useState(45)
   const [thermalAnchors, setThermalAnchors] = useState<ThermalAnchorMap>(thermalAnchorFallbacks)
+  const [compactThermalAnnotations, setCompactThermalAnnotations] = useState(false)
+
+  useEffect(() => {
+    const query = window.matchMedia('(max-width: 700px)')
+    const update = () => setCompactThermalAnnotations(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
 
   const thermal = useMemo<ThermalTelemetry>(() => {
     const radians = ((orbitCycle - 45) / 45) * Math.PI
@@ -4259,7 +4270,10 @@ function CubeSatSection() {
   const updateThermalAnchors = (anchors: ThermalAnchorMap) => {
     setThermalAnchors(anchors)
   }
-  const thermalCallouts = useMemo(() => createThermalCalloutPositions(thermalAnchors), [thermalAnchors])
+  const thermalCallouts = useMemo(
+    () => createThermalCalloutPositions(thermalAnchors, compactThermalAnnotations),
+    [compactThermalAnnotations, thermalAnchors],
+  )
 
   return (
     <SectionReveal id="cubesat-thermal" className="case-section thermal-section">

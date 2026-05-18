@@ -16,6 +16,11 @@ type AnchorPosition = {
   visible: boolean
 }
 
+type CalloutAnnotation = {
+  anchor: AnchorPosition
+  callout: AnchorPosition
+}
+
 type FlowBinding = {
   material: MeshBasicMaterial
   baseOpacity: number
@@ -59,6 +64,44 @@ const defaultAnchors: Record<CalloutKey, AnchorPosition> = {
   supply: { x: 78, y: 27, visible: true },
   return: { x: 13, y: 51, visible: true },
   pressure: { x: 73, y: 74, visible: true },
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
+
+const calloutOffsets: Record<CalloutKey, { desktop: { x: number; y: number }; compact: { x: number; y: number } }> = {
+  hepa: { desktop: { x: -16, y: -13 }, compact: { x: 18, y: -13 } },
+  supply: { desktop: { x: -16, y: -12 }, compact: { x: -18, y: -12 } },
+  return: { desktop: { x: 18, y: 0 }, compact: { x: 18, y: 2 } },
+  pressure: { desktop: { x: 17, y: 13 }, compact: { x: -17, y: 13 } },
+}
+
+function createCalloutAnnotation(key: CalloutKey, anchor: AnchorPosition, compact: boolean): CalloutAnnotation {
+  const offset = compact ? calloutOffsets[key].compact : calloutOffsets[key].desktop
+  const minX = compact ? 17 : 10
+  const maxX = compact ? 83 : 90
+  const minY = compact ? 10 : 9
+  const maxY = compact ? 90 : 88
+  const visible = anchor.visible
+
+  return {
+    anchor,
+    callout: {
+      x: clamp(anchor.x + offset.x, minX, maxX),
+      y: clamp(anchor.y + offset.y, minY, maxY),
+      visible,
+    },
+  }
+}
+
+function createDefaultAnnotations(): Record<CalloutKey, CalloutAnnotation> {
+  return Object.fromEntries(
+    (Object.keys(defaultAnchors) as CalloutKey[]).map((key) => [
+      key,
+      createCalloutAnnotation(key, defaultAnchors[key], false),
+    ]),
+  ) as Record<CalloutKey, CalloutAnnotation>
 }
 
 const calloutCopy: Record<CalloutKey, { title: string; detail: string }> = {
@@ -129,7 +172,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
   const [activeCallout, setActiveCallout] = useState<CalloutKey>('hepa')
-  const [anchors, setAnchors] = useState<Record<CalloutKey, AnchorPosition>>(defaultAnchors)
+  const [annotations, setAnnotations] = useState<Record<CalloutKey, CalloutAnnotation>>(createDefaultAnnotations)
 
   useEffect(() => {
     activeOptionRef.current = activeOption
@@ -1044,10 +1087,10 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       addDetailDensityPass()
       flowRoutes.forEach(addOrthogonalFlowPath)
 
-      anchorObjects.hepa.position.set(-2.75, 3.05, -4.38)
-      anchorObjects.supply.position.set(7.92, 2.2, -3.0)
-      anchorObjects.return.position.set(-8.35, 1.38, 0.82)
-      anchorObjects.pressure.position.set(5.1, 1.18, 4.1)
+      anchorObjects.hepa.position.set(-2.7, 2.48, -4.34)
+      anchorObjects.supply.position.set(7.86, 1.18, -2.18)
+      anchorObjects.return.position.set(-6.9, 1.12, -0.28)
+      anchorObjects.pressure.position.set(5.0, 0.7, 4.28)
       Object.values(anchorObjects).forEach((object) => root.add(object))
 
       let reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -1125,13 +1168,17 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       resize()
 
       let frame = 0
-      let lastCallouts = defaultAnchors
+      let lastAnnotations = createDefaultAnnotations()
       const tempPosition = new THREE.Vector3()
       const upVector = new THREE.Vector3(0, 1, 0)
 
       const updateCalloutAnchors = () => {
-        const next = {} as Record<CalloutKey, AnchorPosition>
+        root.updateWorldMatrix(true, true)
+        camera.updateMatrixWorld()
+
+        const next = {} as Record<CalloutKey, CalloutAnnotation>
         let changed = false
+        const compact = container.clientWidth <= 700
 
         ;(Object.keys(anchorObjects) as CalloutKey[]).forEach((key) => {
           anchorObjects[key].getWorldPosition(tempPosition)
@@ -1141,21 +1188,24 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
             y: (-tempPosition.y * 0.5 + 0.5) * 100,
             visible: tempPosition.z > -1 && tempPosition.z < 1,
           }
-          next[key] = projected
+          const annotation = createCalloutAnnotation(key, projected, compact)
+          next[key] = annotation
 
-          const previous = lastCallouts[key]
+          const previous = lastAnnotations[key]
           if (
-            Math.abs(previous.x - projected.x) > 0.24 ||
-            Math.abs(previous.y - projected.y) > 0.24 ||
-            previous.visible !== projected.visible
+            Math.abs(previous.anchor.x - annotation.anchor.x) > 0.08 ||
+            Math.abs(previous.anchor.y - annotation.anchor.y) > 0.08 ||
+            Math.abs(previous.callout.x - annotation.callout.x) > 0.08 ||
+            Math.abs(previous.callout.y - annotation.callout.y) > 0.08 ||
+            previous.anchor.visible !== annotation.anchor.visible
           ) {
             changed = true
           }
         })
 
-        if (changed && !cancelled && frame % 8 === 0) {
-          lastCallouts = next
-          setAnchors(next)
+        if (changed && !cancelled) {
+          lastAnnotations = next
+          setAnnotations(next)
         }
       }
 
@@ -1213,7 +1263,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
           particle.material.opacity += (0.92 * strength - particle.material.opacity) * 0.12
         })
 
-        if (frame % 4 === 0) updateCalloutAnchors()
+        updateCalloutAnchors()
         renderer.render(scene, camera)
       }
 
@@ -1289,14 +1339,27 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
         <RotateCcw size={17} aria-hidden="true" />
       </button>
 
+      <svg className="gmp-leader-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        {(Object.keys(calloutCopy) as CalloutKey[]).map((key) => {
+          const { anchor, callout } = annotations[key]
+          return (
+            <g key={key} opacity={anchor.visible ? 1 : 0.22}>
+              <line x1={callout.x} y1={callout.y} x2={anchor.x} y2={anchor.y} />
+              <circle cx={anchor.x} cy={anchor.y} r="0.48" />
+            </g>
+          )
+        })}
+      </svg>
+
       {(Object.keys(calloutCopy) as CalloutKey[]).map((key) => {
         const copy = calloutCopy[key]
+        const annotation = annotations[key]
         return (
           <button
             key={key}
             type="button"
             className={`gmp-callout-card callout-${key}`}
-            style={formatCalloutStyle(anchors[key])}
+            style={formatCalloutStyle(annotation.callout)}
             aria-pressed={activeCallout === key}
             onClick={() => setActiveCallout(key)}
           >
