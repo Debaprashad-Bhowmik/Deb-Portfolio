@@ -2608,6 +2608,27 @@ function MetricCard({ label, value, trend }: { label: string; value: string; tre
   )
 }
 
+const dieselWhyCards = [
+  {
+    number: '01',
+    title: 'Problem',
+    detail:
+      'Diesel engine maintenance is expensive, labour-heavy, and often based on scheduled inspections instead of actual system health. Predictive maintenance could reduce unnecessary work and catch failures earlier, but ML models need strong training data - and real failure data is limited, noisy, incomplete, or hard to access.',
+  },
+  {
+    number: '02',
+    title: 'Idea',
+    detail:
+      'Build a physics-informed digital twin to simulate diesel engine behaviour, generate realistic sensor data, and create fault scenarios. Then use that generated data, together with available real-world data, to train an ML model for predictive maintenance.',
+  },
+  {
+    number: '03',
+    title: 'How It Solves It',
+    detail:
+      'The digital twin fills gaps where real data is missing or unreliable, creating better training data for the ML model. The trained model can then detect abnormal behaviour, identify likely fault patterns, estimate maintenance risk, and support smarter maintenance planning before expensive failures happen.',
+  },
+]
+
 function DigitalTwinSection() {
   const [scenarioId, setScenarioId] = useState('turbo')
   const [activeTwinView, setActiveTwinView] = useState<TwinViewId>('overview')
@@ -3170,6 +3191,21 @@ function DigitalTwinSection() {
         </div>
       </div>
 
+      <section className="diesel-why-strip" aria-labelledby="diesel-why-title">
+        <p id="diesel-why-title">Why It Exists</p>
+        <div className="diesel-why-grid">
+          {dieselWhyCards.map((card) => (
+            <article key={card.number} className="diesel-why-card">
+              <span>{card.number}</span>
+              <div>
+                <h3>{card.title}</h3>
+                <p>{card.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <div className="diesel-footer-strip">
         <span>Real-time data. Physics you can trust. Decisions you can act on.</span>
         <b>Digital Twin</b>
@@ -3642,6 +3678,27 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   )
 }
 
+const boltWhyCards = [
+  {
+    number: '01',
+    title: 'Problem',
+    detail:
+      'In high-power rotating machinery, failures can damage extremely expensive components like shafts, couplings, turbines, and generators. If no intentional weak point exists, the failure can transfer into the core machinery, causing major repair cost and downtime.',
+  },
+  {
+    number: '02',
+    title: 'Idea',
+    detail:
+      'Design a coupling bolt that acts as a controlled sacrificial component - strong enough for normal operation, but intentionally serving as the part that fails first under abnormal overload or malfunction.',
+  },
+  {
+    number: '03',
+    title: 'How It Solves It',
+    detail:
+      'The coupling bolt protects the more expensive machinery by becoming the intended failure point. Its geometry, material choice, and relief features help control stress behavior so that, in a serious failure event, the bolt breaks before critical machine components are damaged.',
+  },
+]
+
 function CouplingBoltSection() {
   const reviewTabs = [
     {
@@ -3798,6 +3855,21 @@ function CouplingBoltSection() {
           </div>
         </div>
       </div>
+
+      <section className="bolt-why-strip" aria-labelledby="bolt-why-title">
+        <p id="bolt-why-title">Why It Exists</p>
+        <div className="bolt-why-grid">
+          {boltWhyCards.map((card) => (
+            <article key={card.number} className="bolt-why-card">
+              <span>{card.number}</span>
+              <div>
+                <h3>{card.title}</h3>
+                <p>{card.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className="bolt-footer-strip" aria-label="Coupling bolt project metadata">
         <b>Mechanical Design</b>
@@ -4377,7 +4449,7 @@ function CubeSatSection() {
           <h2>CubeSat Thermal<span>.</span></h2>
           <p className="thermal-subtitle">Simulate. Stabilize. Survive.</p>
           <p>
-            A Project 06 simulation piece based on my thermal subsystem work with the Dalhousie
+            A simulation piece based on my thermal subsystem work with the Dalhousie
             Space Systems Lab MANTIS CubeSat program. The interface turns COMSOL and MATLAB-style
             thermal reasoning into an inspectable SolidWorks-inspired virtual twin.
           </p>
@@ -4392,6 +4464,14 @@ function CubeSatSection() {
               CSA CUBICS mission work around multispectral imaging, edge computing, and thermal
               dissipation constraints.
             </p>
+            <a
+              href="https://www.dal.ca/news/2023/09/15/dalhousie-satellite-mantis-space.html"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Read Dalhousie MANTIS article
+              <ArrowUpRight size={13} aria-hidden="true" />
+            </a>
           </div>
         </div>
 
@@ -4588,12 +4668,21 @@ function SupervisorFeedbackSection() {
     0,
   )
   const [activeIndex, setActiveIndex] = useState(defaultFeedbackIndex)
+  const [feedbackDirection, setFeedbackDirection] = useState<1 | -1>(1)
   const activeFeedback = supervisorFeedback[activeIndex]
 
   const moveFeedback = (direction: -1 | 1) => {
+    setFeedbackDirection(direction)
     setActiveIndex((currentIndex) => (
       (currentIndex + direction + supervisorFeedback.length) % supervisorFeedback.length
     ))
+  }
+
+  const chooseFeedback = (index: number) => {
+    if (index === activeIndex) return
+
+    setFeedbackDirection(index > activeIndex ? 1 : -1)
+    setActiveIndex(index)
   }
 
   const getCardPosition = (index: number): FeedbackCardPosition => {
@@ -4615,7 +4704,11 @@ function SupervisorFeedbackSection() {
         </p>
       </div>
 
-      <div className="feedback-stage" aria-label="Supervisor feedback carousel">
+      <div
+        className="feedback-stage"
+        data-direction={feedbackDirection === 1 ? 'next' : 'previous'}
+        aria-label="Supervisor feedback carousel"
+      >
         <div className="feedback-orbit" aria-hidden="true" />
         <button
           className="feedback-arrow feedback-arrow-left"
@@ -4652,7 +4745,7 @@ function SupervisorFeedbackSection() {
             type="button"
             aria-label={`Show feedback from ${item.company}`}
             aria-pressed={index === activeIndex}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => chooseFeedback(index)}
           />
         ))}
       </div>
