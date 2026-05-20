@@ -5882,6 +5882,35 @@ input[type='range'] {
   font-weight: 760;
 }
 
+.bleeding-why-strip {
+  width: 100%;
+  max-width: none;
+  padding-inline: 0;
+}
+
+.hvac-why-strip,
+.thermal-why-strip {
+  width: 100%;
+  max-width: none;
+  padding-inline: 0;
+}
+
+.hvac-why-strip {
+  margin-top: 24px;
+}
+
+.hvac-why-strip + .hvac-option-zone {
+  margin-top: 28px;
+}
+
+.thermal-why-strip {
+  margin-top: 34px;
+}
+
+.thermal-why-strip + .thermal-bottom-grid {
+  margin-top: 34px;
+}
+
 .bleeding-evidence-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -9451,6 +9480,12 @@ input[type='range'] {
     margin-left: -10px;
     padding: 14px;
     border-radius: 10px;
+  }
+
+  .bleeding-why-strip {
+    width: auto;
+    margin-right: -10px;
+    margin-left: -10px;
   }
 
   .bleeding-artifact-card {

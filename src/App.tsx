@@ -1277,19 +1277,19 @@ const snipWhyCards = [
     number: '01',
     title: 'Problem',
     detail:
-      'People waste time switching between screenshots, documents, tabs, and AI chats just to get simple answers or explanations.',
+      'Information on screen is everywhere, but getting help from AI requires extra steps-copying, pasting, explaining context, and switching tools. The friction breaks focus and slows down problem solving.',
   },
   {
     number: '02',
-    title: 'System Built',
+    title: 'Idea',
     detail:
-      'Snipping GPT lets users select any visible content, choose an intent, and receive contextual AI-style responses.',
+      'Let users capture exactly what they need help with and choose their intent. The AI sees the same context and responds with the right format-instantly, inside a minimal, distraction-free experience.',
   },
   {
     number: '03',
-    title: 'Engineering Value',
+    title: 'How It Solves It',
     detail:
-      'Reduces context switching, keeps flow intact, and makes visual information easier to understand and act on.',
+      'Snipping GPT removes the gap between seeing a problem and getting answers. Capture, choose intent, get precise, actionable help-without leaving your workflow.',
   },
 ]
 
@@ -3848,6 +3848,27 @@ const bleedingArtifactLinks: Array<{
   },
 ]
 
+const bleedingWhyCards = [
+  {
+    number: '01',
+    title: 'Problem',
+    detail:
+      "First-aid training often lacks realistic feedback. Learners can't see how much pressure they apply or how it affects bleeding-leading to uncertainty and inconsistent outcomes.",
+  },
+  {
+    number: '02',
+    title: 'Idea',
+    detail:
+      'Build a sensor-based bleeding simulator that measures pressure and flow in real time-so learners get instant, objective feedback while practicing direct pressure, wound packing, and tourniquet use.',
+  },
+  {
+    number: '03',
+    title: 'How It Solves It',
+    detail:
+      'The system recreates realistic bleeding scenarios and provides live metrics on pressure, flow, and blood loss across three treatment modes-building skills and confidence through data-driven practice.',
+  },
+]
+
 function BleedingSimulatorSection() {
   const simulatorStartedAt = useMemo(() => Date.now(), [])
   const capabilityCards = [
@@ -3940,6 +3961,21 @@ function BleedingSimulatorSection() {
           ))}
         </div>
       </div>
+
+      <section className="snip-why-strip bleeding-why-strip" aria-labelledby="bleeding-why-title">
+        <p id="bleeding-why-title">Why It Exists</p>
+        <div className="snip-why-grid">
+          {bleedingWhyCards.map((card) => (
+            <article key={card.number} className="snip-why-card">
+              <span>{card.number}</span>
+              <div>
+                <h3>{card.title}</h3>
+                <p>{card.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className="bleeding-embed-shell">
         <div className="bleeding-embed-toolbar">
@@ -4040,6 +4076,27 @@ const hvacWorkflowSteps = [
   'Commission and monitor',
 ]
 
+const hvacWhyCards = [
+  {
+    number: '01',
+    title: 'Problem',
+    detail:
+      'Designing HVAC for GMP facilities requires balancing strict compliance, cleanliness, pressure control, and cost-without compromising safety or product integrity.',
+  },
+  {
+    number: '02',
+    title: 'Idea',
+    detail:
+      'Compare multiple system design pathways-dedicated, retrofit, or enhancement-to evaluate compliance, performance, energy efficiency, and total cost of ownership.',
+  },
+  {
+    number: '03',
+    title: 'How It Solves It',
+    detail:
+      'The selected system delivers a clear, data-backed balance of air changes, filtration, pressure cascade, and reliability, ensuring compliant, efficient operations.',
+  },
+]
+
 const hvacScoreLabels: Record<string, string> = {
   compliance: 'Compliance',
   flexibility: 'Flexibility',
@@ -4097,6 +4154,21 @@ function HvacSection() {
         </div>
         <GmpHvacModel activeOption={option.id} />
       </div>
+
+      <section className="snip-why-strip hvac-why-strip" aria-labelledby="hvac-why-title">
+        <p id="hvac-why-title">Why It Exists</p>
+        <div className="snip-why-grid">
+          {hvacWhyCards.map((card) => (
+            <article key={card.number} className="snip-why-card">
+              <span>{card.number}</span>
+              <div>
+                <h3>{card.title}</h3>
+                <p>{card.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className="hvac-option-zone" aria-label="HVAC design comparison">
         <p className="hvac-control-kicker">Compare HVAC design options</p>
@@ -4240,6 +4312,27 @@ function HvacSection() {
   )
 }
 
+const thermalWhyCards = [
+  {
+    number: '01',
+    title: 'Problem',
+    detail:
+      'CubeSats face extreme temperature swings in orbit-ranging from scorching sunlight to deep eclipse cold-which can jeopardize component reliability and mission success.',
+  },
+  {
+    number: '02',
+    title: 'Idea',
+    detail:
+      'An interactive thermal visualization that simulates orbit conditions, maps heat flow, and highlights component temperatures in real time.',
+  },
+  {
+    number: '03',
+    title: 'How It Solves It',
+    detail:
+      'Engineers can quickly assess thermal risk, validate design margins, and communicate operating limits with clear, visual evidence tailored to each component.',
+  },
+]
+
 function CubeSatSection() {
   const [sunlight, setSunlight] = useState(true)
   const [orbitCycle, setOrbitCycle] = useState(45)
@@ -4366,6 +4459,21 @@ function CubeSatSection() {
           </div>
         </div>
       </div>
+
+      <section className="snip-why-strip thermal-why-strip" aria-labelledby="thermal-why-title">
+        <p id="thermal-why-title">Why It Exists</p>
+        <div className="snip-why-grid">
+          {thermalWhyCards.map((card) => (
+            <article key={card.number} className="snip-why-card">
+              <span>{card.number}</span>
+              <div>
+                <h3>{card.title}</h3>
+                <p>{card.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className="thermal-bottom-grid">
         <div className="thermal-insight-card">
