@@ -22,12 +22,14 @@ type CubeSatThermalViewerProps = {
   onAnchorUpdate: (anchors: ThermalAnchorMap) => void
 }
 
-type ThermalSurfaceKind = 'front' | 'right' | 'left' | 'nadir'
+type ThermalSurfaceKind = 'front' | 'right' | 'left' | 'nadir' | 'rear' | 'solar' | 'sideSolar'
 
 type ThermalTextureBinding = {
   canvas: HTMLCanvasElement
   context: CanvasRenderingContext2D
+  columns?: number
   kind: ThermalSurfaceKind
+  rows?: number
   texture: import('three').CanvasTexture
 }
 
@@ -44,13 +46,14 @@ type CubeSatModel = {
 }
 
 const thermalStops = [
-  { value: -40, color: [45, 77, 255] },
-  { value: -20, color: [20, 124, 255] },
-  { value: 0, color: [53, 217, 223] },
-  { value: 20, color: [129, 223, 105] },
-  { value: 40, color: [255, 215, 71] },
-  { value: 60, color: [255, 148, 40] },
-  { value: 80, color: [240, 68, 50] },
+  { value: -46, color: [43, 72, 218] },
+  { value: -28, color: [24, 112, 235] },
+  { value: -8, color: [24, 178, 222] },
+  { value: 12, color: [72, 213, 180] },
+  { value: 30, color: [168, 224, 100] },
+  { value: 48, color: [249, 206, 75] },
+  { value: 64, color: [241, 122, 45] },
+  { value: 82, color: [210, 61, 48] },
 ] as const
 
 function clamp(value: number, min: number, max: number) {
@@ -90,6 +93,12 @@ function temperatureRgb(value: number): [number, number, number] {
     lerp(lower.color[1], upper.color[1], t),
     lerp(lower.color[2], upper.color[2], t),
   ]
+}
+
+function visualTemperature(value: number, sunlight: boolean) {
+  const pivot = sunlight ? 26 : -6
+  const gain = sunlight ? 1.26 : 1.36
+  return pivot + (value - pivot) * gain
 }
 
 function disposeMaterial(material: import('three').Material | import('three').Material[], disposed: Set<unknown>) {
@@ -177,6 +186,8 @@ function createThermalTextureBinding(
   thermal: ThermalTelemetry,
   sunlight: boolean,
   orbitMinutes: number,
+  columns?: number,
+  rows?: number,
 ) {
   const canvas = document.createElement('canvas')
   canvas.width = 768
@@ -186,59 +197,9 @@ function createThermalTextureBinding(
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.anisotropy = 8
-  const binding: ThermalTextureBinding = { canvas, context, kind, texture }
+  const binding: ThermalTextureBinding = { canvas, context, columns, kind, rows, texture }
   redrawThermalTexture(binding, thermal, sunlight, orbitMinutes)
   return binding
-}
-
-function createSolarPanelTexture(THREE: typeof import('three'), columns = 10, rows = 7) {
-  return createCanvasTexture(THREE, 1024, 1024, (context, canvas) => {
-    const width = canvas.width
-    const height = canvas.height
-    context.fillStyle = '#00021f'
-    context.fillRect(0, 0, width, height)
-
-    const sheen = context.createLinearGradient(0, 0, width, height)
-    sheen.addColorStop(0, 'rgba(45, 68, 148, 0.09)')
-    sheen.addColorStop(0.34, 'rgba(4, 13, 62, 0.02)')
-    sheen.addColorStop(0.74, 'rgba(0, 0, 0, 0.72)')
-    context.fillStyle = sheen
-    context.fillRect(0, 0, width, height)
-
-    for (let x = 0; x < width; x += 4) {
-      const alpha = 0.022 + seededNoise(x, 19, 2) * 0.035
-      context.fillStyle = `rgba(255, 255, 255, ${alpha})`
-      context.fillRect(x, 0, 1, height)
-    }
-
-    context.strokeStyle = 'rgba(228, 174, 50, 0.62)'
-    context.lineWidth = 1.3
-    for (let column = 0; column <= columns; column += 1) {
-      const x = (column / columns) * width
-      context.beginPath()
-      context.moveTo(x, 0)
-      context.lineTo(x, height)
-      context.stroke()
-    }
-    for (let row = 0; row <= rows; row += 1) {
-      const y = (row / rows) * height
-      context.beginPath()
-      context.moveTo(0, y)
-      context.lineTo(width, y)
-      context.stroke()
-    }
-
-    context.fillStyle = 'rgba(238, 185, 68, 0.82)'
-    for (let column = 0; column <= columns; column += 1) {
-      for (let row = 0; row <= rows; row += 1) {
-        const x = (column / columns) * width
-        const y = (row / rows) * height
-        context.beginPath()
-        context.arc(x, y, 4.2, 0, Math.PI * 2)
-        context.fill()
-      }
-    }
-  })
 }
 
 function createMetalTexture(THREE: typeof import('three')) {
@@ -276,29 +237,64 @@ function sampleTextureTemperature(
   sunlight: boolean,
   orbitMinutes: number,
 ) {
-  const orbitWave = Math.sin((orbitMinutes / 90) * Math.PI * 2 + u * 2.4 - v * 1.2) * (sunlight ? 2.4 : 1.2)
+  const orbitAngle = (orbitMinutes / 90) * Math.PI * 2
+  const sunSweep = Math.sin(orbitAngle)
+  const terminator = Math.cos(orbitAngle)
+  const orbitWave = Math.sin(orbitAngle + u * 3.7 - v * 2.2) * (sunlight ? 8.6 : 5.2)
   const bottom = 1 - v
 
   if (kind === 'front') {
-    const hotBand = gaussian(u, 0.68, 0.17) * (sunlight ? 47 : 18)
+    const hotBandCenter = sunlight ? 0.62 + sunSweep * 0.2 : 0.5 + sunSweep * 0.12
+    const hotBand = gaussian(u, hotBandCenter, 0.16) * (sunlight ? 54 : 20)
     const coolLeft = lerp(-13, 8, smoothstep(0.05, 0.55, u))
     const lowerCooling = bottom > 0.66 ? lerp(0, -15, smoothstep(0.66, 1, bottom)) : 0
-    const upperWarmth = smoothstep(0.18, 0.72, v) * 6
-    return thermal.nadir + 18 + coolLeft + hotBand + lowerCooling + upperWarmth + orbitWave
+    const upperWarmth = smoothstep(0.18, 0.72, v) * (sunlight ? 9 : 4)
+    const eclipseShadow = sunlight ? 0 : gaussian(u, 0.72 - sunSweep * 0.1, 0.34) * -16
+    return thermal.nadir + 18 + coolLeft + hotBand + lowerCooling + upperWarmth + orbitWave + eclipseShadow
   }
 
   if (kind === 'right') {
-    const hotLeadingEdge = gaussian(u, 0.12, 0.2) * (sunlight ? 26 : 10)
+    const hotLeadingEdge = gaussian(u, 0.16 + terminator * 0.08, 0.18) * (sunlight ? 34 : 12)
     const coolRear = lerp(10, -12, smoothstep(0.28, 1, u))
     const nadirWash = smoothstep(0.68, 1, bottom) * -18
-    return thermal.battery + coolRear + hotLeadingEdge + nadirWash + orbitWave * 0.7
+    const sideSweep = Math.sin(orbitAngle + v * 2.4) * (sunlight ? 6 : 3)
+    return thermal.battery + coolRear + hotLeadingEdge + nadirWash + orbitWave * 0.9 + sideSweep
   }
 
   if (kind === 'left') {
-    return lerp(thermal.nadir + 8, thermal.panel - 10, v) + gaussian(u, 0.8, 0.28) * 10 + orbitWave
+    const panelWash = gaussian(u, 0.78 + sunSweep * 0.12, 0.24) * (sunlight ? 18 : 8)
+    return lerp(thermal.nadir + 8, thermal.panel - 10, v) + panelWash + orbitWave * 0.85
   }
 
-  return thermal.nadir - 2 + (1 - u) * 6 + orbitWave * 0.35
+  if (kind === 'rear') {
+    const serviceModule = gaussian(u, 0.34, 0.2) * gaussian(v, 0.64, 0.26) * (sunlight ? 12 : 6)
+    const avionicsBay = gaussian(u, 0.68, 0.16) * gaussian(v, 0.38, 0.2) * (sunlight ? 9 : 5)
+    const railConduction = (
+      gaussian(u, 0.05, 0.11) +
+      gaussian(u, 0.95, 0.11) +
+      gaussian(v, 0.08, 0.12) +
+      gaussian(v, 0.92, 0.12)
+    ) * (sunlight ? 6 : 3)
+    const backShadow = sunlight ? -9 + terminator * 2 : -17
+    return thermal.radio - 4 + backShadow + serviceModule + avionicsBay + railConduction + orbitWave * 0.42
+  }
+
+  if (kind === 'solar') {
+    const sweepCenter = 0.5 + sunSweep * 0.28
+    const directSun = gaussian(u, sweepCenter, 0.24) * (sunlight ? 20 : 6)
+    const trailingCool = gaussian(u, 1 - sweepCenter, 0.34) * (sunlight ? -10 : -18)
+    const edgeCooling = (gaussian(v, 0.04, 0.08) + gaussian(v, 0.96, 0.08)) * -7
+    return thermal.panel + directSun + trailingCool + edgeCooling + orbitWave * 1.05
+  }
+
+  if (kind === 'sideSolar') {
+    const sweepCenter = 0.56 + sunSweep * 0.2
+    const verticalSun = gaussian(v, sweepCenter, 0.23) * (sunlight ? 18 : 5)
+    const rearCool = smoothstep(0.45, 1, u) * (sunlight ? -8 : -15)
+    return thermal.panel - 4 + verticalSun + rearCool + orbitWave * 0.9
+  }
+
+  return thermal.nadir - 2 + (1 - u) * 6 + orbitWave * 0.7
 }
 
 function drawPanelSeams(context: CanvasRenderingContext2D, width: number, height: number, columns: number, rows: number) {
@@ -351,6 +347,70 @@ function drawSurfaceScrews(context: CanvasRenderingContext2D, width: number, hei
   }
 }
 
+function drawRearServiceDetails(context: CanvasRenderingContext2D, width: number, height: number) {
+  context.save()
+  context.globalCompositeOperation = 'source-over'
+
+  context.strokeStyle = 'rgba(18, 28, 30, 0.24)'
+  context.lineWidth = 1.4
+  for (let index = 0; index < 10; index += 1) {
+    const y = (index / 9) * height
+    context.beginPath()
+    context.moveTo(0, y)
+    context.lineTo(width, y + (index % 2 === 0 ? 10 : -8))
+    context.stroke()
+  }
+
+  const plates = [
+    [0.08, 0.14, 0.38, 0.32],
+    [0.53, 0.16, 0.34, 0.24],
+    [0.12, 0.58, 0.3, 0.24],
+    [0.58, 0.54, 0.28, 0.28],
+  ]
+
+  plates.forEach(([x, y, w, h], index) => {
+    const px = x * width
+    const py = y * height
+    const pw = w * width
+    const ph = h * height
+    context.fillStyle = index % 2 === 0 ? 'rgba(219, 228, 220, 0.28)' : 'rgba(180, 193, 184, 0.22)'
+    context.strokeStyle = 'rgba(15, 24, 27, 0.34)'
+    context.lineWidth = 2
+    context.fillRect(px, py, pw, ph)
+    context.strokeRect(px, py, pw, ph)
+
+    context.strokeStyle = 'rgba(255, 255, 255, 0.22)'
+    context.lineWidth = 1
+    for (let line = 1; line < 4; line += 1) {
+      const ly = py + (line / 4) * ph
+      context.beginPath()
+      context.moveTo(px + 10, ly)
+      context.lineTo(px + pw - 10, ly)
+      context.stroke()
+    }
+  })
+
+  context.fillStyle = 'rgba(26, 35, 38, 0.62)'
+  context.strokeStyle = 'rgba(255, 255, 255, 0.16)'
+  for (let index = 0; index < 6; index += 1) {
+    const x = (0.18 + index * 0.12) * width
+    const y = (0.48 + (index % 2) * 0.08) * height
+    context.beginPath()
+    context.arc(x, y, 9, 0, Math.PI * 2)
+    context.fill()
+    context.stroke()
+  }
+
+  context.strokeStyle = 'rgba(22, 30, 32, 0.42)'
+  context.lineWidth = 5
+  context.beginPath()
+  context.moveTo(width * 0.19, height * 0.48)
+  context.bezierCurveTo(width * 0.34, height * 0.4, width * 0.5, height * 0.58, width * 0.72, height * 0.42)
+  context.stroke()
+
+  context.restore()
+}
+
 function redrawThermalTexture(
   binding: ThermalTextureBinding,
   thermal: ThermalTelemetry,
@@ -367,7 +427,7 @@ function redrawThermalTexture(
     for (let x = 0; x < width; x += step) {
       const u = x / width
       const temperature = sampleTextureTemperature(kind, u, v, thermal, sunlight, orbitMinutes)
-      const color = temperatureRgb(temperature)
+      const color = temperatureRgb(visualTemperature(temperature, sunlight))
       const grain = (seededNoise(x, y, kind === 'front' ? 12 : 22) - 0.5) * 18
       context.fillStyle = rgba([
         clamp(color[0] + grain, 0, 255),
@@ -380,7 +440,7 @@ function redrawThermalTexture(
 
   if (kind === 'right') {
     context.globalCompositeOperation = 'multiply'
-    context.globalAlpha = 0.74
+    context.globalAlpha = 0.58
     context.fillStyle = '#020735'
     context.fillRect(0, 0, width, height)
     context.globalAlpha = 1
@@ -396,6 +456,37 @@ function redrawThermalTexture(
         context.fill()
       }
     }
+  } else if (kind === 'solar' || kind === 'sideSolar') {
+    const columns = binding.columns ?? (kind === 'solar' ? 8 : 6)
+    const rows = binding.rows ?? (kind === 'solar' ? 7 : 8)
+    const panelTint = temperatureRgb(visualTemperature(thermal.panel, sunlight))
+
+    context.globalCompositeOperation = 'multiply'
+    context.globalAlpha = sunlight ? 0.42 : 0.56
+    context.fillStyle = '#06112b'
+    context.fillRect(0, 0, width, height)
+
+    context.globalCompositeOperation = 'screen'
+    context.globalAlpha = sunlight ? 0.22 : 0.14
+    context.fillStyle = rgba(panelTint, 0.9)
+    context.fillRect(0, 0, width, height)
+
+    context.globalAlpha = 1
+    context.globalCompositeOperation = 'source-over'
+    context.strokeStyle = 'rgba(239, 178, 48, 0.72)'
+    context.lineWidth = 1.35
+    drawPanelSeams(context, width, height, columns, rows)
+
+    context.fillStyle = 'rgba(242, 184, 54, 0.84)'
+    for (let column = 0; column <= columns; column += 1) {
+      for (let row = 0; row <= rows; row += 1) {
+        const x = (column / columns) * width
+        const y = (row / rows) * height
+        context.beginPath()
+        context.arc(x, y, 4.1, 0, Math.PI * 2)
+        context.fill()
+      }
+    }
   } else if (kind === 'front') {
     drawPanelSeams(context, width, height, 6, 7)
     drawSurfaceWear(context, width, height, 5)
@@ -403,6 +494,18 @@ function redrawThermalTexture(
   } else if (kind === 'left') {
     drawPanelSeams(context, width, height, 4, 6)
     drawSurfaceWear(context, width, height, 8)
+    drawSurfaceScrews(context, width, height, 4, 6)
+  } else if (kind === 'rear') {
+    context.globalCompositeOperation = 'multiply'
+    context.globalAlpha = 0.22
+    context.fillStyle = '#d7ded4'
+    context.fillRect(0, 0, width, height)
+    context.globalAlpha = 1
+    context.globalCompositeOperation = 'source-over'
+    drawPanelSeams(context, width, height, 5, 6)
+    drawSurfaceWear(context, width, height, 13)
+    drawSurfaceScrews(context, width, height, 5, 6)
+    drawRearServiceDetails(context, width, height)
   } else {
     drawPanelSeams(context, width, height, 5, 3)
   }
@@ -569,16 +672,26 @@ function createReferenceCubeSat(
   const yHalf = boundsSize.y * 0.5
   const zHalf = boundsSize.z * 0.5
   const frontY = -yHalf - 0.014
+  const backY = yHalf + 0.014
   const sideX = xHalf + 0.014
 
   const metalTexture = createMetalTexture(THREE)
-  const solarTexture = createSolarPanelTexture(THREE, 8, 7)
-  const sideSolarTexture = createSolarPanelTexture(THREE, 6, 8)
   const frontTexture = createThermalTextureBinding(THREE, 'front', thermal, sunlight, orbitMinutes)
   const rightTexture = createThermalTextureBinding(THREE, 'right', thermal, sunlight, orbitMinutes)
   const leftTexture = createThermalTextureBinding(THREE, 'left', thermal, sunlight, orbitMinutes)
   const nadirTexture = createThermalTextureBinding(THREE, 'nadir', thermal, sunlight, orbitMinutes)
-  const thermalTextures = [frontTexture, rightTexture, leftTexture, nadirTexture].filter(Boolean) as ThermalTextureBinding[]
+  const rearTexture = createThermalTextureBinding(THREE, 'rear', thermal, sunlight, orbitMinutes)
+  const solarTexture = createThermalTextureBinding(THREE, 'solar', thermal, sunlight, orbitMinutes, 8, 7)
+  const sideSolarTexture = createThermalTextureBinding(THREE, 'sideSolar', thermal, sunlight, orbitMinutes, 6, 8)
+  const thermalTextures = [
+    frontTexture,
+    rightTexture,
+    leftTexture,
+    nadirTexture,
+    rearTexture,
+    solarTexture,
+    sideSolarTexture,
+  ].filter(Boolean) as ThermalTextureBinding[]
 
   const bodyMaterial = new THREE.MeshStandardMaterial({
     color: 0x9ea8a7,
@@ -610,21 +723,27 @@ function createReferenceCubeSat(
     roughness: 0.45,
     map: nadirTexture?.texture,
   })
+  const rearMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    metalness: 0.42,
+    roughness: 0.48,
+    map: rearTexture?.texture,
+  })
   const solarMaterial = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     metalness: 0.08,
     roughness: 0.42,
-    map: solarTexture,
+    map: solarTexture?.texture,
     emissive: 0x02072a,
-    emissiveIntensity: sunlight ? 0.12 : 0.04,
+    emissiveIntensity: sunlight ? 0.18 : 0.06,
   })
   const sideSolarMaterial = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     metalness: 0.08,
     roughness: 0.46,
-    map: sideSolarTexture,
+    map: sideSolarTexture?.texture,
     emissive: 0x02072a,
-    emissiveIntensity: sunlight ? 0.1 : 0.035,
+    emissiveIntensity: sunlight ? 0.16 : 0.05,
   })
   const railMaterial = new THREE.MeshStandardMaterial({
     color: 0xd8dedc,
@@ -641,6 +760,17 @@ function createReferenceCubeSat(
     color: 0xd59b2d,
     metalness: 0.58,
     roughness: 0.28,
+  })
+  const servicePanelMaterial = new THREE.MeshStandardMaterial({
+    color: 0xb7c4bd,
+    metalness: 0.42,
+    roughness: 0.36,
+    map: metalTexture,
+  })
+  const cableMaterial = new THREE.MeshStandardMaterial({
+    color: 0x172226,
+    metalness: 0.62,
+    roughness: 0.3,
   })
   const fanBladeMaterial = new THREE.MeshStandardMaterial({
     color: 0x05080b,
@@ -703,6 +833,16 @@ function createReferenceCubeSat(
     new THREE.Vector3(0, 1, 0),
     new THREE.Vector3(0, 0, -1),
   ))
+  root.add(createPlaneOnBasis(
+    THREE,
+    boundsSize.x * 0.96,
+    boundsSize.z * 0.96,
+    rearMaterial,
+    new THREE.Vector3(0, backY, 0),
+    new THREE.Vector3(-1, 0, 0),
+    new THREE.Vector3(0, 0, 1),
+    new THREE.Vector3(0, 1, 0),
+  ))
 
   for (const xSign of [-1, 1]) {
     for (const ySign of [-1, 1]) {
@@ -717,6 +857,24 @@ function createReferenceCubeSat(
     addBox(THREE, root, [boundsSize.x + 0.18, 0.052, 0.058], [0, yHalf + 0.04, zSign * (zHalf + 0.03)], railMaterial, 0.05)
     addBox(THREE, root, [0.052, boundsSize.y + 0.18, 0.058], [-xHalf - 0.04, 0, zSign * (zHalf + 0.03)], railMaterial, 0.05)
     addBox(THREE, root, [0.052, boundsSize.y + 0.18, 0.058], [xHalf + 0.04, 0, zSign * (zHalf + 0.03)], railMaterial, 0.05)
+  }
+
+  const rearFeatureY = backY + 0.045
+  ;[
+    { size: [0.7, 0.036, 0.38] as [number, number, number], position: [-0.36, rearFeatureY, 0.34] as [number, number, number], material: servicePanelMaterial },
+    { size: [0.46, 0.04, 0.28] as [number, number, number], position: [0.46, rearFeatureY, 0.26] as [number, number, number], material: servicePanelMaterial },
+    { size: [0.34, 0.044, 0.24] as [number, number, number], position: [-0.46, rearFeatureY + 0.006, -0.42] as [number, number, number], material: goldMaterial },
+    { size: [0.4, 0.04, 0.22] as [number, number, number], position: [0.42, rearFeatureY, -0.48] as [number, number, number], material: servicePanelMaterial },
+  ].forEach(({ size, position, material }) => addBox(THREE, root, size, position, material, 0.035))
+
+  for (const z of [-0.68, -0.35, -0.04, 0.29, 0.62]) {
+    addBox(THREE, root, [boundsSize.x * 0.78, 0.02, 0.014], [0, rearFeatureY + 0.028, z], cableMaterial, 0.02)
+  }
+  for (const x of [-0.62, 0.02, 0.62]) {
+    addBox(THREE, root, [0.014, 0.02, boundsSize.z * 0.66], [x, rearFeatureY + 0.03, -0.02], cableMaterial, 0.02)
+  }
+  for (const [x, z] of [[-0.12, -0.2], [0.12, -0.2], [0.63, -0.04], [-0.68, 0.03]] as Array<[number, number]>) {
+    addFrontCylinder(THREE, root, 0.045, 0.035, [x, backY + 0.075, z], cableMaterial, 36)
   }
 
   const topPanels: Array<[number, number]> = [
@@ -896,7 +1054,7 @@ export default function CubeSatThermalViewer({
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.1
+      renderer.toneMappingExposure = 1
       renderer.shadowMap.enabled = true
       renderer.shadowMap.type = THREE.PCFSoftShadowMap
       container.insertBefore(renderer.domElement, container.firstChild)
@@ -910,14 +1068,14 @@ export default function CubeSatThermalViewer({
       modelRoot.position.y = 0.22
       scene.add(modelRoot)
 
-      const fillLight = new THREE.HemisphereLight(0x9cecff, 0x171816, sunlightRef.current ? 1.45 : 0.76)
-      const primaryLight = new THREE.DirectionalLight(sunlightRef.current ? 0xfff0c4 : 0x78a9ff, sunlightRef.current ? 3.85 : 1.25)
+      const fillLight = new THREE.HemisphereLight(0x9cecff, 0x171816, sunlightRef.current ? 1.26 : 0.68)
+      const primaryLight = new THREE.DirectionalLight(sunlightRef.current ? 0xfff0c4 : 0x78a9ff, sunlightRef.current ? 3.45 : 1.15)
       primaryLight.position.set(5.4, 6.2, 4.6)
       primaryLight.castShadow = true
       primaryLight.shadow.mapSize.set(2048, 2048)
       primaryLight.shadow.camera.near = 0.5
       primaryLight.shadow.camera.far = 24
-      scene.add(new THREE.AmbientLight(0xffffff, 0.58), fillLight, primaryLight)
+      scene.add(new THREE.AmbientLight(0xffffff, 0.48), fillLight, primaryLight)
 
       const rimLight = new THREE.DirectionalLight(0x83e2ff, 1.0)
       rimLight.position.set(-4.4, 2.2, -3.8)
@@ -956,9 +1114,9 @@ export default function CubeSatThermalViewer({
       }
 
       const updateLights = () => {
-        primaryLight.intensity = sunlightRef.current ? 3.85 : 1.25
+        primaryLight.intensity = sunlightRef.current ? 3.45 : 1.15
         primaryLight.color.set(sunlightRef.current ? 0xfff0c4 : 0x78a9ff)
-        fillLight.intensity = sunlightRef.current ? 1.45 : 0.76
+        fillLight.intensity = sunlightRef.current ? 1.26 : 0.68
         floorMaterial.color.set(sunlightRef.current ? 0xff7d45 : 0x3158ff)
         floorMaterial.opacity = sunlightRef.current ? 0.1 : 0.075
       }

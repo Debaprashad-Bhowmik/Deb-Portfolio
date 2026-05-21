@@ -6807,8 +6807,10 @@ input[type='range'] {
   padding: 9px 10px 8px;
   border: 1px solid rgba(23, 28, 31, 0.09);
   border-radius: 6px;
-  background: rgba(255, 250, 242, 0.48);
-  box-shadow: 0 8px 18px rgba(43, 33, 22, 0.04);
+  background: rgba(255, 250, 242, 0.66);
+  box-shadow:
+    0 10px 24px rgba(43, 33, 22, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.24) inset;
   backdrop-filter: blur(18px);
   transform: translate(-50%, -50%);
   transition: opacity 120ms ease;
