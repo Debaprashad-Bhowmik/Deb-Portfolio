@@ -20,6 +20,7 @@ type CubeSatThermalViewerProps = {
   orbitMinutes: number
   thermal: ThermalTelemetry
   onAnchorUpdate: (anchors: ThermalAnchorMap) => void
+  onReady?: () => void
 }
 
 type CubeSatSceneStatus = 'waiting' | 'preparing' | 'loaded' | 'recovering' | 'model-error'
@@ -1004,6 +1005,7 @@ export default function CubeSatThermalViewer({
   orbitMinutes,
   thermal,
   onAnchorUpdate,
+  onReady,
 }: CubeSatThermalViewerProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const [shouldMountScene, setShouldMountScene] = useState(false)
@@ -1013,6 +1015,7 @@ export default function CubeSatThermalViewer({
   const orbitMinutesRef = useRef(orbitMinutes)
   const thermalRef = useRef(thermal)
   const onAnchorUpdateRef = useRef(onAnchorUpdate)
+  const onReadyRef = useRef(onReady)
   const runtimeRef = useRef<{
     primaryLight?: import('three').DirectionalLight
     fillLight?: import('three').HemisphereLight
@@ -1034,6 +1037,10 @@ export default function CubeSatThermalViewer({
   useEffect(() => {
     onAnchorUpdateRef.current = onAnchorUpdate
   }, [onAnchorUpdate])
+
+  useEffect(() => {
+    onReadyRef.current = onReady
+  }, [onReady])
 
   useEffect(() => {
     const container = mountRef.current
@@ -1130,6 +1137,7 @@ export default function CubeSatThermalViewer({
       modelRoot.add(cubeSat.root)
       container.dataset.modelAsset = 'Scratch texture-driven CubeSat thermal twin'
       setSceneStatus('loaded')
+      onReadyRef.current?.()
       notifyCubesatReady()
 
       let lastThermalSignature = ''

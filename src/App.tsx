@@ -267,6 +267,50 @@ const feedbackProofItems: Array<{ icon: LucideIcon; title: string; detail: strin
   },
 ]
 
+type EngineeringHandoffData = {
+  id: string
+  from: string
+  to: string
+  variant: 'dark' | 'light'
+  artType: 'bolt' | 'flow' | 'orbit'
+  headline: string
+  subline: string
+  tags: string[]
+}
+
+const engineeringHandoffs: Record<'dieselToBolt' | 'boltToBleeding' | 'hvacToCubesat', EngineeringHandoffData> = {
+  dieselToBolt: {
+    id: 'diesel-to-bolt',
+    from: 'BMT Diesel Engine Digital Twin',
+    to: 'Coupling Bolt',
+    variant: 'dark',
+    artType: 'bolt',
+    headline: 'Preparing next engineering system',
+    subline: 'Moving from live machinery telemetry into controlled mechanical failure design.',
+    tags: ['CAD Data', 'Stress Path', 'Simulation', 'Build'],
+  },
+  boltToBleeding: {
+    id: 'bolt-to-bleeding',
+    from: 'Coupling Bolt',
+    to: 'Bleeding Control Simulator',
+    variant: 'light',
+    artType: 'flow',
+    headline: 'Calibrating pressure feedback',
+    subline: 'Turning mechanical intent into sensor-driven training, flow response, and live guidance.',
+    tags: ['Pressure', 'Flow Rate', 'Sensors', 'Training UI'],
+  },
+  hvacToCubesat: {
+    id: 'hvac-to-cubesat',
+    from: 'GMP HVAC System',
+    to: 'CubeSat Thermal',
+    variant: 'light',
+    artType: 'orbit',
+    headline: 'Opening thermal viewport',
+    subline: 'Shifting from cleanroom airflow control to orbit-scale heat maps and component limits.',
+    tags: ['Orbit Cycle', 'Thermal Map', 'Callouts', 'Mission Context'],
+  },
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
@@ -310,6 +354,126 @@ function SectionReveal({
     >
       {children}
     </motion.section>
+  )
+}
+
+function EngineeringHandoff({ handoff }: { handoff: EngineeringHandoffData }) {
+  const reduceMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      className={`engineering-handoff handoff-${handoff.variant} handoff-art-${handoff.artType}`}
+      role="status"
+      aria-label={`${handoff.from} to ${handoff.to} loading transition`}
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={reduceMotion ? undefined : { opacity: 1 }}
+      exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } }}
+      transition={{ duration: reduceMotion ? 0 : 0.58, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <div className="handoff-blueprint-grid" aria-hidden="true" />
+      <div className="handoff-scanline" aria-hidden="true" />
+      <div className="handoff-label handoff-label-from">
+        <span>Current system</span>
+        <strong>{handoff.from}</strong>
+      </div>
+      <div className="handoff-label handoff-label-to">
+        <span>Next system</span>
+        <strong>{handoff.to}</strong>
+      </div>
+      <HandoffBlueprintArt id={handoff.id} artType={handoff.artType} />
+      <div className="handoff-panel">
+        <span className="handoff-status-dot" aria-hidden="true" />
+        <p>System handoff</p>
+        <h2>{handoff.headline}</h2>
+        <span>{handoff.subline}</span>
+        <div className="handoff-tags" aria-label="Transition context">
+          {handoff.tags.map((tag) => (
+            <b key={tag}>{tag}</b>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function HandoffBlueprintArt({ artType, id }: { artType: EngineeringHandoffData['artType']; id: string }) {
+  const gradientId = `handoff-gradient-${id}`
+
+  if (artType === 'flow') {
+    return (
+      <svg className="handoff-technical-art" viewBox="0 0 1200 420" aria-hidden="true">
+        <defs>
+          <linearGradient id={gradientId} x1="240" x2="960" y1="210" y2="210" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#4b7cff" stopOpacity="0.15" />
+            <stop offset="0.52" stopColor="#1e9cff" stopOpacity="0.68" />
+            <stop offset="1" stopColor="#d62f2f" stopOpacity="0.28" />
+          </linearGradient>
+        </defs>
+        <path className="handoff-line handoff-line-soft" d="M116 266H258c34 0 42-48 76-48h112c28 0 39 38 70 38h126c32 0 38-62 72-62h88c35 0 44 54 80 54h204" />
+        <path className="handoff-line handoff-line-hot" d="M184 253c86-2 106-47 184-47h178c70 0 80 53 151 53h330" />
+        <rect className="handoff-device" x="146" y="160" width="116" height="146" rx="18" />
+        <rect className="handoff-device" x="870" y="132" width="162" height="112" rx="18" />
+        <circle className="handoff-node" cx="333" cy="218" r="8" />
+        <circle className="handoff-node" cx="642" cy="256" r="8" />
+        <circle className="handoff-node handoff-node-hot" cx="804" cy="194" r="8" />
+        <path className="handoff-wave" d="M474 190l22 56 25-96 28 126 32-86 25 42 31-14" />
+        <text x="168" y="144">RESERVOIR / FLOW</text>
+        <text x="883" y="118">PRESSURE FEEDBACK</text>
+        <text x="520" y="330">SENSOR LOOP</text>
+      </svg>
+    )
+  }
+
+  if (artType === 'orbit') {
+    return (
+      <svg className="handoff-technical-art" viewBox="0 0 1200 420" aria-hidden="true">
+        <defs>
+          <linearGradient id={gradientId} x1="404" x2="792" y1="248" y2="120" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#2d62ff" />
+            <stop offset="0.48" stopColor="#7ce5d5" />
+            <stop offset="0.76" stopColor="#ffd84d" />
+            <stop offset="1" stopColor="#ff654b" />
+          </linearGradient>
+        </defs>
+        <ellipse className="handoff-orbit" cx="606" cy="214" rx="426" ry="124" />
+        <ellipse className="handoff-orbit handoff-orbit-offset" cx="606" cy="214" rx="308" ry="90" />
+        <circle className="handoff-sun" cx="1010" cy="124" r="20" />
+        <g className="handoff-cube">
+          <polygon points="458,150 664,92 808,172 602,230" />
+          <polygon points="602,230 808,172 808,304 602,364" />
+          <polygon points="458,150 602,230 602,364 458,284" />
+          <path d="M488 168l144 80M528 156l144 80M568 144l144 80M608 132l144 80M646 120l144 80" />
+          <path d="M642 220v132M684 208v132M726 196v132M768 184v132" />
+        </g>
+        <rect className="handoff-thermal-ramp" x="164" y="296" width="226" height="12" rx="6" fill={`url(#${gradientId})`} />
+        <path className="handoff-line handoff-line-soft" d="M800 172h148l56-48" />
+        <path className="handoff-line handoff-line-soft" d="M604 362H392l-56-54" />
+        <circle className="handoff-node" cx="808" cy="172" r="8" />
+        <circle className="handoff-node" cx="602" cy="362" r="8" />
+        <text x="164" y="278">THERMAL RANGE</text>
+        <text x="906" y="108">SUNLIGHT VECTOR</text>
+        <text x="230" y="338">ORBIT CYCLE</text>
+      </svg>
+    )
+  }
+
+  return (
+    <svg className="handoff-technical-art" viewBox="0 0 1200 420" aria-hidden="true">
+      <path className="handoff-line handoff-line-soft" d="M148 320H394M806 320h246M600 64v94M600 270v86" />
+      <path className="handoff-dim" d="M245 122h710M245 122v38M955 122v38M305 340h590M305 340v-42M895 340v-42" />
+      <g className="handoff-bolt">
+        <polygon points="226,206 286,144 366,144 430,205 366,266 286,266" />
+        <rect x="402" y="174" width="402" height="64" rx="29" />
+        <path d="M494 174l-42 64M548 174l-42 64M602 174l-42 64M656 174l-42 64M710 174l-42 64M764 174l-42 64" />
+        <polygon points="786,206 850,144 930,144 992,206 930,266 850,266" />
+      </g>
+      <circle className="handoff-node" cx="402" cy="206" r="8" />
+      <circle className="handoff-node" cx="804" cy="206" r="8" />
+      <path className="handoff-line handoff-line-hot" d="M402 206h402" />
+      <text x="244" y="106">CONTROLLED FAILURE MEMBER</text>
+      <text x="457" y="298">THREAD ENVELOPE / RELIEF PATH</text>
+      <text x="820" y="106">HEAVY HEX NUT</text>
+    </svg>
   )
 }
 
@@ -3789,6 +3953,7 @@ function CouplingBoltSection() {
     },
   ]
   const [activeReviewTabId, setActiveReviewTabId] = useState(reviewTabs[0].id)
+  const [artifactReady, setArtifactReady] = useState(false)
   const activeReviewTab = reviewTabs.find((tab) => tab.id === activeReviewTabId) ?? reviewTabs[0]
 
   return (
@@ -3841,10 +4006,16 @@ function CouplingBoltSection() {
 
         <div className="bolt-artifact-column">
           <div className="artifact-viewer bolt-embedded-viewer">
+            <AnimatePresence>
+              {!artifactReady && (
+                <EngineeringHandoff key="coupling-bolt-handoff" handoff={engineeringHandoffs.dieselToBolt} />
+              )}
+            </AnimatePresence>
             <iframe
               src="/coupling-bolt/coupling-bolt.html?embed=portfolio"
               title="Interactive Coupling Bolt 3D viewer"
               loading="lazy"
+              onLoad={() => setArtifactReady(true)}
             />
           </div>
 
@@ -3969,6 +4140,7 @@ const bleedingWhyCards = [
 
 function BleedingSimulatorSection() {
   const simulatorStartedAt = useMemo(() => Date.now(), [])
+  const [simulatorReady, setSimulatorReady] = useState(false)
   const capabilityCards = [
     {
       icon: Droplets,
@@ -4087,30 +4259,38 @@ function BleedingSimulatorSection() {
             <span>Training feedback</span>
           </div>
         </div>
-        <iframe
-          title="Bleeding Control Simulator interactive demo"
-          src={`/bleeding-control-simulator/index.html?embed=portfolio&startedAt=${simulatorStartedAt}`}
-          loading="lazy"
-          onLoad={(event) => {
-            const frame = event.currentTarget
-            const syncHeight = () => {
-              const doc = frame.contentDocument
-              if (!doc) {
-                return
+        <div className="bleeding-iframe-stage">
+          <AnimatePresence>
+            {!simulatorReady && (
+              <EngineeringHandoff key="bleeding-simulator-handoff" handoff={engineeringHandoffs.boltToBleeding} />
+            )}
+          </AnimatePresence>
+          <iframe
+            title="Bleeding Control Simulator interactive demo"
+            src={`/bleeding-control-simulator/index.html?embed=portfolio&startedAt=${simulatorStartedAt}`}
+            loading="lazy"
+            onLoad={(event) => {
+              const frame = event.currentTarget
+              const syncHeight = () => {
+                const doc = frame.contentDocument
+                if (!doc) {
+                  return
+                }
+
+                frame.style.height = '0px'
+                const nextHeight = Math.max(doc.body.scrollHeight, 980)
+                if (nextHeight) {
+                  frame.style.height = `${nextHeight}px`
+                }
               }
 
-              frame.style.height = '0px'
-              const nextHeight = Math.max(doc.body.scrollHeight, 980)
-              if (nextHeight) {
-                frame.style.height = `${nextHeight}px`
-              }
-            }
-
-            syncHeight()
-            window.setTimeout(syncHeight, 500)
-            window.setTimeout(syncHeight, 1200)
-          }}
-        />
+              syncHeight()
+              window.setTimeout(syncHeight, 500)
+              window.setTimeout(syncHeight, 1200)
+              setSimulatorReady(true)
+            }}
+          />
+        </div>
       </div>
 
       <div className="bleeding-evidence-grid">
@@ -4436,6 +4616,7 @@ function CubeSatSection() {
   const [orbitCycle, setOrbitCycle] = useState(45)
   const [thermalAnchors, setThermalAnchors] = useState<ThermalAnchorMap>(thermalAnchorFallbacks)
   const [compactThermalAnnotations, setCompactThermalAnnotations] = useState(false)
+  const [thermalViewerReady, setThermalViewerReady] = useState(false)
 
   useEffect(() => {
     const query = window.matchMedia('(max-width: 700px)')
@@ -4461,6 +4642,7 @@ function CubeSatSection() {
   const updateThermalAnchors = (anchors: ThermalAnchorMap) => {
     setThermalAnchors(anchors)
   }
+  const markThermalViewerReady = useCallback(() => setThermalViewerReady(true), [])
   const thermalCallouts = useMemo(
     () => createThermalCalloutPositions(thermalAnchors, compactThermalAnnotations),
     [compactThermalAnnotations, thermalAnchors],
@@ -4502,12 +4684,18 @@ function CubeSatSection() {
         </div>
 
         <div className={`cubesat-scene ${sunlight ? 'is-sunlit' : 'is-eclipse'}`}>
+          <AnimatePresence>
+            {!thermalViewerReady && (
+              <EngineeringHandoff key="cubesat-thermal-handoff" handoff={engineeringHandoffs.hvacToCubesat} />
+            )}
+          </AnimatePresence>
           <div className="orbit-lines" />
           <CubeSatThermalViewer
             sunlight={sunlight}
             orbitMinutes={orbitCycle}
             thermal={thermal}
             onAnchorUpdate={updateThermalAnchors}
+            onReady={markThermalViewerReady}
           />
           <ThermalLeaderLines anchors={thermalAnchors} callouts={thermalCallouts} />
           <ThermalCallout className="temp-x" label="+X face" value={thermal.xFace} position={thermalCallouts.xFace} />
