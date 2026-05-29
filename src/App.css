@@ -8902,6 +8902,7 @@ input[type='range'] {
   }
 
   .diesel-capability-pills {
+    justify-content: center;
     margin-top: 34px;
   }
 
@@ -11017,14 +11018,20 @@ input[type='range'] {
   }
 
   .diesel-capability-pills {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-top: 16px;
   }
 
   .diesel-capability-pills span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 28px;
     padding: 0 9px;
     font-size: 9px;
+    text-align: center;
   }
 
   .diesel-meta-list,
