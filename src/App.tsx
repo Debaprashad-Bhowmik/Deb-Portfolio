@@ -74,7 +74,7 @@ import LoadingScreen from './components/LoadingScreen'
 import './App.css'
 
 const revealVariants: Variants = {
-  hidden: { opacity: 0.15, y: 18 },
+  hidden: { opacity: 0.42, y: 12 },
   visible: { opacity: 1, y: 0 },
 }
 
@@ -306,7 +306,7 @@ function SectionReveal({
       initial={reduceMotion ? false : 'hidden'}
       whileInView={reduceMotion ? undefined : 'visible'}
       viewport={{ once: true, amount: 0.06 }}
-      transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+      transition={{ duration: 0.72, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {children}
     </motion.section>
@@ -1113,16 +1113,42 @@ const ProjectCard = React.memo(function ProjectCard({
   onHover: (cardId: string) => void
   onSelect: (cardId: string) => void
 }) {
+  const pointerIntentRef = useRef({ x: 0, y: 0, dragged: false })
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLAnchorElement>) => {
+    pointerIntentRef.current = { x: event.clientX, y: event.clientY, dragged: false }
+  }
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLAnchorElement>) => {
+    const deltaX = Math.abs(event.clientX - pointerIntentRef.current.x)
+    const deltaY = Math.abs(event.clientY - pointerIntentRef.current.y)
+    if (deltaX > 8 || deltaY > 8) {
+      pointerIntentRef.current.dragged = true
+    }
+  }
+
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pointerIntentRef.current.dragged) {
+      event.preventDefault()
+      pointerIntentRef.current.dragged = false
+      return
+    }
+
+    onSelect(card.id)
+  }
+
   return (
-    <article
+    <a
       className={`project-card project-card-${card.variant} ${isActive ? 'is-active' : ''} ${isDimmed ? 'is-dimmed' : ''}`}
+      href={`#${card.id}`}
       style={{ '--project-accent': card.accent } as CSSProperties}
-      tabIndex={0}
-      aria-label={`${card.number}. ${card.title}`}
+      aria-label={`View ${card.title} project`}
       aria-expanded={isActive}
       onMouseEnter={() => onHover(card.id)}
       onFocus={() => onSelect(card.id)}
-      onClick={() => onSelect(card.id)}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onClick={handleClick}
     >
       <div className="project-media">
         <img src={card.image} alt={card.imageAlt} style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
@@ -1144,12 +1170,12 @@ const ProjectCard = React.memo(function ProjectCard({
             <span key={tag}>{tag}</span>
           ))}
         </div>
-        <a className="project-cta" href={`#${card.id}`} onClick={(event) => event.stopPropagation()}>
+        <span className="project-cta" aria-hidden="true">
           View Project
           <ArrowUpRight size={16} aria-hidden="true" />
-        </a>
+        </span>
        </div>
-    </article>
+    </a>
   )
 })
 

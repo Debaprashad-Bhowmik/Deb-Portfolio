@@ -22,6 +22,8 @@ type CubeSatThermalViewerProps = {
   onAnchorUpdate: (anchors: ThermalAnchorMap) => void
 }
 
+type CubeSatSceneStatus = 'waiting' | 'preparing' | 'loaded' | 'recovering' | 'model-error'
+
 type ThermalSurfaceKind = 'front' | 'right' | 'left' | 'nadir' | 'rear' | 'solar' | 'sideSolar'
 
 type ThermalTextureBinding = {
@@ -1004,7 +1006,9 @@ export default function CubeSatThermalViewer({
   onAnchorUpdate,
 }: CubeSatThermalViewerProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
-  const [shouldMountScene] = useState(true)
+  const [shouldMountScene, setShouldMountScene] = useState(false)
+  const [sceneEpoch, setSceneEpoch] = useState(0)
+  const [sceneStatus, setSceneStatus] = useState<CubeSatSceneStatus>('waiting')
   const sunlightRef = useRef(sunlight)
   const orbitMinutesRef = useRef(orbitMinutes)
   const thermalRef = useRef(thermal)
@@ -1032,6 +1036,30 @@ export default function CubeSatThermalViewer({
   }, [onAnchorUpdate])
 
   useEffect(() => {
+    const container = mountRef.current
+    if (!container || shouldMountScene) return
+
+    if (!('IntersectionObserver' in window)) {
+      setSceneStatus('preparing')
+      setShouldMountScene(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setSceneStatus('preparing')
+          setShouldMountScene(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '900px 0px' },
+    )
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [shouldMountScene])
+
+  useEffect(() => {
     if (!shouldMountScene) return
 
     const mount = mountRef.current
@@ -1040,6 +1068,7 @@ export default function CubeSatThermalViewer({
     const container = mount
     let cancelled = false
     let cleanup = () => {}
+    setSceneStatus('preparing')
 
     async function setupScene() {
       const THREE = await import('three')
@@ -1049,9 +1078,10 @@ export default function CubeSatThermalViewer({
         antialias: true,
         alpha: true,
         powerPreference: 'high-performance',
-        preserveDrawingBuffer: true,
+        preserveDrawingBuffer: false,
       })
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8))
+      const isCompactViewport = window.matchMedia('(max-width: 700px)').matches
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isCompactViewport ? 1.22 : 1.65))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
       renderer.toneMappingExposure = 1
@@ -1072,7 +1102,7 @@ export default function CubeSatThermalViewer({
       const primaryLight = new THREE.DirectionalLight(sunlightRef.current ? 0xfff0c4 : 0x78a9ff, sunlightRef.current ? 3.45 : 1.15)
       primaryLight.position.set(5.4, 6.2, 4.6)
       primaryLight.castShadow = true
-      primaryLight.shadow.mapSize.set(2048, 2048)
+      primaryLight.shadow.mapSize.set(isCompactViewport ? 1024 : 2048, isCompactViewport ? 1024 : 2048)
       primaryLight.shadow.camera.near = 0.5
       primaryLight.shadow.camera.far = 24
       scene.add(new THREE.AmbientLight(0xffffff, 0.48), fillLight, primaryLight)
@@ -1099,7 +1129,7 @@ export default function CubeSatThermalViewer({
       modelRoot.scale.setScalar(0.84)
       modelRoot.add(cubeSat.root)
       container.dataset.modelAsset = 'Scratch texture-driven CubeSat thermal twin'
-      container.classList.add('is-loaded')
+      setSceneStatus('loaded')
       notifyCubesatReady()
 
       let lastThermalSignature = ''
@@ -1221,6 +1251,22 @@ export default function CubeSatThermalViewer({
       resizeObserver.observe(container)
       setRendererSize(renderer, camera, container)
 
+      let sceneVisible = true
+      let contextAvailable = true
+      const visibilityObserver = new IntersectionObserver(
+        ([entry]) => {
+          sceneVisible = entry.isIntersecting
+          if (sceneVisible) {
+            requestFrame()
+          } else if (frame) {
+            window.cancelAnimationFrame(frame)
+            frame = 0
+          }
+        },
+        { rootMargin: '480px 0px' },
+      )
+      visibilityObserver.observe(container)
+
       let reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
       const onMotionPreferenceChange = (event: MediaQueryListEvent) => {
@@ -1229,9 +1275,15 @@ export default function CubeSatThermalViewer({
       reducedMotionQuery.addEventListener('change', onMotionPreferenceChange)
 
       let frame = 0
+      const requestFrame = () => {
+        if (!cancelled && contextAvailable && sceneVisible && frame === 0) {
+          frame = window.requestAnimationFrame(animate)
+        }
+      }
       const animate = (time: number) => {
         if (cancelled) return
-        frame = window.requestAnimationFrame(animate)
+        frame = 0
+        if (!contextAvailable || !sceneVisible) return
 
         const seconds = time / 1000
         if (!rotationState.dragging && !reduceMotion) {
@@ -1248,19 +1300,42 @@ export default function CubeSatThermalViewer({
         updateThermalTexturesIfNeeded()
         emitAnchorPositions()
         renderer.render(scene, camera)
+        requestFrame()
       }
-      frame = window.requestAnimationFrame(animate)
+      requestFrame()
+
+      const handleContextLost = (event: Event) => {
+        event.preventDefault()
+        contextAvailable = false
+        if (frame) {
+          window.cancelAnimationFrame(frame)
+          frame = 0
+        }
+        setSceneStatus('recovering')
+      }
+
+      const handleContextRestored = () => {
+        if (cancelled) return
+        setSceneStatus('preparing')
+        setSceneEpoch((epoch) => epoch + 1)
+      }
+
+      renderer.domElement.addEventListener('webglcontextlost', handleContextLost)
+      renderer.domElement.addEventListener('webglcontextrestored', handleContextRestored)
 
       cleanup = () => {
         cancelled = true
         window.cancelAnimationFrame(frame)
+        visibilityObserver.disconnect()
         resizeObserver.disconnect()
         reducedMotionQuery.removeEventListener('change', onMotionPreferenceChange)
+        renderer.domElement.removeEventListener('webglcontextlost', handleContextLost)
+        renderer.domElement.removeEventListener('webglcontextrestored', handleContextRestored)
         container.removeEventListener('pointerdown', onPointerDown)
         container.removeEventListener('pointermove', onPointerMove)
         container.removeEventListener('pointerup', endPointerDrag)
         container.removeEventListener('pointercancel', endPointerDrag)
-        container.classList.remove('is-loaded', 'is-model-error', 'is-dragging')
+        container.classList.remove('is-dragging')
         runtimeRef.current = {}
         disposeObjectResources(scene)
         renderer.dispose()
@@ -1272,22 +1347,27 @@ export default function CubeSatThermalViewer({
 
     setupScene().catch(() => {
       if (cancelled) return
-      container.classList.add('is-model-error')
+      setSceneStatus('model-error')
     })
 
     return () => {
       cancelled = true
       cleanup()
     }
-  }, [shouldMountScene])
+  }, [shouldMountScene, sceneEpoch])
+
+  const sceneStatusClass = sceneStatus === 'waiting' ? '' : `is-${sceneStatus}`
 
   return (
     <div
-      className={`cubesat-model-viewer cubesat-thermal-viewer ${sunlight ? 'is-sunlit' : 'is-eclipse'}`}
+      className={`cubesat-model-viewer cubesat-thermal-viewer ${sunlight ? 'is-sunlit' : 'is-eclipse'} ${sceneStatusClass}`}
       ref={mountRef}
       aria-label="Interactive 3D CubeSat thermal model. Drag to rotate."
     >
-      <div className="model-loading">Loading high-fidelity CubeSat</div>
+      <div className="model-loading">
+        <span>Preparing 3D viewport</span>
+        <small>Thermal model warming up</small>
+      </div>
       <div className="model-error">CubeSat model could not be loaded.</div>
     </div>
   )

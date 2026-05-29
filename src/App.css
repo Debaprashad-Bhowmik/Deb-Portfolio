@@ -1756,6 +1756,8 @@ input:focus-visible {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--card-bg);
+  color: inherit;
+  text-decoration: none;
   box-shadow: 0 14px 38px rgba(35, 28, 19, 0.07);
   cursor: pointer;
   isolation: isolate;
@@ -6137,7 +6139,7 @@ input[type='range'] {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 0;
+  z-index: 7;
   display: grid;
   place-items: center;
   min-width: 220px;
@@ -6153,6 +6155,87 @@ input[type='range'] {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.68);
   transform: translate(-50%, -50%);
+}
+
+.cleanroom-visual.gmp-hvac-model .gmp-model-loading,
+.cubesat-model-viewer .model-loading {
+  z-index: 7;
+  gap: 5px;
+  overflow: hidden;
+  min-width: min(310px, 82%);
+  min-height: 76px;
+  color: #33414c;
+  border: 1px solid rgba(75, 124, 255, 0.18);
+  background:
+    linear-gradient(rgba(75, 124, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(75, 124, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.88), rgba(247, 242, 234, 0.72));
+  background-size: 24px 24px, 24px 24px, auto;
+  box-shadow:
+    0 18px 42px rgba(45, 58, 70, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(18px);
+}
+
+.cleanroom-visual.gmp-hvac-model .gmp-model-loading::before,
+.cubesat-model-viewer .model-loading::before {
+  width: 8px;
+  height: 8px;
+  content: '';
+  border-radius: 999px;
+  background: var(--blue);
+  box-shadow: 0 0 0 6px rgba(75, 124, 255, 0.12);
+}
+
+.cleanroom-visual.gmp-hvac-model .gmp-model-loading::after,
+.cubesat-model-viewer .model-loading::after {
+  position: absolute;
+  right: 18px;
+  bottom: 13px;
+  left: 18px;
+  height: 2px;
+  content: '';
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent, rgba(75, 124, 255, 0.84), transparent),
+    rgba(75, 124, 255, 0.12);
+  animation: technical-loader-sweep 1.6s ease-in-out infinite;
+}
+
+.cleanroom-visual.gmp-hvac-model .gmp-model-loading span,
+.cubesat-model-viewer .model-loading span {
+  font-size: 11px;
+  font-weight: 820;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cleanroom-visual.gmp-hvac-model .gmp-model-loading small,
+.cubesat-model-viewer .model-loading small {
+  max-width: 24ch;
+  color: #66737d;
+  font-size: 11px;
+  font-weight: 520;
+  letter-spacing: 0;
+  line-height: 1.35;
+  text-transform: none;
+}
+
+@keyframes technical-loader-sweep {
+  0% {
+    opacity: 0.42;
+    transform: translateX(-34%) scaleX(0.42);
+  }
+
+  48% {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: translateX(34%) scaleX(0.42);
+  }
 }
 
 .gmp-model-error {
@@ -6742,6 +6825,15 @@ input[type='range'] {
   z-index: 2;
   width: 100% !important;
   height: 100% !important;
+}
+
+.cubesat-model-viewer.is-preparing,
+.cubesat-model-viewer.is-recovering {
+  background:
+    radial-gradient(circle at 54% 42%, rgba(75, 124, 255, 0.08), transparent 36%),
+    linear-gradient(rgba(75, 124, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(75, 124, 255, 0.035) 1px, transparent 1px);
+  background-size: auto, 32px 32px, 32px 32px;
 }
 
 .model-loading,
@@ -7893,6 +7985,11 @@ input[type='range'] {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cleanroom-visual.gmp-hvac-model .gmp-model-loading::after,
+  .cubesat-model-viewer .model-loading::after {
+    animation: none;
+  }
+
   .feedback-card,
   .feedback-card.is-active,
   .feedback-arrow,
