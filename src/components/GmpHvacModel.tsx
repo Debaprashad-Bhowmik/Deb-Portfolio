@@ -3,6 +3,7 @@ import { RotateCcw } from 'lucide-react'
 import type { Material, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three'
 import type { HvacOption } from '../data/portfolio'
 import { notifyHvacReady } from '../sceneReadiness'
+import ModelInteractionCoach, { useModelInteractionCoach } from './ModelInteractionCoach'
 
 type GmpHvacModelProps = {
   activeOption: HvacOption['id']
@@ -175,6 +176,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
   const [sceneEpoch, setSceneEpoch] = useState(0)
   const [activeCallout, setActiveCallout] = useState<CalloutKey>('hepa')
   const [annotations, setAnnotations] = useState<Record<CalloutKey, CalloutAnnotation>>(createDefaultAnnotations)
+  const modelCoach = useModelInteractionCoach({ containerRef: mountRef, ready: isLoaded })
 
   useEffect(() => {
     activeOptionRef.current = activeOption
@@ -1366,6 +1368,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       <button className="gmp-model-reset" type="button" aria-label="Reset HVAC model view" title="Reset view" onClick={resetView}>
         <RotateCcw size={17} aria-hidden="true" />
       </button>
+      <ModelInteractionCoach state={modelCoach.state} theme="light" onReplay={modelCoach.replay} />
 
       <svg className="gmp-leader-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         {(Object.keys(calloutCopy) as CalloutKey[]).map((key) => {

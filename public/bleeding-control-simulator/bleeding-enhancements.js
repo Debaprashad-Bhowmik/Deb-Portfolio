@@ -20,6 +20,7 @@
 
   const metaItems = ['Mechanical Design', 'Fluid Flow', 'Sensor Feedback', 'Arduino Control', 'Training Interface']
   let activePopover = null
+  let modelCoachTimer = null
 
   function normalizeTitle(text) {
     return text.replace(/\s+/g, ' ').trim()
@@ -114,9 +115,121 @@
     dashboard.insertAdjacentElement('afterend', strip)
   }
 
+  function createRotateIcon() {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    svg.setAttribute('viewBox', '0 0 24 24')
+    svg.setAttribute('width', '16')
+    svg.setAttribute('height', '16')
+    svg.setAttribute('aria-hidden', 'true')
+    svg.innerHTML = '<path d="M3 12a9 9 0 1 0 3-6.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M3 4v6h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+    return svg
+  }
+
+  function enhanceModelCoach() {
+    const model = document.querySelector('.interactive-model')
+    if (!model || model.querySelector('.bleeding-model-coach')) {
+      return
+    }
+
+    const coach = document.createElement('div')
+    coach.className = 'bleeding-model-coach'
+    coach.innerHTML = `
+      <div class="bleeding-model-coach-capsule" role="status" aria-live="polite">
+        <span class="bleeding-model-coach-icon"></span>
+        <span class="bleeding-model-coach-copy">
+          <strong><span class="coach-desktop-copy">Drag to inspect</span><span class="coach-mobile-copy">Swipe to rotate</span></strong>
+          <small><span class="coach-desktop-copy">Rotate the 3D model</span><span class="coach-mobile-copy">Explore every angle</span></small>
+        </span>
+        <span class="bleeding-model-coach-trace" aria-hidden="true"></span>
+      </div>
+      <button class="bleeding-model-coach-replay" type="button" aria-label="Show 3D interaction hint" title="Show 3D interaction hint"></button>
+    `
+    coach.querySelector('.bleeding-model-coach-icon').appendChild(createRotateIcon())
+    coach.querySelector('.bleeding-model-coach-replay').appendChild(createRotateIcon())
+    model.classList.add('has-interaction-coach')
+    model.appendChild(coach)
+
+    const replay = coach.querySelector('.bleeding-model-coach-replay')
+    let pointerStart = null
+    let coachPresented = false
+
+    const clearCoachTimer = () => {
+      if (modelCoachTimer !== null) {
+        window.clearTimeout(modelCoachTimer)
+        modelCoachTimer = null
+      }
+    }
+
+    const collapseCoach = () => {
+      clearCoachTimer()
+      coach.classList.remove('is-expanded')
+      coach.classList.add('is-collapsed')
+    }
+
+    const showCoach = () => {
+      clearCoachTimer()
+      coachPresented = true
+      coach.classList.remove('is-collapsed')
+      coach.classList.add('is-expanded')
+      modelCoachTimer = window.setTimeout(collapseCoach, 4800)
+    }
+
+    model.addEventListener('pointerdown', (event) => {
+      if (event.target.closest('.bleeding-model-coach-replay')) {
+        return
+      }
+      pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY }
+    })
+    model.addEventListener('pointermove', (event) => {
+      if (!pointerStart || pointerStart.id !== event.pointerId) {
+        return
+      }
+      if (Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) >= 8) {
+        pointerStart = null
+        collapseCoach()
+      }
+    })
+    model.addEventListener('pointerup', () => {
+      pointerStart = null
+    })
+    model.addEventListener('pointercancel', () => {
+      pointerStart = null
+    })
+    replay.addEventListener('pointerdown', (event) => {
+      event.stopPropagation()
+      showCoach()
+    })
+    replay.addEventListener('click', (event) => {
+      event.stopPropagation()
+      if (event.detail === 0) {
+        showCoach()
+      }
+    })
+
+    const visibilityWindow = window.parent !== window && window.frameElement ? window.parent : window
+    const syncCoachVisibility = () => {
+      const modelRect = model.getBoundingClientRect()
+      const frameRect = window.frameElement?.getBoundingClientRect()
+      const top = frameRect ? frameRect.top + modelRect.top : modelRect.top
+      const bottom = top + modelRect.height
+      const isMeaningfullyVisible = bottom > visibilityWindow.innerHeight * 0.22 && top < visibilityWindow.innerHeight * 0.78
+
+      if (isMeaningfullyVisible && !coachPresented) {
+        showCoach()
+      } else if (!isMeaningfullyVisible && coach.classList.contains('is-expanded')) {
+        collapseCoach()
+      }
+    }
+
+    visibilityWindow.addEventListener('scroll', syncCoachVisibility, { passive: true })
+    visibilityWindow.addEventListener('resize', syncCoachVisibility)
+    window.setTimeout(syncCoachVisibility, 0)
+  }
+
   function enhanceSimulator() {
     enhanceInfoButtons()
     addMetaStrip()
+    enhanceModelCoach()
   }
 
   document.addEventListener('click', (event) => {

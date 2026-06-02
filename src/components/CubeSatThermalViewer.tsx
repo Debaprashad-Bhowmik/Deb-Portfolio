@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { notifyCubesatReady } from '../sceneReadiness'
+import ModelInteractionCoach, { useModelInteractionCoach } from './ModelInteractionCoach'
 
 export type ThermalAnchorKey = 'xFace' | 'panel' | 'battery' | 'radio' | 'nadir'
 export type ThermalAnchorPoint = { x: number; y: number; visible: boolean }
@@ -1011,6 +1012,7 @@ export default function CubeSatThermalViewer({
   const [shouldMountScene, setShouldMountScene] = useState(false)
   const [sceneEpoch, setSceneEpoch] = useState(0)
   const [sceneStatus, setSceneStatus] = useState<CubeSatSceneStatus>('waiting')
+  const modelCoach = useModelInteractionCoach({ containerRef: mountRef, ready: sceneStatus === 'loaded' })
   const sunlightRef = useRef(sunlight)
   const orbitMinutesRef = useRef(orbitMinutes)
   const thermalRef = useRef(thermal)
@@ -1046,24 +1048,39 @@ export default function CubeSatThermalViewer({
     const container = mountRef.current
     if (!container || shouldMountScene) return
 
-    if (!('IntersectionObserver' in window)) {
+    const beginSceneMount = () => {
       setSceneStatus('preparing')
       setShouldMountScene(true)
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      beginSceneMount()
       return
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setSceneStatus('preparing')
-          setShouldMountScene(true)
+          beginSceneMount()
           observer.disconnect()
         }
       },
       { rootMargin: '900px 0px' },
     )
     observer.observe(container)
-    return () => observer.disconnect()
+
+    const idleCallback = window.requestIdleCallback?.(beginSceneMount, { timeout: 1200 })
+    const idleTimer = idleCallback === undefined ? window.setTimeout(beginSceneMount, 900) : undefined
+
+    return () => {
+      observer.disconnect()
+      if (idleCallback !== undefined) {
+        window.cancelIdleCallback?.(idleCallback)
+      }
+      if (idleTimer !== undefined) {
+        window.clearTimeout(idleTimer)
+      }
+    }
   }, [shouldMountScene])
 
   useEffect(() => {
@@ -1377,6 +1394,11 @@ export default function CubeSatThermalViewer({
         <small>Thermal model warming up</small>
       </div>
       <div className="model-error">CubeSat model could not be loaded.</div>
+      <ModelInteractionCoach
+        state={modelCoach.state}
+        theme="light"
+        onReplay={modelCoach.replay}
+      />
     </div>
   )
 }

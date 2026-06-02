@@ -1052,6 +1052,158 @@
       }
     }
 
+    .interaction-coach {
+      position: absolute;
+      bottom: 72px;
+      left: 50%;
+      z-index: 9;
+      color: rgba(237, 246, 247, 0.84);
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+
+    .interaction-coach[data-state="hidden"] {
+      display: none;
+    }
+
+    .interaction-coach[data-state="collapsed"] .interaction-coach-capsule,
+    .interaction-coach:not([data-state="collapsed"]) .interaction-coach-replay {
+      display: none;
+    }
+
+    .interaction-coach-capsule {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: max-content;
+      max-width: calc(100vw - 32px);
+      min-height: 48px;
+      padding: 8px 11px 8px 9px;
+      border: 1px solid rgba(126, 177, 210, 0.18);
+      border-radius: 8px;
+      background: rgba(5, 13, 18, 0.8);
+      box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(18px);
+      animation: coach-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .interaction-coach-icon,
+    .interaction-coach-replay {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      color: #70a3ff;
+      border: 1px solid rgba(112, 163, 255, 0.3);
+      border-radius: 50%;
+      background: rgba(75, 124, 255, 0.16);
+    }
+
+    .interaction-coach-icon svg,
+    .interaction-coach-replay svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .interaction-coach-copy {
+      display: grid;
+      gap: 2px;
+      min-width: 102px;
+    }
+
+    .interaction-coach-copy strong,
+    .interaction-coach-copy small {
+      display: block;
+      line-height: 1.2;
+    }
+
+    .interaction-coach-copy strong {
+      font-size: 10px;
+      font-weight: 820;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .interaction-coach-copy small {
+      color: rgba(221, 237, 241, 0.58);
+      font-size: 10px;
+      font-weight: 620;
+    }
+
+    .interaction-coach-mobile-copy {
+      display: none;
+    }
+
+    .interaction-coach-trace {
+      position: relative;
+      display: block;
+      width: 52px;
+      height: 1px;
+      background: rgba(112, 163, 255, 0.32);
+    }
+
+    .interaction-coach-trace::after {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 7px;
+      height: 7px;
+      content: "";
+      border-radius: 50%;
+      background: #70a3ff;
+      box-shadow: 0 0 0 5px rgba(75, 124, 255, 0.12);
+      transform: translate(-50%, -50%);
+      animation: coach-swipe 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+
+    .interaction-coach-replay {
+      position: relative;
+      padding: 0;
+      pointer-events: auto;
+      cursor: pointer;
+      box-shadow: 0 9px 22px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(14px);
+      transition:
+        color 180ms ease,
+        border-color 180ms ease,
+        background 180ms ease,
+        transform 180ms ease;
+    }
+
+    .interaction-coach-replay:hover,
+    .interaction-coach-replay:focus-visible {
+      color: #9abaff;
+      border-color: rgba(112, 163, 255, 0.54);
+      background: rgba(75, 124, 255, 0.26);
+      transform: translateY(-2px);
+    }
+
+    @keyframes coach-enter {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes coach-swipe {
+      0%,
+      100% {
+        left: 0;
+        opacity: 0.52;
+      }
+      50% {
+        left: 100%;
+        opacity: 1;
+      }
+    }
+
     @media (max-width: 980px) {
       .topbar {
         left: 12px;
@@ -1176,6 +1328,49 @@
 
       .blueprint-board {
         display: none !important;
+      }
+
+      .interaction-coach {
+        bottom: 18px;
+      }
+
+      .interaction-coach-capsule {
+        gap: 8px;
+        min-height: 44px;
+        padding: 7px 9px 7px 7px;
+      }
+
+      .interaction-coach-icon,
+      .interaction-coach-replay {
+        width: 30px;
+        height: 30px;
+      }
+
+      .interaction-coach-copy {
+        min-width: 96px;
+      }
+
+      .interaction-coach-desktop-copy {
+        display: none;
+      }
+
+      .interaction-coach-mobile-copy {
+        display: block;
+      }
+
+      .interaction-coach-trace {
+        width: 42px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .interaction-coach-capsule {
+        animation: none;
+      }
+
+      .interaction-coach-trace::after {
+        left: 50%;
+        animation: none;
       }
     }
   </style>
@@ -1449,6 +1644,32 @@
       </div>
     </footer>
 
+    <div class="interaction-coach" id="interactionCoach" data-state="hidden" aria-live="polite">
+      <div class="interaction-coach-capsule" role="status">
+        <span class="interaction-coach-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M20 12a8 8 0 0 1-13.1 6.2M4 12A8 8 0 0 1 17.1 5.8M17 2v4h4M7 22v-4H3" stroke="currentColor"></path>
+          </svg>
+        </span>
+        <span class="interaction-coach-copy">
+          <strong>
+            <span class="interaction-coach-desktop-copy">Drag to inspect</span>
+            <span class="interaction-coach-mobile-copy">Swipe to rotate</span>
+          </strong>
+          <small>
+            <span class="interaction-coach-desktop-copy">Rotate the 3D model</span>
+            <span class="interaction-coach-mobile-copy">Explore every angle</span>
+          </small>
+        </span>
+        <span class="interaction-coach-trace" aria-hidden="true"></span>
+      </div>
+      <button class="interaction-coach-replay" id="interactionCoachReplay" type="button" aria-label="Show 3D interaction hint" title="Show 3D interaction hint">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M20 12a8 8 0 0 1-13.1 6.2M4 12A8 8 0 0 1 17.1 5.8M17 2v4h4M7 22v-4H3" stroke="currentColor"></path>
+        </svg>
+      </button>
+    </div>
+
     <div class="loading" id="loading">
       <div class="loader-box">
         <strong>Machining coupling bolt model</strong>
@@ -1479,6 +1700,8 @@
     const modeReadout = document.getElementById("modeReadout");
     const rotateToggle = document.getElementById("rotateToggle");
     const resetView = document.getElementById("resetView");
+    const interactionCoach = document.getElementById("interactionCoach");
+    const interactionCoachReplay = document.getElementById("interactionCoachReplay");
     const searchParams = new URLSearchParams(window.location.search);
     const isPortfolioEmbed = searchParams.get("embed") === "portfolio";
     if (isPortfolioEmbed) {
@@ -1502,7 +1725,7 @@
       alpha: true,
       powerPreference: "high-performance"
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isPortfolioEmbed ? 1.45 : 2));
     renderer.setSize(sceneEl.clientWidth, sceneEl.clientHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1512,8 +1735,98 @@
     renderer.setClearColor(0x061016, 1);
     sceneEl.appendChild(renderer.domElement);
 
+    let contextRecoveryTimer = 0;
+    const contextReloadKey = "coupling-bolt-context-reloads";
+    const loadingCopy = loadingEl.querySelector("strong");
+    const setLoadingState = (copy) => {
+      if (loadingCopy) loadingCopy.textContent = copy;
+      loadingEl.classList.remove("is-hidden");
+    };
+    const clearContextRecoveryTimer = () => {
+      window.clearTimeout(contextRecoveryTimer);
+      contextRecoveryTimer = 0;
+    };
+    const handleWebglContextLost = (event) => {
+      event.preventDefault();
+      setLoadingState("Restoring coupling bolt viewport");
+      clearContextRecoveryTimer();
+      contextRecoveryTimer = window.setTimeout(() => {
+        if (!renderer.getContext().isContextLost()) return;
+        const reloadAttempts = Number(window.sessionStorage.getItem(contextReloadKey) || "0");
+        if (reloadAttempts < 1) {
+          window.sessionStorage.setItem(contextReloadKey, String(reloadAttempts + 1));
+          window.location.reload();
+        }
+      }, 1100);
+    };
+    const handleWebglContextRestored = () => {
+      clearContextRecoveryTimer();
+      window.sessionStorage.removeItem(contextReloadKey);
+      loadingEl.classList.add("is-hidden");
+      renderer.setAnimationLoop(animate);
+    };
+    renderer.domElement.addEventListener("webglcontextlost", handleWebglContextLost);
+    renderer.domElement.addEventListener("webglcontextrestored", handleWebglContextRestored);
+
+    let interactionCoachTimer = 0;
+    let interactionCoachPresented = false;
+    let interactionPointerStart = null;
+    let interactionCoachVisibilityObserver = null;
+    const collapseInteractionCoach = () => {
+      window.clearTimeout(interactionCoachTimer);
+      interactionCoach.dataset.state = "collapsed";
+    };
+    const showInteractionCoach = () => {
+      window.clearTimeout(interactionCoachTimer);
+      interactionCoachPresented = true;
+      interactionCoach.dataset.state = "expanded";
+      interactionCoachTimer = window.setTimeout(collapseInteractionCoach, 4800);
+    };
+    const onInteractionPointerDown = (event) => {
+      interactionPointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
+    };
+    const onInteractionPointerMove = (event) => {
+      if (!interactionPointerStart || interactionPointerStart.id !== event.pointerId) return;
+      if (Math.hypot(event.clientX - interactionPointerStart.x, event.clientY - interactionPointerStart.y) >= 8) {
+        interactionPointerStart = null;
+        collapseInteractionCoach();
+      }
+    };
+    const clearInteractionPointer = (event) => {
+      if (interactionPointerStart && interactionPointerStart.id === event.pointerId) {
+        interactionPointerStart = null;
+      }
+    };
+    renderer.domElement.addEventListener("pointerdown", onInteractionPointerDown);
+    renderer.domElement.addEventListener("pointermove", onInteractionPointerMove);
+    renderer.domElement.addEventListener("pointerup", clearInteractionPointer);
+    renderer.domElement.addEventListener("pointercancel", clearInteractionPointer);
+    interactionCoachReplay.addEventListener("click", showInteractionCoach);
+    const beginInteractionCoachVisibility = () => {
+      if (isPortfolioEmbed && window.frameElement && window.parent.IntersectionObserver) {
+        interactionCoachVisibilityObserver = new window.parent.IntersectionObserver(
+          ([entry]) => {
+            if (entry.isIntersecting && !interactionCoachPresented) {
+              showInteractionCoach();
+            } else if (!entry.isIntersecting && interactionCoach.dataset.state === "expanded") {
+              collapseInteractionCoach();
+            }
+          },
+          {
+            rootMargin: "-22% 0px -22% 0px",
+            threshold: 0.01
+          }
+        );
+        interactionCoachVisibilityObserver.observe(window.frameElement);
+        return;
+      }
+
+      showInteractionCoach();
+    };
+
     const pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    pmrem.dispose();
 
     const controls = new OrbitControls(camera, renderer.domElement);
     const portfolioAutoRotateSpeed = 7.5;
@@ -1543,7 +1856,7 @@
     const keyLight = new THREE.DirectionalLight(0xffffff, 3.7);
     keyLight.position.set(2.9, 4.6, 3.4);
     keyLight.castShadow = true;
-    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.mapSize.set(isPortfolioEmbed ? 1024 : 2048, isPortfolioEmbed ? 1024 : 2048);
     keyLight.shadow.camera.near = 0.5;
     keyLight.shadow.camera.far = 10;
     keyLight.shadow.camera.left = -4;
@@ -1837,7 +2150,11 @@
     });
 
     requestAnimationFrame(() => {
-      loadingEl.classList.add("is-hidden");
+      if (!renderer.getContext().isContextLost()) {
+        window.sessionStorage.removeItem(contextReloadKey);
+        loadingEl.classList.add("is-hidden");
+      }
+      beginInteractionCoachVisibility();
     });
 
     renderer.setAnimationLoop(animate);

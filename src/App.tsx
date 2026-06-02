@@ -70,6 +70,7 @@ import CubeSatThermalViewer, {
   type ThermalAnchorPoint,
   type ThermalTelemetry,
 } from './components/CubeSatThermalViewer'
+import ModelInteractionCoach, { useModelInteractionCoach } from './components/ModelInteractionCoach'
 import LoadingScreen from './components/LoadingScreen'
 import './App.css'
 
@@ -3363,10 +3364,6 @@ function DigitalTwinSection() {
 
             <div className={`engine-model-card ${activeTwinView === 'overview' ? '' : 'is-hidden'}`}>
               <EngineModelViewer scenarioId={scenario.id} />
-              <div className="engine-rotate-hint">
-                <RotateCcw size={18} aria-hidden="true" />
-                <span>Rotate<br />Drag to rotate</span>
-              </div>
               <div className="engine-stage-dots" aria-hidden="true">
                 <span />
                 <span />
@@ -3591,6 +3588,8 @@ function getEngineActions(scenario: EngineScenario) {
 function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const scenarioRef = useRef(scenarioId)
+  const [coachReady, setCoachReady] = useState(false)
+  const engineCoach = useModelInteractionCoach({ containerRef: mountRef, ready: coachReady })
 
   useEffect(() => {
     scenarioRef.current = scenarioId
@@ -3752,6 +3751,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         modelShell.add(assetPivot)
         modelRoot.add(modelShell)
         container.classList.add('is-loaded')
+        setCoachReady(true)
       } else if (!cancelled) {
         // Fallback: load from scratch (shouldn't happen normally)
         const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
@@ -3796,6 +3796,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
             modelShell.add(assetPivot)
             modelRoot.add(modelShell)
             container.classList.add('is-loaded')
+            setCoachReady(true)
           },
           undefined,
           () => {
@@ -3864,6 +3865,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
     <div className="engine-model-viewer" ref={mountRef} data-engine-model="CAT C32 1417KW GLB" aria-label="3D diesel engine model. Drag to rotate.">
       <div className="model-loading">Loading CAT diesel engine</div>
       <div className="model-error">Engine model could not be loaded.</div>
+      <ModelInteractionCoach state={engineCoach.state} theme="dark" onReplay={engineCoach.replay} />
     </div>
   )
 }
