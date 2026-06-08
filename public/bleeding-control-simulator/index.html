@@ -12,10 +12,10 @@
       href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="%23b72a24"/><path d="M32 11c8 9 14 17 14 27 0 8-6 15-14 15s-14-7-14-15c0-10 6-18 14-27z" fill="white"/></svg>'
     />
     <title>Bleeding Control Simulator</title>
-    <script type="module" crossorigin src="./assets/index-hb_EWZni.js"></script>
-    <script defer src="./bleeding-enhancements.js"></script>
+    <script type="module" crossorigin src="./assets/index-hb_EWZni.js?v=2026-06-08-mobile-camera"></script>
+    <script defer src="./bleeding-enhancements.js?v=2026-06-08-mobile-camera"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-CXuhVb97.css">
-    <link rel="stylesheet" href="./bleeding-enhancements.css">
+    <link rel="stylesheet" href="./bleeding-enhancements.css?v=2026-06-08-mobile-camera">
     <style>
       html,
       body,
@@ -123,17 +123,44 @@
 
       @media (max-width: 640px) {
         .hero {
-          padding: 20px 14px 8px !important;
+          gap: 14px !important;
+          padding: 14px 12px 8px !important;
+        }
+
+        .hero-copy {
+          padding-top: 0 !important;
         }
 
         .hero h1 {
-          font-size: 38px !important;
+          font-size: 34px !important;
+          line-height: 1.02 !important;
+        }
+
+        .hero h2 {
+          margin: 10px 0 9px !important;
+        }
+
+        .hero-copy p {
+          font-size: 14px !important;
+          line-height: 1.55 !important;
+        }
+
+        .pill-grid {
+          gap: 8px !important;
+          margin-top: 13px !important;
+        }
+
+        .pill-grid span {
+          min-height: 31px !important;
+          padding: 0 10px !important;
+          font-size: 12px !important;
         }
 
         .system-graphic {
-          height: 610px !important;
-          min-height: 610px !important;
-          margin: 0 -14px !important;
+          height: auto !important;
+          min-height: 0 !important;
+          margin: 0 !important;
+          overflow: visible !important;
         }
 
         .page-body,

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, type CSSProperties } from 're
 import { startModelPreload } from '../enginePreloader'
 import { waitForSplineScene } from '../splinePreloader'
 import { waitForAllScenes } from '../sceneReadiness'
+import { startCouplingBoltPreload } from '../couplingBoltPreloader'
 import './LoadingScreen.css'
 
 const MIN_DISPLAY_MS = 3000 // Minimum time to show the loading screen for UX
@@ -315,6 +316,8 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     startTimeRef.current = Date.now()
     let progressRAF: number
     let progressValue = 0
+    let disposed = false
+    let nonCriticalTimeoutId = 0
 
     const tickProgress = () => {
       if (modelLoadedRef.current || progressValue >= 90) return
@@ -324,46 +327,59 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       progressRAF = requestAnimationFrame(tickProgress)
     }
 
+    const waitForNonCriticalReadiness = () => {
+      let resolved = false
+
+      return new Promise<void>((resolve) => {
+        const resolveOnce = () => {
+          if (resolved) return
+          resolved = true
+          if (nonCriticalTimeoutId) {
+            window.clearTimeout(nonCriticalTimeoutId)
+            nonCriticalTimeoutId = 0
+          }
+          resolve()
+        }
+
+        nonCriticalTimeoutId = window.setTimeout(resolveOnce, 12000)
+
+        Promise.allSettled([
+          startCouplingBoltPreload(),
+          waitForSplineScene(),
+          waitForAllScenes(),
+        ]).then(resolveOnce)
+      })
+    }
+
+    const finishLoading = () => {
+      if (disposed) return
+      modelLoadedRef.current = true
+      cancelAnimationFrame(progressRAF)
+      setBarWidth(95)
+
+      const elapsed = Date.now() - startTimeRef.current
+      const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed)
+      setTimeout(() => {
+        if (disposed) return
+        setBarWidth(100)
+        setTimeout(triggerExit, 300)
+      }, remaining)
+    }
+
     const preloadDelay = setTimeout(() => {
       progressRAF = requestAnimationFrame(tickProgress)
 
-      const allLoaded = Promise.all([
+      Promise.all([
         startModelPreload(),
-        waitForSplineScene(),
-        waitForAllScenes(),
-      ])
-
-      allLoaded.then(() => {
-        modelLoadedRef.current = true
-        cancelAnimationFrame(progressRAF)
-        setBarWidth(95)
-
-        const elapsed = Date.now() - startTimeRef.current
-        const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed)
-        setTimeout(() => {
-          setBarWidth(100)
-          setTimeout(triggerExit, 300)
-        }, remaining)
-      }).catch(() => {
-        modelLoadedRef.current = true
-        cancelAnimationFrame(progressRAF)
-        const elapsed = Date.now() - startTimeRef.current
-        const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed)
-        setTimeout(triggerExit, remaining)
-      })
+        waitForNonCriticalReadiness(),
+      ]).then(finishLoading).catch(finishLoading)
     }, 300)
 
-    const safetyTimer = setTimeout(() => {
-      if (!modelLoadedRef.current) {
-        cancelAnimationFrame(progressRAF)
-        triggerExit()
-      }
-    }, 12000)
-
     return () => {
+      disposed = true
       clearTimeout(preloadDelay)
+      if (nonCriticalTimeoutId) window.clearTimeout(nonCriticalTimeoutId)
       cancelAnimationFrame(progressRAF)
-      clearTimeout(safetyTimer)
     }
   }, [triggerExit, setBarWidth])
 

@@ -1012,6 +1012,16 @@
       visibility: hidden;
     }
 
+    .loading.is-fallback {
+      background:
+        radial-gradient(circle at 50% 38%, rgba(97, 183, 255, 0.14), transparent 30%),
+        rgba(3, 9, 13, 0.92);
+    }
+
+    .loading.is-fallback .loader-bar {
+      display: none;
+    }
+
     .loader-box {
       width: min(340px, calc(100vw - 48px));
       border: 1px solid rgba(177, 217, 239, 0.18);
@@ -1025,6 +1035,20 @@
       display: block;
       font-size: 14px;
       margin-bottom: 9px;
+    }
+
+    .loading.is-fallback .loader-box strong {
+      margin-bottom: 0;
+      line-height: 1.45;
+    }
+
+    .loading.is-fallback .loader-box::after {
+      content: "The 3D canvas did not finish drawing in this browser session. Refresh the page or open the full design view to retry the interactive model.";
+      display: block;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
     }
 
     .loader-bar {
@@ -1737,10 +1761,51 @@
 
     let contextRecoveryTimer = 0;
     const contextReloadKey = "coupling-bolt-context-reloads";
+    const renderProbeReloadKey = "coupling-bolt-render-probe-reloads";
+    let viewerReadySent = false;
+    let renderVerified = false;
+    let renderProbeFrames = 0;
     const loadingCopy = loadingEl.querySelector("strong");
+    const postViewerReady = (status) => {
+      if (viewerReadySent) return;
+      viewerReadySent = true;
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "coupling-bolt-ready", status }, window.location.origin);
+      }
+    };
     const setLoadingState = (copy) => {
       if (loadingCopy) loadingCopy.textContent = copy;
+      loadingEl.classList.remove("is-fallback");
       loadingEl.classList.remove("is-hidden");
+    };
+    const showRenderFallback = () => {
+      if (renderVerified) return;
+      if (loadingCopy) loadingCopy.textContent = "Coupling bolt viewport needs a refresh";
+      loadingEl.classList.add("is-fallback");
+      loadingEl.classList.remove("is-hidden");
+      postViewerReady("fallback");
+    };
+    const requestRenderRecovery = () => {
+      if (renderVerified || renderer.getContext().isContextLost()) return;
+      const reloadAttempts = Number(window.sessionStorage.getItem(renderProbeReloadKey) || "0");
+      if (reloadAttempts < 1) {
+        window.sessionStorage.setItem(renderProbeReloadKey, String(reloadAttempts + 1));
+        setLoadingState("Rebuilding coupling bolt viewport");
+        window.setTimeout(() => window.location.reload(), 120);
+        return;
+      }
+      window.sessionStorage.removeItem(renderProbeReloadKey);
+      showRenderFallback();
+    };
+    const markRenderVerified = () => {
+      if (renderVerified) return;
+      renderVerified = true;
+      window.sessionStorage.removeItem(contextReloadKey);
+      window.sessionStorage.removeItem(renderProbeReloadKey);
+      loadingEl.classList.remove("is-fallback");
+      loadingEl.classList.add("is-hidden");
+      postViewerReady("rendered");
+      beginInteractionCoachVisibility();
     };
     const clearContextRecoveryTimer = () => {
       window.clearTimeout(contextRecoveryTimer);
@@ -1761,8 +1826,9 @@
     };
     const handleWebglContextRestored = () => {
       clearContextRecoveryTimer();
-      window.sessionStorage.removeItem(contextReloadKey);
-      loadingEl.classList.add("is-hidden");
+      renderVerified = false;
+      renderProbeFrames = 0;
+      setLoadingState("Inspecting restored coupling bolt viewport");
       renderer.setAnimationLoop(animate);
     };
     renderer.domElement.addEventListener("webglcontextlost", handleWebglContextLost);
@@ -2151,10 +2217,8 @@
 
     requestAnimationFrame(() => {
       if (!renderer.getContext().isContextLost()) {
-        window.sessionStorage.removeItem(contextReloadKey);
-        loadingEl.classList.add("is-hidden");
+        setLoadingState("Inspecting coupling bolt render");
       }
-      beginInteractionCoachVisibility();
     });
 
     renderer.setAnimationLoop(animate);
@@ -3105,6 +3169,51 @@
       }
     }
 
+    function hasVisibleModelPixels() {
+      try {
+        const canvas = renderer.domElement;
+        const gl = renderer.getContext();
+        if (!canvas.width || !canvas.height || gl.isContextLost()) return false;
+
+        const pixel = new Uint8Array(4);
+        let hits = 0;
+        const sampleXs = [0.34, 0.39, 0.44, 0.49, 0.54, 0.59, 0.64];
+        const sampleYs = [0.24, 0.32, 0.4, 0.48, 0.56, 0.64, 0.72];
+
+        for (const xRatio of sampleXs) {
+          for (const yRatio of sampleYs) {
+            const x = Math.max(0, Math.min(canvas.width - 1, Math.round(canvas.width * xRatio)));
+            const y = Math.max(0, Math.min(canvas.height - 1, Math.round(canvas.height * (1 - yRatio))));
+            gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+
+            const brightness = pixel[0] + pixel[1] + pixel[2];
+            const channelSpread = Math.max(pixel[0], pixel[1], pixel[2]) - Math.min(pixel[0], pixel[1], pixel[2]);
+            if (pixel[3] > 0 && brightness > 120 && channelSpread > 8) {
+              hits += 1;
+              if (hits >= 4) return true;
+            }
+          }
+        }
+      } catch (error) {
+        return false;
+      }
+
+      return false;
+    }
+
+    function verifyRenderedFrame() {
+      if (renderVerified) return;
+      renderProbeFrames += 1;
+      if (renderProbeFrames < 4) return;
+      if (hasVisibleModelPixels()) {
+        markRenderVerified();
+        return;
+      }
+      if (renderProbeFrames >= 120) {
+        requestRenderRecovery();
+      }
+    }
+
     function animate() {
       const targetExplode = activeMode === "exploded" ? 1 : 0;
       Object.entries(parts).forEach(([, part]) => {
@@ -3115,6 +3224,7 @@
       sparkleGroup.rotation.y += 0.0007;
       controls.update();
       renderer.render(scene, camera);
+      verifyRenderedFrame();
       updateLabels();
     }
 

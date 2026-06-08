@@ -72,6 +72,7 @@ import CubeSatThermalViewer, {
 } from './components/CubeSatThermalViewer'
 import ModelInteractionCoach, { useModelInteractionCoach } from './components/ModelInteractionCoach'
 import LoadingScreen from './components/LoadingScreen'
+import { COUPLING_BOLT_VIEWER_VERSION } from './couplingBoltPreloader'
 import './App.css'
 
 const revealVariants: Variants = {
@@ -517,14 +518,22 @@ function Sparkline({
 function App() {
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
+  const scrollToCurrentHash = useCallback(() => {
     const hash = window.location.hash
     if (!hash) return
 
+    const target = document.getElementById(hash.slice(1))
+    if (!target) return
+
     window.requestAnimationFrame(() => {
-      document.querySelector(hash)?.scrollIntoView({ block: 'start' })
+      target.scrollIntoView({ block: 'start' })
     })
   }, [])
+
+  useEffect(() => {
+    if (isLoading) return
+    scrollToCurrentHash()
+  }, [isLoading, scrollToCurrentHash])
 
   return (
     <>
@@ -3707,14 +3716,14 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       })
 
       // Use the pre-loaded GLTF from the loading screen, or fall back to loading from scratch
-      const { getPreloadedGLTF, getPreloadPromise } = await import('./enginePreloader')
+      const { getPreloadedGLTF, getPreloadPromise, startModelPreload } = await import('./enginePreloader')
 
       let gltf = getPreloadedGLTF()
       if (!gltf) {
         // Preload may still be in progress — await it
-        const promise = getPreloadPromise()
-        if (promise) {
-          gltf = await promise
+        const preloadResult = await (getPreloadPromise() ?? startModelPreload())
+        if (preloadResult.status === 'loaded') {
+          gltf = preloadResult.gltf ?? getPreloadedGLTF()
         }
       }
 
@@ -3753,56 +3762,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         container.classList.add('is-loaded')
         setCoachReady(true)
       } else if (!cancelled) {
-        // Fallback: load from scratch (shouldn't happen normally)
-        const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js')
-        const { DRACOLoader } = await import('three/examples/jsm/loaders/DRACOLoader.js')
-        const dracoLoader = new DRACOLoader()
-        dracoLoader.setDecoderPath('/draco/')
-        dracoLoader.setDecoderConfig({ type: 'js' })
-        const loader = new GLTFLoader()
-        loader.setDRACOLoader(dracoLoader)
-        loader.load(
-          '/models/CAT_C32_1417KW_Engine-optimized.glb',
-          (loadedGltf) => {
-            const object = loadedGltf.scene
-            if (cancelled) return
-            object.traverse((child) => {
-              if ('isMesh' in child && child.isMesh) {
-                const mesh = child as import('three').Mesh
-                if (mesh.geometry && !mesh.geometry.getAttribute('normal')) {
-                  mesh.geometry.computeVertexNormals()
-                }
-                mesh.material = mesh.name.toLowerCase().includes('rubber') ? darkMaterial : material
-                mesh.castShadow = false
-                mesh.receiveShadow = false
-              }
-            })
-
-            const assetPivot = new THREE.Group()
-            assetPivot.add(object)
-            assetPivot.rotation.set(0, 0, 0)
-            assetPivot.updateMatrixWorld(true)
-
-            const orientedBox = new THREE.Box3().setFromObject(assetPivot)
-            const orientedSize = new THREE.Vector3()
-            const orientedCenter = new THREE.Vector3()
-            orientedBox.getSize(orientedSize)
-            orientedBox.getCenter(orientedCenter)
-            assetPivot.position.sub(orientedCenter)
-
-            const maxAxis = Math.max(orientedSize.x, orientedSize.y, orientedSize.z, 1)
-            const modelShell = new THREE.Group()
-            modelShell.scale.setScalar(2.64 / maxAxis)
-            modelShell.add(assetPivot)
-            modelRoot.add(modelShell)
-            container.classList.add('is-loaded')
-            setCoachReady(true)
-          },
-          undefined,
-          () => {
-            container.classList.add('is-model-error')
-          },
-        )
+        container.classList.add('is-model-error')
       }
 
       const clock = new THREE.Clock()
@@ -3956,7 +3916,31 @@ function CouplingBoltSection() {
   ]
   const [activeReviewTabId, setActiveReviewTabId] = useState(reviewTabs[0].id)
   const [artifactReady, setArtifactReady] = useState(false)
+  const artifactFrameRef = useRef<HTMLIFrameElement>(null)
   const activeReviewTab = reviewTabs.find((tab) => tab.id === activeReviewTabId) ?? reviewTabs[0]
+  const couplingBoltViewerSrc = `/coupling-bolt/coupling-bolt.html?embed=portfolio&v=${COUPLING_BOLT_VIEWER_VERSION}`
+
+  useEffect(() => {
+    const handleViewerReady = (event: MessageEvent) => {
+      if (event.source !== artifactFrameRef.current?.contentWindow) return
+      if (event.origin !== window.location.origin) return
+
+      const data = event.data
+      if (
+        !data ||
+        typeof data !== 'object' ||
+        data.type !== 'coupling-bolt-ready' ||
+        !['rendered', 'fallback'].includes(data.status)
+      ) {
+        return
+      }
+
+      setArtifactReady(true)
+    }
+
+    window.addEventListener('message', handleViewerReady)
+    return () => window.removeEventListener('message', handleViewerReady)
+  }, [])
 
   return (
     <SectionReveal id="coupling-bolt" className="case-section light-section bolt-section">
@@ -4014,10 +3998,10 @@ function CouplingBoltSection() {
               )}
             </AnimatePresence>
             <iframe
-              src="/coupling-bolt/coupling-bolt.html?embed=portfolio"
+              ref={artifactFrameRef}
+              src={couplingBoltViewerSrc}
               title="Interactive Coupling Bolt 3D viewer"
               loading="lazy"
-              onLoad={() => setArtifactReady(true)}
             />
           </div>
 

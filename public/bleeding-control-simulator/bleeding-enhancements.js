@@ -226,10 +226,34 @@
     window.setTimeout(syncCoachVisibility, 0)
   }
 
+  function syncMobileComponentDock() {
+    const model = document.querySelector('.interactive-model')
+    const panel = model?.querySelector('.component-panel')
+    const graphic = model?.closest('.system-graphic')
+
+    if (!model || !panel || !graphic) {
+      return
+    }
+
+    let dock = graphic.querySelector('.bleeding-mobile-component-dock')
+    if (!dock) {
+      dock = document.createElement('div')
+      dock.className = 'bleeding-mobile-component-dock'
+      dock.setAttribute('aria-live', 'polite')
+      model.insertAdjacentElement('afterend', dock)
+    }
+
+    if (dock.lastPanelHtml !== panel.innerHTML) {
+      dock.lastPanelHtml = panel.innerHTML
+      dock.innerHTML = `<div class="component-panel bleeding-mobile-component-card">${panel.innerHTML}</div>`
+    }
+  }
+
   function enhanceSimulator() {
     enhanceInfoButtons()
     addMetaStrip()
     enhanceModelCoach()
+    syncMobileComponentDock()
   }
 
   document.addEventListener('click', (event) => {
