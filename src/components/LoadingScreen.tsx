@@ -6,6 +6,15 @@ import { startCouplingBoltPreload } from '../couplingBoltPreloader'
 import './LoadingScreen.css'
 
 const MIN_DISPLAY_MS = 3000 // Minimum time to show the loading screen for UX
+const MOBILE_MIN_DISPLAY_MS = 1700
+const DESKTOP_NON_CRITICAL_TIMEOUT_MS = 12000
+const MOBILE_NON_CRITICAL_TIMEOUT_MS = 3500
+const MOBILE_CAT_GATE_TIMEOUT_MS = 6500
+const MOBILE_VIEWPORT_QUERY = '(max-width: 820px)'
+
+function isMobilePortfolioViewport() {
+  return window.matchMedia?.(MOBILE_VIEWPORT_QUERY)?.matches ?? window.innerWidth <= 820
+}
 
 /* ─── Pill category data ─── */
 const orbitPills = [
@@ -318,6 +327,12 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
     let progressValue = 0
     let disposed = false
     let nonCriticalTimeoutId = 0
+    let mobileModelTimeoutId = 0
+    const mobileViewport = isMobilePortfolioViewport()
+    const minDisplayMs = mobileViewport ? MOBILE_MIN_DISPLAY_MS : MIN_DISPLAY_MS
+    const nonCriticalTimeoutMs = mobileViewport
+      ? MOBILE_NON_CRITICAL_TIMEOUT_MS
+      : DESKTOP_NON_CRITICAL_TIMEOUT_MS
 
     const tickProgress = () => {
       if (modelLoadedRef.current || progressValue >= 90) return
@@ -341,13 +356,32 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
           resolve()
         }
 
-        nonCriticalTimeoutId = window.setTimeout(resolveOnce, 12000)
+        nonCriticalTimeoutId = window.setTimeout(resolveOnce, nonCriticalTimeoutMs)
 
         Promise.allSettled([
           startCouplingBoltPreload(),
           waitForSplineScene(),
           waitForAllScenes(),
         ]).then(resolveOnce)
+      })
+    }
+
+    const waitForMobileModelGate = (modelPreloadPromise: ReturnType<typeof startModelPreload>) => {
+      let resolved = false
+
+      return new Promise<void>((resolve) => {
+        const resolveOnce = () => {
+          if (resolved) return
+          resolved = true
+          if (mobileModelTimeoutId) {
+            window.clearTimeout(mobileModelTimeoutId)
+            mobileModelTimeoutId = 0
+          }
+          resolve()
+        }
+
+        mobileModelTimeoutId = window.setTimeout(resolveOnce, MOBILE_CAT_GATE_TIMEOUT_MS)
+        modelPreloadPromise.then(resolveOnce).catch(resolveOnce)
       })
     }
 
@@ -358,7 +392,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       setBarWidth(95)
 
       const elapsed = Date.now() - startTimeRef.current
-      const remaining = Math.max(0, MIN_DISPLAY_MS - elapsed)
+      const remaining = Math.max(0, minDisplayMs - elapsed)
       setTimeout(() => {
         if (disposed) return
         setBarWidth(100)
@@ -368,9 +402,18 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
 
     const preloadDelay = setTimeout(() => {
       progressRAF = requestAnimationFrame(tickProgress)
+      const modelPreloadPromise = startModelPreload()
+
+      if (mobileViewport) {
+        Promise.all([
+          waitForMobileModelGate(modelPreloadPromise),
+          waitForNonCriticalReadiness(),
+        ]).then(finishLoading).catch(finishLoading)
+        return
+      }
 
       Promise.all([
-        startModelPreload(),
+        modelPreloadPromise,
         waitForNonCriticalReadiness(),
       ]).then(finishLoading).catch(finishLoading)
     }, 300)
@@ -379,6 +422,7 @@ export default function LoadingScreen({ onComplete }: { onComplete: () => void }
       disposed = true
       clearTimeout(preloadDelay)
       if (nonCriticalTimeoutId) window.clearTimeout(nonCriticalTimeoutId)
+      if (mobileModelTimeoutId) window.clearTimeout(mobileModelTimeoutId)
       cancelAnimationFrame(progressRAF)
     }
   }, [triggerExit, setBarWidth])

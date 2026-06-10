@@ -4,6 +4,10 @@ export type WorkCard = {
   title: string
   kicker: string
   summary: string
+  role: string
+  tools: string[]
+  proof: string
+  outcome: string
   details: string[]
   tags: string[]
   image: string
@@ -20,6 +24,10 @@ export const workCards: WorkCard[] = [
     title: 'Snipping GPT',
     kicker: 'AI assistant tool',
     summary: 'Screenshot assistant for fast technical screen summaries.',
+    role: 'Designed and built the interaction concept, demo UI, and response patterns.',
+    tools: ['React', 'TypeScript', 'Intent UI'],
+    proof: 'Live browser demo with capture targets, action pills, and contextual responses.',
+    outcome: 'Shows how screen context can become useful AI help without copy-paste friction.',
     details: ['Capture and annotate screen regions', 'Intent presets for summaries, answers, and procedures', 'Built around low-friction engineering review workflows'],
     tags: ['Browser extension', 'Intent UI', 'Capture flow'],
     image: '/work-cards/snipping-gpt.png',
@@ -34,6 +42,10 @@ export const workCards: WorkCard[] = [
     title: 'BMT Diesel Engine Digital Twin',
     kicker: 'Predict. Monitor. Optimize.',
     summary: 'Digital twin for diesel health and maintenance signals.',
+    role: 'Built the simulation/data strategy and operator-facing twin interface.',
+    tools: ['Python', 'Machine learning', 'React', 'Three.js'],
+    proof: 'BMT supervisor cited the virtual twin and simulated data solution as impressive.',
+    outcome: 'Created predictive-maintenance evidence even when field data was unavailable.',
     details: ['Synthetic sensor streams for unavailable field data', 'Fault-mode scenarios with health and RUL signals', 'Dashboard patterns for operators and maintenance planning'],
     tags: ['Telemetry', 'Fault modes', 'Maintenance AI'],
     image: '/work-cards/diesel-digital-twin.png',
@@ -48,6 +60,10 @@ export const workCards: WorkCard[] = [
     title: 'Coupling Bolt',
     kicker: 'Precision. Strength. Standard.',
     summary: 'Mechanical drawing and manufacturable bolt design.',
+    role: 'Produced the mechanical design story, drawing logic, and 3D inspection artifact.',
+    tools: ['AutoCAD', 'Standards', 'Three.js'],
+    proof: 'Linked technical memorandum plus interactive 3D review viewer.',
+    outcome: 'Communicates material, thread, fit, and serviceability choices clearly.',
     details: ['AutoCAD drawing package and dimensions', 'Thread, fit, material, and manufacturing constraints', 'Clear visual review flow for technical communication'],
     tags: ['AutoCAD', 'Tolerances', 'Manufacturable'],
     image: '/work-cards/coupling-bolt.png',
@@ -62,6 +78,10 @@ export const workCards: WorkCard[] = [
     title: 'Bleeding Control Simulator',
     kicker: 'Clinical training hardware',
     summary: 'Training simulator with pressure, flow, and feedback.',
+    role: 'Built the system model, simulator interface, and capstone evidence presentation.',
+    tools: ['Arduino', 'MATLAB', 'Sensors', 'React'],
+    proof: 'Report, poster, presentation, and interactive hardware-system simulator.',
+    outcome: 'Turns pressure and flow behavior into repeatable first-aid training feedback.',
     details: ['Arduino-based sensor and indicator loop', 'Pressure and flow feedback for repeatable training', 'Hardware/software interface for clinical practice'],
     tags: ['Sensors', 'Flow loop', 'Feedback UI'],
     image: '/work-cards/bleeding-control-simulator.png',
@@ -76,6 +96,10 @@ export const workCards: WorkCard[] = [
     title: 'GMP HVAC System',
     kicker: 'Clean air. Controlled.',
     summary: 'Cleanroom HVAC concept for airflow and pressure control.',
+    role: 'Compared HVAC strategies and translated constraints into a decision tool.',
+    tools: ['HVAC sizing', 'HEPA', 'ACH', 'React'],
+    proof: 'Technical memo logic embedded into an interactive option comparison.',
+    outcome: 'Connects ISO 8 cleanliness, CFM demand, pressure cascade, and budget tradeoffs.',
     details: ['Cleanroom airflow and ACH reasoning', 'HEPA and pressure cascade comparison', 'Recommendation logic tied to cost and compliance'],
     tags: ['HEPA', 'Pressure cascade', 'Compliance'],
     image: '/work-cards/gmp-hvac-system.png',
@@ -90,6 +114,10 @@ export const workCards: WorkCard[] = [
     title: 'CubeSat Thermal',
     kicker: 'Simulate. Stabilize. Survive.',
     summary: 'Thermal viewer for CubeSat orbit conditions.',
+    role: 'Modeled thermal reasoning as an inspectable spacecraft interface.',
+    tools: ['COMSOL', 'MATLAB', 'SolidWorks', 'Three.js'],
+    proof: 'Interactive thermal viewer tied to Dalhousie MANTIS CubeSat context.',
+    outcome: 'Makes sunlight, eclipse, and component temperature behavior easier to review.',
     details: ['Component-level thermal field visualization', 'Sunlight and eclipse orbit controls', 'COMSOL-style temperature reasoning in a browser interface'],
     tags: ['COMSOL', 'Orbit analysis', 'Thermal model'],
     image: '/work-cards/cubesat-thermal.png',

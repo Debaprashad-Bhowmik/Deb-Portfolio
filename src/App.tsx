@@ -187,6 +187,96 @@ const coreProjectLinks = [
   { title: 'Snipping GPT', meta: 'Screenshot intent system for fast AI help', href: '#snipping-gpt' },
 ]
 
+type ProjectProof = {
+  role: string
+  tools: string
+  artifact: string
+  result: string
+}
+
+type ProjectProofLabel = 'Role' | 'Tools' | 'Built Artifact' | 'Outcome'
+
+type CaseEvidenceVariant = 'twin-console' | 'bolt-stamps' | 'hvac-airflow' | 'thermal-telemetry'
+
+type CaseEvidenceCellMeta = {
+  icon: LucideIcon
+  watermarkIcon: LucideIcon
+  code: string
+  microLabel: string
+}
+
+type CaseEvidenceConfig = {
+  icon: LucideIcon
+  eyebrow: string
+  title: string
+  note: string
+  accent: string
+  accentSoft: string
+  cells: Record<ProjectProofLabel, CaseEvidenceCellMeta>
+}
+
+const projectProofs: Record<string, ProjectProof> = {
+  'snipping-gpt': {
+    role: 'Product concept, interaction design, frontend demo',
+    tools: 'React, TypeScript, intent presets, UI prototyping',
+    artifact: 'Capture-first interface with explain, debug, summarize, and answer intent flows.',
+    result: 'A fast prototype showing how screen context can become structured AI assistance without extra setup.',
+  },
+  'digital-twin': {
+    role: 'Simulation strategy, ML workflow, dashboard interface',
+    tools: 'Python, synthetic telemetry, machine learning, React, Three.js',
+    artifact: 'Virtual diesel twin with synthetic telemetry, health scoring, diagnostics, and maintenance dashboard.',
+    result: 'Packaged the simulated data pipeline into an operator-style tool that BMT feedback called impressive.',
+  },
+  'coupling-bolt': {
+    role: 'Mechanical design, drawing logic, 3D review artifact',
+    tools: 'AutoCAD, ASME/ISO thinking, Three.js, technical memo',
+    artifact: 'Interactive 3D review linked to WT2 memo evidence, dimensions, exploded states, and manufacturing notes.',
+    result: 'Turned a mechanical fastener concept into an inspection-ready review artifact.',
+  },
+  'bleeding-simulator': {
+    role: 'System modeling, capstone interface, evidence packaging',
+    tools: 'Arduino, MATLAB, sensors, hydraulic loop, React',
+    artifact: 'Portable training platform with live pressure, flow, blood-loss, and treatment-mode feedback.',
+    result: 'Presented the simulator as a measurable first-aid training system instead of a static model.',
+  },
+  'gmp-hvac': {
+    role: 'HVAC option analysis, constraint modeling, decision interface',
+    tools: 'ACH, CFM sizing, HEPA filtration, pressure cascade, React',
+    artifact: 'Decision tool comparing ISO 8 cleanliness, 6,667 CFM demand, HEPA strategy, and $200k cap.',
+    result: 'Converted HVAC constraints into a clear recommended cleanroom strategy.',
+  },
+  'cubesat-thermal': {
+    role: 'Thermal reasoning, spacecraft interface, simulation storytelling',
+    tools: 'COMSOL, MATLAB, SolidWorks-style model, Three.js',
+    artifact: 'Thermal telemetry interface with component callouts, orbit controls, and sunlight/eclipse states.',
+    result: 'Made spacecraft thermal reasoning inspectable through an interactive virtual twin.',
+  },
+}
+
+const bestFitCards = [
+  {
+    title: 'Mechanical Design + CAD',
+    summary: 'Strongest fit for roles involving drawings, manufacturable parts, technical communication, and design review.',
+    links: ['Coupling Bolt', 'TriMac co-op feedback', 'AutoCAD / SolidWorks'],
+  },
+  {
+    title: 'Simulation + Digital Twins',
+    summary: 'Built browser-based engineering twins for diesel health, CubeSat thermal behavior, and mechanical inspection.',
+    links: ['BMT Digital Twin', 'CubeSat Thermal', 'Predictive maintenance'],
+  },
+  {
+    title: 'AI-Assisted Engineering Tools',
+    summary: 'Turns complex engineering screens, telemetry, and workflows into fast, usable interfaces.',
+    links: ['Snipping GPT', 'Maintenance AI', 'React / TypeScript'],
+  },
+  {
+    title: 'Clean Infrastructure / HVAC',
+    summary: 'Comfortable with CFM, ACH, HEPA, pressure cascade, shop drawings, and practical design tradeoffs.',
+    links: ['GMP HVAC', 'IPS co-op feedback', 'Cleanroom reasoning'],
+  },
+]
+
 import { loadSplineViewerScript, getSplineSceneUrl, notifySplineSceneLoaded } from './splinePreloader'
 
 const splineRobotSceneUrl = getSplineSceneUrl()
@@ -522,17 +612,39 @@ function App() {
     const hash = window.location.hash
     if (!hash) return
 
-    const target = document.getElementById(hash.slice(1))
-    if (!target) return
+    const scroll = () => {
+      const target = document.getElementById(hash.slice(1))
+      if (!target) return
+
+      target.scrollIntoView({ block: 'start', inline: 'nearest' })
+    }
+
+    const timeoutIds = [140, 420, 900, 1800, 3200, 5200].map((delay) => window.setTimeout(scroll, delay))
 
     window.requestAnimationFrame(() => {
-      target.scrollIntoView({ block: 'start' })
+      window.requestAnimationFrame(scroll)
     })
+
+    return () => {
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId))
+    }
   }, [])
 
   useEffect(() => {
     if (isLoading) return
-    scrollToCurrentHash()
+
+    let cancelPendingScroll = scrollToCurrentHash()
+    const handleHashChange = () => {
+      cancelPendingScroll?.()
+      cancelPendingScroll = scrollToCurrentHash()
+    }
+
+    window.addEventListener('hashchange', handleHashChange)
+
+    return () => {
+      cancelPendingScroll?.()
+      window.removeEventListener('hashchange', handleHashChange)
+    }
   }, [isLoading, scrollToCurrentHash])
 
   return (
@@ -549,6 +661,7 @@ function App() {
           <BleedingSimulatorSection />
           <HvacSection />
           <CubeSatSection />
+          <BestFitSection />
           <SupervisorFeedbackSection />
           <ClosingSection />
         </main>
@@ -574,6 +687,185 @@ function Header() {
         Resume <ArrowUpRight size={16} aria-hidden="true" />
       </a>
     </header>
+  )
+}
+
+function ProjectProofBar({ proof }: { proof: ProjectProof }) {
+  const items = [
+    { label: 'Role', value: proof.role },
+    { label: 'Tools', value: proof.tools },
+    { label: 'Built Artifact', value: proof.artifact },
+    { label: 'Outcome', value: proof.result },
+  ]
+
+  return (
+    <dl className="project-proof-bar" aria-label="Project evidence summary">
+      {items.map((item) => (
+        <div key={item.label}>
+          <dt>{item.label}</dt>
+          <dd>{item.value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+function CaseEvidenceArtifact({
+  proof,
+  variant,
+}: {
+  proof: ProjectProof
+  variant: CaseEvidenceVariant
+}) {
+  const variantConfig: Record<CaseEvidenceVariant, CaseEvidenceConfig> = {
+    'twin-console': {
+      icon: Activity,
+      eyebrow: 'Twin evidence',
+      title: 'Telemetry packaged like an operator tool',
+      note: 'Synthetic telemetry, health scoring, and dashboard thinking packaged as a working maintenance story.',
+      accent: '#f5b84b',
+      accentSoft: '#75d9ff',
+      cells: {
+        Role: { icon: Activity, watermarkIcon: Activity, code: 'DT-ROLE', microLabel: 'SIM STRATEGY' },
+        Tools: { icon: Cpu, watermarkIcon: Cpu, code: 'DT-TOOLS', microLabel: 'PY / ML / THREE' },
+        'Built Artifact': {
+          icon: CircuitBoard,
+          watermarkIcon: CircuitBoard,
+          code: 'DT-BUILD',
+          microLabel: 'SYNTH TELEMETRY',
+        },
+        Outcome: {
+          icon: MonitorUp,
+          watermarkIcon: MonitorUp,
+          code: 'DT-OUTCOME',
+          microLabel: 'OPERATOR TOOL',
+        },
+      },
+    },
+    'bolt-stamps': {
+      icon: Crosshair,
+      eyebrow: 'Design verification',
+      title: 'Inspection-ready mechanical argument',
+      note: 'Material, fit, thread, memo evidence, and 3D review behavior presented as a manufacturable artifact.',
+      accent: '#78d7ff',
+      accentSoft: '#4b7cff',
+      cells: {
+        Role: { icon: Crosshair, watermarkIcon: Crosshair, code: 'WT2-ROLE', microLabel: 'FIT REVIEW' },
+        Tools: { icon: Settings2, watermarkIcon: Settings2, code: 'WT2-TOOLS', microLabel: 'CAD / ASME' },
+        'Built Artifact': {
+          icon: FileText,
+          watermarkIcon: FileText,
+          code: 'WT2-BUILD',
+          microLabel: 'WT2 REVIEW',
+        },
+        Outcome: {
+          icon: CheckCircle2,
+          watermarkIcon: CheckCircle2,
+          code: 'WT2-OUTCOME',
+          microLabel: 'INSPECTION READY',
+        },
+      },
+    },
+    'hvac-airflow': {
+      icon: Wind,
+      eyebrow: 'Cleanroom decision',
+      title: 'Compliance logic tied to airflow and budget',
+      note: 'ACH, CFM, HEPA filtration, and pressure cascade choices turned into a practical recommendation.',
+      accent: '#39c58a',
+      accentSoft: '#75d9ff',
+      cells: {
+        Role: { icon: Wind, watermarkIcon: Wind, code: 'ACH-ROLE', microLabel: 'OPTION MODEL' },
+        Tools: { icon: Calculator, watermarkIcon: Calculator, code: 'ACH-TOOLS', microLabel: 'ACH / CFM' },
+        'Built Artifact': {
+          icon: Droplets,
+          watermarkIcon: Droplets,
+          code: 'ACH-BUILD',
+          microLabel: 'HEPA STRATEGY',
+        },
+        Outcome: {
+          icon: CheckCircle2,
+          watermarkIcon: CheckCircle2,
+          code: 'ACH-OUTCOME',
+          microLabel: 'CLEANROOM PICK',
+        },
+      },
+    },
+    'thermal-telemetry': {
+      icon: Box,
+      eyebrow: 'Mission evidence',
+      title: 'Thermal reasoning made inspectable',
+      note: 'Sunlight, eclipse, component temperatures, and MANTIS context stay readable beside the spacecraft model.',
+      accent: '#4b7cff',
+      accentSoft: '#75d9ff',
+      cells: {
+        Role: { icon: Box, watermarkIcon: Box, code: 'ORBIT-ROLE', microLabel: 'MISSION SCOPE' },
+        Tools: { icon: Sun, watermarkIcon: Sun, code: 'ORBIT-TOOLS', microLabel: 'COMSOL / MATLAB' },
+        'Built Artifact': {
+          icon: Moon,
+          watermarkIcon: Moon,
+          code: 'ORBIT-BUILD',
+          microLabel: 'ORBIT THERMAL',
+        },
+        Outcome: {
+          icon: Activity,
+          watermarkIcon: Activity,
+          code: 'ORBIT-OUTCOME',
+          microLabel: 'VIRTUAL TWIN',
+        },
+      },
+    },
+  }
+  const config = variantConfig[variant]
+  const Icon = config.icon
+  const items: Array<{ label: ProjectProofLabel; value: string }> = [
+    { label: 'Role', value: proof.role },
+    { label: 'Tools', value: proof.tools },
+    { label: 'Built Artifact', value: proof.artifact },
+    { label: 'Outcome', value: proof.result },
+  ]
+
+  return (
+    <article
+      className={`case-evidence-artifact evidence-${variant}`}
+      style={
+        {
+          '--artifact-accent': config.accent,
+          '--artifact-accent-soft': config.accentSoft,
+        } as CSSProperties
+      }
+      aria-label={`${config.eyebrow} summary`}
+    >
+      <div className="case-evidence-head">
+        <span>
+          <Icon size={16} aria-hidden="true" />
+          {config.eyebrow}
+        </span>
+        <h3>{config.title}</h3>
+        <p>{config.note}</p>
+      </div>
+      <dl className="case-evidence-list">
+        {items.map((item) => {
+          const cell = config.cells[item.label]
+          const ItemIcon = cell.icon
+          const WatermarkIcon = cell.watermarkIcon
+
+          return (
+            <div className="case-evidence-item" key={item.label}>
+              <dt>
+                <ItemIcon size={14} aria-hidden="true" />
+                {item.label}
+              </dt>
+              <dd>{item.value}</dd>
+              <WatermarkIcon className="case-evidence-watermark" size={56} aria-hidden="true" />
+              <span className="case-evidence-code" aria-hidden="true">
+                <strong>{cell.code}</strong>
+                <small>{cell.microLabel}</small>
+              </span>
+            </div>
+          )
+        })}
+      </dl>
+    </article>
   )
 }
 
@@ -1214,6 +1506,7 @@ function SelectedWork() {
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null)
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const activeCardId = hoveredCardId ?? selectedCardId
+  const evidenceCard = workCards.find((card) => card.id === activeCardId) ?? workCards[0]
 
   const scrollWorkCards = useCallback(
     (direction: -1 | 1) => {
@@ -1270,7 +1563,38 @@ function SelectedWork() {
           />
         ))}
       </div>
+      {evidenceCard ? <ProjectEvidenceBand card={evidenceCard} /> : null}
     </div>
+  )
+}
+
+function ProjectEvidenceBand({ card }: { card: WorkCard }) {
+  const items = [
+    { label: 'Role', value: card.role },
+    { label: 'Tools', value: card.tools.join(', ') },
+    { label: 'Built Artifact', value: card.proof },
+    { label: 'Outcome', value: card.outcome },
+  ]
+
+  return (
+    <aside
+      className="work-proof-panel"
+      style={{ '--project-accent': card.accent } as CSSProperties}
+      aria-label={`${card.title} project evidence`}
+    >
+      <div className="work-proof-title">
+        <span>{card.number} / project evidence</span>
+        <strong>{card.title}</strong>
+      </div>
+      <dl>
+        {items.map((item) => (
+          <div key={item.label}>
+            <dt>{item.label}</dt>
+            <dd>{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </aside>
   )
 }
 
@@ -2216,6 +2540,7 @@ function SnippingGPTSection() {
         <h2>Experience <span>Snipping GPT</span></h2>
         <p>Click SnipBot, drag over any object, then choose an action.</p>
       </div>
+      <ProjectProofBar proof={projectProofs['snipping-gpt']} />
 
       <div className="snip-demo" aria-label="Interactive Snipping GPT demo">
         <div className="snip-monitor">
@@ -3385,6 +3710,9 @@ function DigitalTwinSection() {
             {renderTwinView()}
           </div>
         </div>
+        <div className="diesel-evidence-row">
+          <CaseEvidenceArtifact proof={projectProofs['digital-twin']} variant="twin-console" />
+        </div>
       </div>
 
       <section className="diesel-why-strip" aria-labelledby="diesel-why-title">
@@ -4004,36 +4332,40 @@ function CouplingBoltSection() {
               loading="lazy"
             />
           </div>
+        </div>
+      </div>
 
-          <div className="bolt-review-card" aria-label="Coupling bolt design review">
-            <div className="bolt-review-tabs" role="tablist" aria-label="Coupling bolt review panels">
-              {reviewTabs.map((tab) => (
-                <button
-                  type="button"
-                  key={tab.id}
-                  role="tab"
-                  aria-selected={activeReviewTabId === tab.id}
-                  onClick={() => setActiveReviewTabId(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <div className="bolt-review-body" role="tabpanel">
-              <p>{activeReviewTab.copy}</p>
-              <div className="bolt-review-divider" aria-hidden="true" />
-              <div className="bolt-review-features">
-                {activeReviewTab.features.map((feature) => {
-                  const FeatureIcon = feature.icon
-                  return (
-                    <article key={feature.title}>
-                      <FeatureIcon size={28} aria-hidden="true" />
-                      <b>{feature.title}</b>
-                      <span>{feature.detail}</span>
-                    </article>
-                  )
-                })}
-              </div>
+      <div className="bolt-inspection-ledger">
+        <CaseEvidenceArtifact proof={projectProofs['coupling-bolt']} variant="bolt-stamps" />
+
+        <div className="bolt-review-card" aria-label="Coupling bolt design review">
+          <div className="bolt-review-tabs" role="tablist" aria-label="Coupling bolt review panels">
+            {reviewTabs.map((tab) => (
+              <button
+                type="button"
+                key={tab.id}
+                role="tab"
+                aria-selected={activeReviewTabId === tab.id}
+                onClick={() => setActiveReviewTabId(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="bolt-review-body" role="tabpanel">
+            <p>{activeReviewTab.copy}</p>
+            <div className="bolt-review-divider" aria-hidden="true" />
+            <div className="bolt-review-features">
+              {activeReviewTab.features.map((feature) => {
+                const FeatureIcon = feature.icon
+                return (
+                  <article key={feature.title}>
+                    <FeatureIcon size={28} aria-hidden="true" />
+                    <b>{feature.title}</b>
+                    <span>{feature.detail}</span>
+                  </article>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -4194,6 +4526,7 @@ function BleedingSimulatorSection() {
           </div>
         </div>
       </div>
+      <ProjectProofBar proof={projectProofs['bleeding-simulator']} />
 
       <div className="bleeding-artifact-panel" aria-label="Bleeding control simulator capstone files">
         <div className="bleeding-artifact-copy">
@@ -4418,6 +4751,7 @@ function HvacSection() {
         </div>
         <GmpHvacModel activeOption={option.id} />
       </div>
+      <CaseEvidenceArtifact proof={projectProofs['gmp-hvac']} variant="hvac-airflow" />
 
       <section className="snip-why-strip hvac-why-strip" aria-labelledby="hvac-why-title">
         <p id="hvac-why-title">Why It Exists</p>
@@ -4739,6 +5073,9 @@ function CubeSatSection() {
           </div>
         </div>
       </div>
+      <div className="thermal-evidence-dock">
+        <CaseEvidenceArtifact proof={projectProofs['cubesat-thermal']} variant="thermal-telemetry" />
+      </div>
 
       <section className="snip-why-strip thermal-why-strip" aria-labelledby="thermal-why-title">
         <p id="thermal-why-title">Why It Exists</p>
@@ -4857,6 +5194,52 @@ function ThermalMetricRow({
       <b dangerouslySetInnerHTML={{ __html: value }} />
       <Sparkline data={data} stroke={color} />
     </div>
+  )
+}
+
+function BestFitSection() {
+  const fitVisuals: Array<{ icon: LucideIcon; accent: string; weight: 'major' | 'minor' }> = [
+    { icon: Settings2, accent: '#4b7cff', weight: 'major' },
+    { icon: Activity, accent: '#39c58a', weight: 'minor' },
+    { icon: BrainCircuit, accent: '#8d62ff', weight: 'minor' },
+    { icon: Wind, accent: '#75d9ff', weight: 'major' },
+  ]
+
+  return (
+    <SectionReveal id="best-fit" className="best-fit-section">
+      <div className="best-fit-intro">
+        <div>
+          <p className="eyebrow">Role fit matrix</p>
+          <h2>Best Fit</h2>
+        </div>
+        <p>
+          Strongest where mechanical engineering, simulation, clean infrastructure,
+          and AI-assisted interfaces need to exist in one practical builder.
+        </p>
+      </div>
+
+      <div className="best-fit-grid">
+        {bestFitCards.map((card, index) => (
+          <article
+            className={`best-fit-card is-${fitVisuals[index].weight}`}
+            key={card.title}
+            style={{ '--fit-accent': fitVisuals[index].accent } as CSSProperties}
+          >
+            <span>
+              {React.createElement(fitVisuals[index].icon, { size: 18, 'aria-hidden': true })}
+              {String(index + 1).padStart(2, '0')}
+            </span>
+            <h3>{card.title}</h3>
+            <p>{card.summary}</p>
+            <div aria-label={`${card.title} evidence`}>
+              {card.links.map((link) => (
+                <em key={link}>{link}</em>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </SectionReveal>
   )
 }
 
@@ -5018,6 +5401,10 @@ function ClosingSection() {
           <p>
             Debaprashad Bhowmik works across mechanical design, simulation, predictive maintenance,
             clean infrastructure, and AI-assisted engineering tools.
+          </p>
+          <p className="contact-fit-note">
+            Strongest fit: mechanical design, digital twins, AI-assisted engineering tools,
+            and clean infrastructure projects.
           </p>
           <div className="contact-actions">
             <a className="button primary" href={`mailto:${contactLinks.email}`}>
