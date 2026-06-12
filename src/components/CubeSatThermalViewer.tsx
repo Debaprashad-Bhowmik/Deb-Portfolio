@@ -24,7 +24,8 @@ type CubeSatThermalViewerProps = {
   onReady?: () => void
 }
 
-type CubeSatSceneStatus = 'waiting' | 'preparing' | 'loaded' | 'recovering' | 'model-error'
+type CubeSatSceneStatus = 'waiting' | 'preparing' | 'loaded' | 'recovering' | 'fallback' | 'model-error'
+type RenderQuality = 'standard' | 'low'
 
 type ThermalSurfaceKind = 'front' | 'right' | 'left' | 'nadir' | 'rear' | 'solar' | 'sideSolar'
 
@@ -182,6 +183,35 @@ function createCanvasTexture(
   texture.colorSpace = THREE.SRGBColorSpace
   texture.anisotropy = 8
   return texture
+}
+
+function hasVisibleCanvasPixels(canvas: HTMLCanvasElement, gl: WebGLRenderingContext | WebGL2RenderingContext) {
+  if (!canvas.width || !canvas.height || gl.isContextLost()) return false
+
+  const pixel = new Uint8Array(4)
+  let hits = 0
+  const sampleXs = [0.26, 0.38, 0.5, 0.62, 0.74]
+  const sampleYs = [0.22, 0.34, 0.46, 0.58, 0.7]
+
+  try {
+    for (const xRatio of sampleXs) {
+      for (const yRatio of sampleYs) {
+        const x = Math.max(0, Math.min(canvas.width - 1, Math.round(canvas.width * xRatio)))
+        const y = Math.max(0, Math.min(canvas.height - 1, Math.round(canvas.height * (1 - yRatio))))
+        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel)
+        const brightness = pixel[0] + pixel[1] + pixel[2]
+        const spread = Math.max(pixel[0], pixel[1], pixel[2]) - Math.min(pixel[0], pixel[1], pixel[2])
+        if (pixel[3] > 0 && brightness > 70 && spread > 5) {
+          hits += 1
+          if (hits >= 3) return true
+        }
+      }
+    }
+  } catch {
+    return false
+  }
+
+  return false
 }
 
 function createThermalTextureBinding(
@@ -1012,12 +1042,14 @@ export default function CubeSatThermalViewer({
   const [shouldMountScene, setShouldMountScene] = useState(false)
   const [sceneEpoch, setSceneEpoch] = useState(0)
   const [sceneStatus, setSceneStatus] = useState<CubeSatSceneStatus>('waiting')
+  const [renderQuality, setRenderQuality] = useState<RenderQuality>('standard')
   const modelCoach = useModelInteractionCoach({ containerRef: mountRef, ready: sceneStatus === 'loaded' })
   const sunlightRef = useRef(sunlight)
   const orbitMinutesRef = useRef(orbitMinutes)
   const thermalRef = useRef(thermal)
   const onAnchorUpdateRef = useRef(onAnchorUpdate)
   const onReadyRef = useRef(onReady)
+  const readyNotifiedRef = useRef(false)
   const runtimeRef = useRef<{
     primaryLight?: import('three').DirectionalLight
     fillLight?: import('three').HemisphereLight
@@ -1043,6 +1075,13 @@ export default function CubeSatThermalViewer({
   useEffect(() => {
     onReadyRef.current = onReady
   }, [onReady])
+
+  const notifyReadyOnce = () => {
+    if (readyNotifiedRef.current) return
+    readyNotifiedRef.current = true
+    onReadyRef.current?.()
+    notifyCubesatReady()
+  }
 
   useEffect(() => {
     const container = mountRef.current
@@ -1099,17 +1138,17 @@ export default function CubeSatThermalViewer({
       if (cancelled) return
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: renderQuality === 'standard',
         alpha: true,
-        powerPreference: 'high-performance',
+        powerPreference: renderQuality === 'standard' ? 'high-performance' : 'low-power',
         preserveDrawingBuffer: false,
       })
       const isCompactViewport = window.matchMedia('(max-width: 700px)').matches
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isCompactViewport ? 1.22 : 1.65))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, renderQuality === 'standard' ? (isCompactViewport ? 1.22 : 1.65) : 1))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
       renderer.toneMappingExposure = 1
-      renderer.shadowMap.enabled = true
+      renderer.shadowMap.enabled = renderQuality === 'standard'
       renderer.shadowMap.type = THREE.PCFSoftShadowMap
       container.insertBefore(renderer.domElement, container.firstChild)
 
@@ -1125,7 +1164,7 @@ export default function CubeSatThermalViewer({
       const fillLight = new THREE.HemisphereLight(0x9cecff, 0x171816, sunlightRef.current ? 1.26 : 0.68)
       const primaryLight = new THREE.DirectionalLight(sunlightRef.current ? 0xfff0c4 : 0x78a9ff, sunlightRef.current ? 3.45 : 1.15)
       primaryLight.position.set(5.4, 6.2, 4.6)
-      primaryLight.castShadow = true
+      primaryLight.castShadow = renderQuality === 'standard'
       primaryLight.shadow.mapSize.set(isCompactViewport ? 1024 : 2048, isCompactViewport ? 1024 : 2048)
       primaryLight.shadow.camera.near = 0.5
       primaryLight.shadow.camera.far = 24
@@ -1153,9 +1192,6 @@ export default function CubeSatThermalViewer({
       modelRoot.scale.setScalar(0.84)
       modelRoot.add(cubeSat.root)
       container.dataset.modelAsset = 'Scratch texture-driven CubeSat thermal twin'
-      setSceneStatus('loaded')
-      onReadyRef.current?.()
-      notifyCubesatReady()
 
       let lastThermalSignature = ''
       let lastAnchorSignature = ''
@@ -1300,6 +1336,36 @@ export default function CubeSatThermalViewer({
       reducedMotionQuery.addEventListener('change', onMotionPreferenceChange)
 
       let frame = 0
+      let renderProbeFrames = 0
+      let renderVerified = false
+      let recoveryRequested = false
+      const requestRecoveryOrFallback = () => {
+        if (cancelled || recoveryRequested || renderVerified) return
+        recoveryRequested = true
+        if (renderQuality === 'standard') {
+          setSceneStatus('recovering')
+          setRenderQuality('low')
+          return
+        }
+        setSceneStatus('fallback')
+        notifyReadyOnce()
+      }
+
+      const verifyRenderedFrame = () => {
+        if (renderVerified) return
+        renderProbeFrames += 1
+        if (renderProbeFrames < 4) return
+        if (hasVisibleCanvasPixels(renderer.domElement, renderer.getContext())) {
+          renderVerified = true
+          setSceneStatus('loaded')
+          notifyReadyOnce()
+          return
+        }
+        if (renderProbeFrames >= 150) {
+          requestRecoveryOrFallback()
+        }
+      }
+
       const requestFrame = () => {
         if (!cancelled && contextAvailable && sceneVisible && frame === 0) {
           frame = window.requestAnimationFrame(animate)
@@ -1325,6 +1391,7 @@ export default function CubeSatThermalViewer({
         updateThermalTexturesIfNeeded()
         emitAnchorPositions()
         renderer.render(scene, camera)
+        verifyRenderedFrame()
         requestFrame()
       }
       requestFrame()
@@ -1337,6 +1404,7 @@ export default function CubeSatThermalViewer({
           frame = 0
         }
         setSceneStatus('recovering')
+        requestRecoveryOrFallback()
       }
 
       const handleContextRestored = () => {
@@ -1372,20 +1440,26 @@ export default function CubeSatThermalViewer({
 
     setupScene().catch(() => {
       if (cancelled) return
-      setSceneStatus('model-error')
+      if (renderQuality === 'standard') {
+        setSceneStatus('recovering')
+        setRenderQuality('low')
+        return
+      }
+      setSceneStatus('fallback')
+      notifyReadyOnce()
     })
 
     return () => {
       cancelled = true
       cleanup()
     }
-  }, [shouldMountScene, sceneEpoch])
+  }, [shouldMountScene, sceneEpoch, renderQuality])
 
   const sceneStatusClass = sceneStatus === 'waiting' ? '' : `is-${sceneStatus}`
 
   return (
     <div
-      className={`cubesat-model-viewer cubesat-thermal-viewer ${sunlight ? 'is-sunlit' : 'is-eclipse'} ${sceneStatusClass}`}
+      className={`cubesat-model-viewer cubesat-thermal-viewer ${sunlight ? 'is-sunlit' : 'is-eclipse'} ${sceneStatusClass} ${renderQuality === 'low' ? 'is-low-power' : ''}`}
       ref={mountRef}
       aria-label="Interactive 3D CubeSat thermal model. Drag to rotate."
     >
@@ -1393,7 +1467,12 @@ export default function CubeSatThermalViewer({
         <span>Preparing 3D viewport</span>
         <small>Thermal model warming up</small>
       </div>
-      <div className="model-error">CubeSat model could not be loaded.</div>
+      <div className="model-error" role="status">
+        <span>Mission telemetry fallback</span>
+        <strong>Thermal reasoning stays visible</strong>
+        <small>WebGL was downgraded on this device. Orbit state, temperature range, and component callouts remain readable.</small>
+        <em>-28.4C to 72.6C / Sunlight + eclipse cycle</em>
+      </div>
       <ModelInteractionCoach
         state={modelCoach.state}
         theme="light"

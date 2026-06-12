@@ -1014,8 +1014,11 @@
 
     .loading.is-fallback {
       background:
+        linear-gradient(rgba(97, 183, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(97, 183, 255, 0.06) 1px, transparent 1px),
         radial-gradient(circle at 50% 38%, rgba(97, 183, 255, 0.14), transparent 30%),
         rgba(3, 9, 13, 0.92);
+      background-size: 34px 34px, 34px 34px, auto, auto;
     }
 
     .loading.is-fallback .loader-bar {
@@ -1042,8 +1045,30 @@
       line-height: 1.45;
     }
 
+    .loading.is-fallback .loader-box {
+      position: relative;
+      overflow: hidden;
+      min-height: 176px;
+      border-color: rgba(97, 183, 255, 0.36);
+      background:
+        linear-gradient(rgba(97, 183, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(97, 183, 255, 0.045) 1px, transparent 1px),
+        rgba(8, 21, 30, 0.96);
+      background-size: 22px 22px, 22px 22px, auto;
+    }
+
+    .loading.is-fallback .loader-box::before {
+      content: "WT2 REVIEW  /  THREAD 2 1/4-8 UNC  /  ASTM A193 B6";
+      display: block;
+      margin-bottom: 12px;
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: 0.16em;
+    }
+
     .loading.is-fallback .loader-box::after {
-      content: "The 3D canvas did not finish drawing in this browser session. Refresh the page or open the full design view to retry the interactive model.";
+      content: "Static inspection preview is active because this browser session did not finish a reliable WebGL draw. The case remains readable, and the full design link can retry the interactive model.";
       display: block;
       margin-top: 9px;
       color: var(--muted);
@@ -1728,8 +1753,12 @@
     const interactionCoachReplay = document.getElementById("interactionCoachReplay");
     const searchParams = new URLSearchParams(window.location.search);
     const isPortfolioEmbed = searchParams.get("embed") === "portfolio";
+    const lowPowerMode = searchParams.get("quality") === "low";
     if (isPortfolioEmbed) {
       viewer.classList.add("is-portfolio-embed");
+    }
+    if (lowPowerMode) {
+      viewer.classList.add("is-low-power");
     }
 
     const scene = new THREE.Scene();
@@ -1745,13 +1774,13 @@
     camera.position.copy(defaultCameraPosition);
 
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: !lowPowerMode,
       alpha: true,
-      powerPreference: "high-performance"
+      powerPreference: lowPowerMode ? "low-power" : "high-performance"
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isPortfolioEmbed ? 1.45 : 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPowerMode ? 1 : (isPortfolioEmbed ? 1.45 : 2)));
     renderer.setSize(sceneEl.clientWidth, sceneEl.clientHeight);
-    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.enabled = !lowPowerMode;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1781,6 +1810,7 @@
     const showRenderFallback = () => {
       if (renderVerified) return;
       if (loadingCopy) loadingCopy.textContent = "Coupling bolt viewport needs a refresh";
+      viewer.classList.add("has-render-fallback");
       loadingEl.classList.add("is-fallback");
       loadingEl.classList.remove("is-hidden");
       postViewerReady("fallback");
@@ -1788,10 +1818,14 @@
     const requestRenderRecovery = () => {
       if (renderVerified || renderer.getContext().isContextLost()) return;
       const reloadAttempts = Number(window.sessionStorage.getItem(renderProbeReloadKey) || "0");
-      if (reloadAttempts < 1) {
+      if (!lowPowerMode && reloadAttempts < 1) {
         window.sessionStorage.setItem(renderProbeReloadKey, String(reloadAttempts + 1));
-        setLoadingState("Rebuilding coupling bolt viewport");
-        window.setTimeout(() => window.location.reload(), 120);
+        setLoadingState("Rebuilding coupling bolt viewport in low-power mode");
+        window.setTimeout(() => {
+          const url = new URL(window.location.href);
+          url.searchParams.set("quality", "low");
+          window.location.replace(url.toString());
+        }, 120);
         return;
       }
       window.sessionStorage.removeItem(renderProbeReloadKey);
@@ -1818,10 +1852,14 @@
       contextRecoveryTimer = window.setTimeout(() => {
         if (!renderer.getContext().isContextLost()) return;
         const reloadAttempts = Number(window.sessionStorage.getItem(contextReloadKey) || "0");
-        if (reloadAttempts < 1) {
+        if (!lowPowerMode && reloadAttempts < 1) {
           window.sessionStorage.setItem(contextReloadKey, String(reloadAttempts + 1));
-          window.location.reload();
+          const url = new URL(window.location.href);
+          url.searchParams.set("quality", "low");
+          window.location.replace(url.toString());
+          return;
         }
+        showRenderFallback();
       }, 1100);
     };
     const handleWebglContextRestored = () => {

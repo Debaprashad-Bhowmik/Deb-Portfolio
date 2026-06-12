@@ -60,6 +60,8 @@ type RuntimeControls = {
   resetView: () => void
 }
 
+type RenderQuality = 'standard' | 'low'
+
 const defaultAnchors: Record<CalloutKey, AnchorPosition> = {
   hepa: { x: 32, y: 18, visible: true },
   supply: { x: 78, y: 27, visible: true },
@@ -166,6 +168,34 @@ function formatCalloutStyle(position: AnchorPosition): CSSProperties {
   } as CSSProperties
 }
 
+function hasVisibleCanvasPixels(canvas: HTMLCanvasElement, gl: WebGLRenderingContext | WebGL2RenderingContext) {
+  if (!canvas.width || !canvas.height || gl.isContextLost()) return false
+
+  const pixel = new Uint8Array(4)
+  let hits = 0
+  const sampleXs = [0.24, 0.36, 0.48, 0.6, 0.72]
+  const sampleYs = [0.22, 0.34, 0.46, 0.58, 0.7]
+
+  try {
+    for (const xRatio of sampleXs) {
+      for (const yRatio of sampleYs) {
+        const x = Math.max(0, Math.min(canvas.width - 1, Math.round(canvas.width * xRatio)))
+        const y = Math.max(0, Math.min(canvas.height - 1, Math.round(canvas.height * (1 - yRatio))))
+        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel)
+        const brightness = pixel[0] + pixel[1] + pixel[2]
+        if (pixel[3] > 0 && brightness > 86) {
+          hits += 1
+          if (hits >= 3) return true
+        }
+      }
+    }
+  } catch {
+    return false
+  }
+
+  return false
+}
+
 export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const activeOptionRef = useRef(activeOption)
@@ -174,15 +204,22 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
   const [hasError, setHasError] = useState(false)
   const [isRecovering, setIsRecovering] = useState(false)
   const [sceneEpoch, setSceneEpoch] = useState(0)
+  const [renderQuality, setRenderQuality] = useState<RenderQuality>('standard')
   const [activeCallout, setActiveCallout] = useState<CalloutKey>('hepa')
   const [annotations, setAnnotations] = useState<Record<CalloutKey, CalloutAnnotation>>(createDefaultAnnotations)
   const modelCoach = useModelInteractionCoach({ containerRef: mountRef, ready: isLoaded })
+  const readyNotifiedRef = useRef(false)
 
   useEffect(() => {
     activeOptionRef.current = activeOption
   }, [activeOption])
 
   const [shouldMount] = useState(true)
+  const notifyReadyOnce = () => {
+    if (readyNotifiedRef.current) return
+    readyNotifiedRef.current = true
+    notifyHvacReady()
+  }
 
   useEffect(() => {
     const containerElement = mountRef.current
@@ -198,16 +235,16 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       if (cancelled) return
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: renderQuality === 'standard',
         alpha: true,
-        powerPreference: 'high-performance',
+        powerPreference: renderQuality === 'standard' ? 'high-performance' : 'low-power',
       })
       const isCompactViewport = window.matchMedia('(max-width: 700px)').matches
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isCompactViewport ? 1.22 : 1.55))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, renderQuality === 'standard' ? (isCompactViewport ? 1.22 : 1.55) : 1))
       renderer.outputColorSpace = THREE.SRGBColorSpace
       renderer.toneMapping = THREE.ACESFilmicToneMapping
       renderer.toneMappingExposure = 1.04
-      renderer.shadowMap.enabled = true
+      renderer.shadowMap.enabled = renderQuality === 'standard'
       renderer.shadowMap.type = THREE.PCFShadowMap
       container.appendChild(renderer.domElement)
 
@@ -225,7 +262,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
 
       const keyLight = new THREE.DirectionalLight(0xffffff, 3.6)
       keyLight.position.set(4.6, 9.2, 5.4)
-      keyLight.castShadow = true
+      keyLight.castShadow = renderQuality === 'standard'
       keyLight.shadow.mapSize.set(isCompactViewport ? 1024 : 2048, isCompactViewport ? 1024 : 2048)
       keyLight.shadow.camera.near = 1
       keyLight.shadow.camera.far = 28
@@ -1214,6 +1251,42 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
         }
       }
 
+      let renderProbeFrames = 0
+      let renderVerified = false
+      let recoveryRequested = false
+      const requestRecoveryOrFallback = () => {
+        if (cancelled || recoveryRequested || renderVerified) return
+        recoveryRequested = true
+        if (renderQuality === 'standard') {
+          setHasError(false)
+          setIsLoaded(false)
+          setIsRecovering(true)
+          setRenderQuality('low')
+          return
+        }
+        setIsRecovering(false)
+        setIsLoaded(false)
+        setHasError(true)
+        notifyReadyOnce()
+      }
+
+      const verifyRenderedFrame = () => {
+        if (renderVerified) return
+        renderProbeFrames += 1
+        if (renderProbeFrames < 4) return
+        if (hasVisibleCanvasPixels(renderer.domElement, renderer.getContext())) {
+          renderVerified = true
+          setHasError(false)
+          setIsRecovering(false)
+          setIsLoaded(true)
+          notifyReadyOnce()
+          return
+        }
+        if (renderProbeFrames >= 150) {
+          requestRecoveryOrFallback()
+        }
+      }
+
       const animate = (time: number) => {
         if (cancelled) return
         if (!sceneVisible) return
@@ -1270,6 +1343,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
 
         updateCalloutAnchors()
         renderer.render(scene, camera)
+        verifyRenderedFrame()
       }
 
       const visibilityObserver = new IntersectionObserver(
@@ -1284,10 +1358,6 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       visibilityObserver.observe(container)
 
       frame = window.requestAnimationFrame(animate)
-      setHasError(false)
-      setIsRecovering(false)
-      setIsLoaded(true)
-      notifyHvacReady()
 
       runtimeRef.current = {
         resetView: () => {
@@ -1306,6 +1376,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
         setHasError(false)
         setIsLoaded(false)
         setIsRecovering(true)
+        requestRecoveryOrFallback()
       }
 
       const handleContextRestored = () => {
@@ -1341,22 +1412,30 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
 
     setupScene().catch(() => {
       if (cancelled) return
+      if (renderQuality === 'standard') {
+        setHasError(false)
+        setIsLoaded(false)
+        setIsRecovering(true)
+        setRenderQuality('low')
+        return
+      }
       setIsRecovering(false)
       setHasError(true)
       setIsLoaded(false)
+      notifyReadyOnce()
     })
 
     return () => {
       cancelled = true
       cleanup()
     }
-  }, [shouldMount, sceneEpoch])
+  }, [shouldMount, sceneEpoch, renderQuality])
 
   const resetView = () => runtimeRef.current?.resetView()
 
   return (
     <div
-      className={`cleanroom-visual gmp-hvac-model option-${activeOption} ${isLoaded ? 'is-loaded' : ''} ${hasError ? 'is-model-error' : ''} ${isRecovering ? 'is-recovering' : ''}`}
+      className={`cleanroom-visual gmp-hvac-model option-${activeOption} ${isLoaded ? 'is-loaded' : ''} ${hasError ? 'is-model-error' : ''} ${isRecovering ? 'is-recovering' : ''} ${renderQuality === 'low' ? 'is-low-power' : ''}`}
       ref={mountRef}
       aria-label="Interactive 3D GMP HVAC cleanroom model"
     >
@@ -1364,7 +1443,12 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
         <span>Preparing 3D viewport</span>
         <small>Cleanroom airflow model warming up</small>
       </div>
-      <div className="gmp-model-error">HVAC model could not be rendered.</div>
+      <div className="gmp-model-error" role="status">
+        <span>Cleanroom airflow schematic</span>
+        <strong>3D viewport downgraded</strong>
+        <small>ACH, CFM, HEPA filtration, and pressure cascade remain readable without WebGL.</small>
+        <em>6,667 CFM / ISO 8 / positive pressure</em>
+      </div>
       <button className="gmp-model-reset" type="button" aria-label="Reset HVAC model view" title="Reset view" onClick={resetView}>
         <RotateCcw size={17} aria-hidden="true" />
       </button>

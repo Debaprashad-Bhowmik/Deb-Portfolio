@@ -73,6 +73,7 @@ import CubeSatThermalViewer, {
 import ModelInteractionCoach, { useModelInteractionCoach } from './components/ModelInteractionCoach'
 import LoadingScreen from './components/LoadingScreen'
 import { COUPLING_BOLT_VIEWER_VERSION } from './couplingBoltPreloader'
+import { notifyEngineReady } from './sceneReadiness'
 import './App.css'
 
 const revealVariants: Variants = {
@@ -613,10 +614,15 @@ function App() {
     if (!hash) return
 
     const scroll = () => {
-      const target = document.getElementById(hash.slice(1))
+      const target = document.getElementById(decodeURIComponent(hash.slice(1)))
       if (!target) return
 
-      target.scrollIntoView({ block: 'start', inline: 'nearest' })
+      const headerOffset = document.querySelector('.site-header')?.getBoundingClientRect().height ?? 0
+      const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - 10
+      const nextTop = Math.max(0, top)
+      window.scrollTo(0, nextTop)
+      document.documentElement.scrollTop = nextTop
+      document.body.scrollTop = nextTop
     }
 
     const timeoutIds = [140, 420, 900, 1800, 3200, 5200].map((delay) => window.setTimeout(scroll, delay))
@@ -629,6 +635,11 @@ function App() {
       timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId))
     }
   }, [])
+
+  const handleLoadingComplete = useCallback(() => {
+    setIsLoading(false)
+    scrollToCurrentHash()
+  }, [scrollToCurrentHash])
 
   useEffect(() => {
     if (isLoading) return
@@ -650,7 +661,7 @@ function App() {
   return (
     <>
       <MotionConfig reducedMotion="never">
-      {isLoading && <LoadingScreen onComplete={() => setIsLoading(false)} />}
+      {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
       <div className="site-shell">
         <Header />
         <main>
@@ -3922,15 +3933,57 @@ function getEngineActions(scenario: EngineScenario) {
   return ['Inspect and clean turbocharger', 'Check intake air filter condition', 'Verify EGR valve operation', 'Schedule maintenance within 120 hrs']
 }
 
+type EngineRenderMode = 'standard' | 'low'
+type EngineRenderStatus = 'loading' | 'loaded' | 'recovering' | 'fallback'
+
+function hasVisibleCanvasPixels(canvas: HTMLCanvasElement, gl: WebGLRenderingContext | WebGL2RenderingContext) {
+  if (!canvas.width || !canvas.height || gl.isContextLost()) return false
+
+  const pixel = new Uint8Array(4)
+  let hits = 0
+  const sampleXs = [0.28, 0.38, 0.48, 0.58, 0.68]
+  const sampleYs = [0.24, 0.36, 0.48, 0.6, 0.72]
+
+  try {
+    for (const xRatio of sampleXs) {
+      for (const yRatio of sampleYs) {
+        const x = Math.max(0, Math.min(canvas.width - 1, Math.round(canvas.width * xRatio)))
+        const y = Math.max(0, Math.min(canvas.height - 1, Math.round(canvas.height * (1 - yRatio))))
+        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel)
+
+        const brightness = pixel[0] + pixel[1] + pixel[2]
+        const spread = Math.max(pixel[0], pixel[1], pixel[2]) - Math.min(pixel[0], pixel[1], pixel[2])
+        if (pixel[3] > 0 && brightness > 70 && spread > 4) {
+          hits += 1
+          if (hits >= 3) return true
+        }
+      }
+    }
+  } catch {
+    return false
+  }
+
+  return false
+}
+
 function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const scenarioRef = useRef(scenarioId)
   const [coachReady, setCoachReady] = useState(false)
+  const [renderMode, setRenderMode] = useState<EngineRenderMode>('standard')
+  const [renderStatus, setRenderStatus] = useState<EngineRenderStatus>('loading')
+  const readyNotifiedRef = useRef(false)
   const engineCoach = useModelInteractionCoach({ containerRef: mountRef, ready: coachReady })
 
   useEffect(() => {
     scenarioRef.current = scenarioId
   }, [scenarioId])
+
+  const notifyReadyOnce = () => {
+    if (readyNotifiedRef.current) return
+    readyNotifiedRef.current = true
+    notifyEngineReady()
+  }
 
   useEffect(() => {
     const mount = mountRef.current
@@ -3941,6 +3994,12 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
     let cleanup = () => {}
     let visible = true
     let rafId = 0
+    let renderProbeFrames = 0
+    let renderVerified = false
+    let recoveryRequested = false
+
+    setRenderStatus('loading')
+    setCoachReady(false)
 
     async function setupScene() {
       // These resolve instantly from module cache (preloader already imported them)
@@ -3948,12 +4007,12 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       if (cancelled) return
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: renderMode === 'standard',
         alpha: true,
-        powerPreference: 'high-performance',
+        powerPreference: renderMode === 'standard' ? 'high-performance' : 'low-power',
         preserveDrawingBuffer: true,
       })
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.55))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, renderMode === 'standard' ? 1.55 : 1))
       container.appendChild(renderer.domElement)
 
       const scene = new THREE.Scene()
@@ -4055,7 +4114,9 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         }
       }
 
+      let modelAvailable = false
       if (gltf && !cancelled) {
+        modelAvailable = true
         // Clone the preloaded scene so we can apply our own materials
         const object = gltf.scene.clone(true)
         object.traverse((child) => {
@@ -4087,10 +4148,38 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         modelShell.scale.setScalar(2.64 / maxAxis)
         modelShell.add(assetPivot)
         modelRoot.add(modelShell)
-        container.classList.add('is-loaded')
-        setCoachReady(true)
       } else if (!cancelled) {
-        container.classList.add('is-model-error')
+        setRenderStatus('fallback')
+        notifyReadyOnce()
+      }
+
+      const requestRecoveryOrFallback = () => {
+        if (cancelled || recoveryRequested || renderVerified) return
+        recoveryRequested = true
+        if (renderMode === 'standard') {
+          setRenderStatus('recovering')
+          setRenderMode('low')
+          return
+        }
+        setRenderStatus('fallback')
+        notifyReadyOnce()
+      }
+
+      const verifyRenderedFrame = () => {
+        if (!modelAvailable) return
+        if (renderVerified) return
+        renderProbeFrames += 1
+        if (renderProbeFrames < 4) return
+        if (hasVisibleCanvasPixels(renderer.domElement, renderer.getContext())) {
+          renderVerified = true
+          setRenderStatus('loaded')
+          setCoachReady(true)
+          notifyReadyOnce()
+          return
+        }
+        if (renderProbeFrames >= 140) {
+          requestRecoveryOrFallback()
+        }
       }
 
       const clock = new THREE.Clock()
@@ -4109,6 +4198,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         rimLight.intensity = scenarioRef.current === 'healthy' ? 1.35 : 1.75 + alertPulse * 0.35
         rimLight.color.set(scenarioRef.current === 'coolant' ? 0x4dbbff : scenarioRef.current === 'injector' ? 0xff735f : 0x4b7cff)
         renderer.render(scene, camera)
+        verifyRenderedFrame()
         rafId = window.requestAnimationFrame(animate)
       }
 
@@ -4125,11 +4215,21 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       )
       visibilityObserver.observe(container)
 
+      const handleContextLost = (event: Event) => {
+        event.preventDefault()
+        window.cancelAnimationFrame(rafId)
+        setRenderStatus('recovering')
+        requestRecoveryOrFallback()
+      }
+
+      renderer.domElement.addEventListener('webglcontextlost', handleContextLost)
+
       cleanup = () => {
         cancelled = true
         window.cancelAnimationFrame(rafId)
         visibilityObserver.disconnect()
         resizeObserver.disconnect()
+        renderer.domElement.removeEventListener('webglcontextlost', handleContextLost)
         container.removeEventListener('pointerdown', onPointerDown)
         container.removeEventListener('pointermove', onPointerMove)
         container.removeEventListener('pointerup', endPointerDrag)
@@ -4141,18 +4241,40 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       }
     }
 
-    setupScene()
+    setupScene().catch(() => {
+      if (cancelled) return
+      if (renderMode === 'standard') {
+        setRenderStatus('recovering')
+        setRenderMode('low')
+        return
+      }
+      setRenderStatus('fallback')
+      notifyReadyOnce()
+    })
 
     return () => {
       cancelled = true
       cleanup()
     }
-  }, [])
+  }, [renderMode])
 
   return (
-    <div className="engine-model-viewer" ref={mountRef} data-engine-model="CAT C32 1417KW GLB" aria-label="3D diesel engine model. Drag to rotate.">
-      <div className="model-loading">Loading CAT diesel engine</div>
-      <div className="model-error">Engine model could not be loaded.</div>
+    <div
+      className={`engine-model-viewer is-${renderStatus} ${renderMode === 'low' ? 'is-low-power' : ''}`}
+      ref={mountRef}
+      data-engine-model="CAT C32 1417KW GLB"
+      aria-label="3D diesel engine model. Drag to rotate."
+    >
+      <div className="model-loading">
+        <span>{renderStatus === 'recovering' ? 'Rebuilding engine viewport' : 'Loading CAT diesel engine'}</span>
+        <small>{renderMode === 'low' ? 'Low-power renderer active' : 'Verifying live 3D pixels'}</small>
+      </div>
+      <div className="model-error" role="status">
+        <span>Engine digital twin preview</span>
+        <strong>Telemetry stays visible</strong>
+        <small>WebGL was downgraded on this device. The maintenance story remains available without a blank canvas.</small>
+        <em>92% health / RUL trend / fault-mode dashboard</em>
+      </div>
       <ModelInteractionCoach state={engineCoach.state} theme="dark" onReplay={engineCoach.replay} />
     </div>
   )
@@ -4409,6 +4531,8 @@ const bleedingArtifactLinks: Array<{
   icon: LucideIcon
   title: string
   kind: string
+  fileType: string
+  actionLabel: string
   summary: string
   href: string
 }> = [
@@ -4416,6 +4540,8 @@ const bleedingArtifactLinks: Array<{
     icon: FileText,
     title: 'Final Design Report',
     kind: 'PDF report',
+    fileType: 'PDF',
+    actionLabel: 'Open PDF Report',
     summary: 'Full Team 09 design record covering requirements, prototype design, testing, and validation.',
     href: '/reports/bleeding-control-simulator-final-design-report.pdf',
   },
@@ -4423,6 +4549,8 @@ const bleedingArtifactLinks: Array<{
     icon: PanelTop,
     title: 'Capstone Poster',
     kind: 'Poster deck',
+    fileType: 'POSTER',
+    actionLabel: 'Open Poster Deck',
     summary: 'Presentation poster summarizing the simulator architecture, prototype evidence, and outcomes.',
     href: '/reports/bleeding-control-simulator-capstone-poster.pptx',
   },
@@ -4430,6 +4558,8 @@ const bleedingArtifactLinks: Array<{
     icon: MonitorUp,
     title: 'Final Presentation',
     kind: 'Slide deck',
+    fileType: 'SLIDES',
+    actionLabel: 'Open Slide Deck',
     summary: 'Final capstone presentation for the bleeding control simulator project and prototype review.',
     href: '/reports/bleeding-control-simulator-final-presentation.pptx',
   },
@@ -4534,16 +4664,29 @@ function BleedingSimulatorSection() {
           <h3>Report, poster, and final presentation</h3>
         </div>
         <div className="bleeding-artifact-grid">
-          {bleedingArtifactLinks.map(({ icon: Icon, title, kind, summary, href }) => (
-            <a className="bleeding-artifact-card" href={href} target="_blank" rel="noreferrer" key={title}>
-              <span className="bleeding-artifact-icon">
-                <Icon size={20} aria-hidden="true" />
+          {bleedingArtifactLinks.map(({ icon: Icon, title, kind, fileType, actionLabel, summary, href }) => (
+            <a
+              className="bleeding-artifact-card"
+              href={href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${actionLabel}: ${title}`}
+              key={title}
+            >
+              <span className="bleeding-artifact-corner" aria-hidden="true">
+                <ArrowUpRight size={15} />
+              </span>
+              <span className="bleeding-artifact-topline">
+                <span className="bleeding-artifact-icon">
+                  <Icon size={20} aria-hidden="true" />
+                </span>
+                <span className="bleeding-artifact-file-chip">{fileType}</span>
               </span>
               <span className="bleeding-artifact-kind">{kind}</span>
               <strong>{title}</strong>
               <p>{summary}</p>
               <span className="bleeding-artifact-open">
-                Open artifact
+                {actionLabel}
                 <ArrowUpRight size={15} aria-hidden="true" />
               </span>
             </a>
