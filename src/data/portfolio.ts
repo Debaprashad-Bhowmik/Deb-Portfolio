@@ -14,13 +14,30 @@ export type WorkCard = {
   imageAlt: string
   accent: string
   imagePosition?: string
-  variant: 'snip' | 'engine' | 'bolt' | 'medical' | 'hvac' | 'thermal'
+  variant: 'brain' | 'snip' | 'engine' | 'bolt' | 'medical' | 'hvac' | 'thermal'
 }
 
 export const workCards: WorkCard[] = [
   {
-    id: 'snipping-gpt',
+    id: 'adaptive-cognitive-architecture',
     number: '01',
+    title: 'Adaptive Cognitive Architecture',
+    kicker: 'Different timescales. One mind.',
+    summary: 'A research architecture connecting memory, prediction, judgment and validated learning.',
+    role: 'Designed the cognitive, runtime and learning contracts and their structural verification.',
+    tools: ['Notion', 'Miro', 'Mermaid', 'TypeScript interfaces'],
+    proof: 'Three canonical v1.10 architecture views; 141 documented static checks passed.',
+    outcome: 'A coherent, statically checked specification. Runtime experiments remain pending.',
+    details: ['Past, Present and Future cognitive branches', 'Versioned decisions and gated execution', 'Observed evidence, skill validation and promotion'],
+    tags: ['Cognitive systems', 'Memory', 'Learning design'],
+    image: '/work-cards/adaptive-cognitive-world.webp',
+    imageAlt: 'Concept illustration of a white robot beside a river and cabin in a vibrant voxel world',
+    accent: '#78a6ff',
+    variant: 'brain',
+  },
+  {
+    id: 'snipping-gpt',
+    number: '02',
     title: 'Snipping GPT',
     kicker: 'AI assistant tool',
     summary: 'Screenshot assistant for fast technical screen summaries.',
@@ -38,7 +55,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'digital-twin',
-    number: '02',
+    number: '03',
     title: 'BMT Diesel Engine Digital Twin',
     kicker: 'Predict. Monitor. Optimize.',
     summary: 'Digital twin for diesel health and maintenance signals.',
@@ -56,7 +73,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'coupling-bolt',
-    number: '03',
+    number: '04',
     title: 'Coupling Bolt',
     kicker: 'Precision. Strength. Standard.',
     summary: 'Mechanical drawing and manufacturable bolt design.',
@@ -74,7 +91,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'bleeding-simulator',
-    number: '04',
+    number: '05',
     title: 'Bleeding Control Simulator',
     kicker: 'Clinical training hardware',
     summary: 'Training simulator with pressure, flow, and feedback.',
@@ -92,7 +109,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'gmp-hvac',
-    number: '05',
+    number: '06',
     title: 'GMP HVAC System',
     kicker: 'Clean air. Controlled.',
     summary: 'Cleanroom HVAC concept for airflow and pressure control.',
@@ -110,7 +127,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'cubesat-thermal',
-    number: '06',
+    number: '07',
     title: 'CubeSat Thermal',
     kicker: 'Simulate. Stabilize. Survive.',
     summary: 'Thermal viewer for CubeSat orbit conditions.',

@@ -25,6 +25,10 @@ coupling-footer*.png
 hero-credential-*.png
 .vercel
 
+# Local visual verification captures
+.impeccable/review/
+.impeccable/research/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

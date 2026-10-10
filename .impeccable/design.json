@@ -1,0 +1,744 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-10T18:17:55.8299961Z",
+  "title": "Design System: Debaprashad Bhowmik Portfolio",
+  "extensions": {
+    "colorMeta": {
+      "ivory": {
+        "role": "neutral",
+        "displayName": "Ivory",
+        "tonalRamp": [
+          "oklch(15.00% 0.0119 79.78)",
+          "oklch(26.43% 0.0119 79.78)",
+          "oklch(37.86% 0.0119 79.78)",
+          "oklch(49.29% 0.0119 79.78)",
+          "oklch(60.71% 0.0119 79.78)",
+          "oklch(72.14% 0.0119 79.78)",
+          "oklch(83.57% 0.0119 79.78)",
+          "oklch(95.00% 0.0119 79.78)"
+        ]
+      },
+      "ivory-deep": {
+        "role": "neutral",
+        "displayName": "Deep Ivory",
+        "tonalRamp": [
+          "oklch(15.00% 0.0183 78.24)",
+          "oklch(26.43% 0.0183 78.24)",
+          "oklch(37.86% 0.0183 78.24)",
+          "oklch(49.29% 0.0183 78.24)",
+          "oklch(60.71% 0.0183 78.24)",
+          "oklch(72.14% 0.0183 78.24)",
+          "oklch(83.57% 0.0183 78.24)",
+          "oklch(95.00% 0.0183 78.24)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.0118 79.79)",
+          "oklch(26.43% 0.0118 79.79)",
+          "oklch(37.86% 0.0118 79.79)",
+          "oklch(49.29% 0.0118 79.79)",
+          "oklch(60.71% 0.0118 79.79)",
+          "oklch(72.14% 0.0118 79.79)",
+          "oklch(83.57% 0.0118 79.79)",
+          "oklch(95.00% 0.0118 79.79)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.0095 234.21)",
+          "oklch(26.43% 0.0095 234.21)",
+          "oklch(37.86% 0.0095 234.21)",
+          "oklch(49.29% 0.0095 234.21)",
+          "oklch(60.71% 0.0095 234.21)",
+          "oklch(72.14% 0.0095 234.21)",
+          "oklch(83.57% 0.0095 234.21)",
+          "oklch(95.00% 0.0095 234.21)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0183 239.36)",
+          "oklch(26.43% 0.0183 239.36)",
+          "oklch(37.86% 0.0183 239.36)",
+          "oklch(49.29% 0.0183 239.36)",
+          "oklch(60.71% 0.0183 239.36)",
+          "oklch(72.14% 0.0183 239.36)",
+          "oklch(83.57% 0.0183 239.36)",
+          "oklch(95.00% 0.0183 239.36)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Line",
+        "tonalRamp": [
+          "oklch(15.00% 0.0095 234.21 / 0.13)",
+          "oklch(26.43% 0.0095 234.21 / 0.13)",
+          "oklch(37.86% 0.0095 234.21 / 0.13)",
+          "oklch(49.29% 0.0095 234.21 / 0.13)",
+          "oklch(60.71% 0.0095 234.21 / 0.13)",
+          "oklch(72.14% 0.0095 234.21 / 0.13)",
+          "oklch(83.57% 0.0095 234.21 / 0.13)",
+          "oklch(95.00% 0.0095 234.21 / 0.13)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Line",
+        "tonalRamp": [
+          "oklch(15.00% 0.0095 234.21 / 0.25)",
+          "oklch(26.43% 0.0095 234.21 / 0.25)",
+          "oklch(37.86% 0.0095 234.21 / 0.25)",
+          "oklch(49.29% 0.0095 234.21 / 0.25)",
+          "oklch(60.71% 0.0095 234.21 / 0.25)",
+          "oklch(72.14% 0.0095 234.21 / 0.25)",
+          "oklch(83.57% 0.0095 234.21 / 0.25)",
+          "oklch(95.00% 0.0095 234.21 / 0.25)"
+        ]
+      },
+      "blue": {
+        "role": "primary",
+        "displayName": "Interaction Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.2021 265.43)",
+          "oklch(26.43% 0.2021 265.43)",
+          "oklch(37.86% 0.2021 265.43)",
+          "oklch(49.29% 0.2021 265.43)",
+          "oklch(60.71% 0.2021 265.43)",
+          "oklch(72.14% 0.2021 265.43)",
+          "oklch(83.57% 0.2021 265.43)",
+          "oklch(95.00% 0.2021 265.43)"
+        ]
+      },
+      "cyan": {
+        "role": "secondary",
+        "displayName": "Cyan",
+        "tonalRamp": [
+          "oklch(15.00% 0.1076 225.15)",
+          "oklch(26.43% 0.1076 225.15)",
+          "oklch(37.86% 0.1076 225.15)",
+          "oklch(49.29% 0.1076 225.15)",
+          "oklch(60.71% 0.1076 225.15)",
+          "oklch(72.14% 0.1076 225.15)",
+          "oklch(83.57% 0.1076 225.15)",
+          "oklch(95.00% 0.1076 225.15)"
+        ]
+      },
+      "charcoal": {
+        "role": "neutral",
+        "displayName": "Charcoal",
+        "tonalRamp": [
+          "oklch(15.00% 0.0200 248.83)",
+          "oklch(26.43% 0.0200 248.83)",
+          "oklch(37.86% 0.0200 248.83)",
+          "oklch(49.29% 0.0200 248.83)",
+          "oklch(60.71% 0.0200 248.83)",
+          "oklch(72.14% 0.0200 248.83)",
+          "oklch(83.57% 0.0200 248.83)",
+          "oklch(95.00% 0.0200 248.83)"
+        ]
+      },
+      "charcoal-2": {
+        "role": "neutral",
+        "displayName": "Secondary Charcoal",
+        "tonalRamp": [
+          "oklch(15.00% 0.0232 243.58)",
+          "oklch(26.43% 0.0232 243.58)",
+          "oklch(37.86% 0.0232 243.58)",
+          "oklch(49.29% 0.0232 243.58)",
+          "oklch(60.71% 0.0232 243.58)",
+          "oklch(72.14% 0.0232 243.58)",
+          "oklch(83.57% 0.0232 243.58)",
+          "oklch(95.00% 0.0232 243.58)"
+        ]
+      },
+      "green": {
+        "role": "secondary",
+        "displayName": "Green",
+        "tonalRamp": [
+          "oklch(15.00% 0.1467 160.68)",
+          "oklch(26.43% 0.1467 160.68)",
+          "oklch(37.86% 0.1467 160.68)",
+          "oklch(49.29% 0.1467 160.68)",
+          "oklch(60.71% 0.1467 160.68)",
+          "oklch(72.14% 0.1467 160.68)",
+          "oklch(83.57% 0.1467 160.68)",
+          "oklch(95.00% 0.1467 160.68)"
+        ]
+      },
+      "amber": {
+        "role": "secondary",
+        "displayName": "Amber",
+        "tonalRamp": [
+          "oklch(15.00% 0.1282 75.64)",
+          "oklch(26.43% 0.1282 75.64)",
+          "oklch(37.86% 0.1282 75.64)",
+          "oklch(49.29% 0.1282 75.64)",
+          "oklch(60.71% 0.1282 75.64)",
+          "oklch(72.14% 0.1282 75.64)",
+          "oklch(83.57% 0.1282 75.64)",
+          "oklch(95.00% 0.1282 75.64)"
+        ]
+      },
+      "coral": {
+        "role": "secondary",
+        "displayName": "Coral",
+        "tonalRamp": [
+          "oklch(15.00% 0.1483 29.24)",
+          "oklch(26.43% 0.1483 29.24)",
+          "oklch(37.86% 0.1483 29.24)",
+          "oklch(49.29% 0.1483 29.24)",
+          "oklch(60.71% 0.1483 29.24)",
+          "oklch(72.14% 0.1483 29.24)",
+          "oklch(83.57% 0.1483 29.24)",
+          "oklch(95.00% 0.1483 29.24)"
+        ]
+      },
+      "violet": {
+        "role": "secondary",
+        "displayName": "Violet",
+        "tonalRamp": [
+          "oklch(15.00% 0.2220 291.18)",
+          "oklch(26.43% 0.2220 291.18)",
+          "oklch(37.86% 0.2220 291.18)",
+          "oklch(49.29% 0.2220 291.18)",
+          "oklch(60.71% 0.2220 291.18)",
+          "oklch(72.14% 0.2220 291.18)",
+          "oklch(83.57% 0.2220 291.18)",
+          "oklch(95.00% 0.2220 291.18)"
+        ]
+      },
+      "architecture-blue": {
+        "role": "primary",
+        "displayName": "Architecture Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.1896 264.21)",
+          "oklch(26.43% 0.1896 264.21)",
+          "oklch(37.86% 0.1896 264.21)",
+          "oklch(49.29% 0.1896 264.21)",
+          "oklch(60.71% 0.1896 264.21)",
+          "oklch(72.14% 0.1896 264.21)",
+          "oklch(83.57% 0.1896 264.21)",
+          "oklch(95.00% 0.1896 264.21)"
+        ]
+      },
+      "architecture-link": {
+        "role": "primary",
+        "displayName": "Architecture Link Blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.1761 262.65)",
+          "oklch(26.43% 0.1761 262.65)",
+          "oklch(37.86% 0.1761 262.65)",
+          "oklch(49.29% 0.1761 262.65)",
+          "oklch(60.71% 0.1761 262.65)",
+          "oklch(72.14% 0.1761 262.65)",
+          "oklch(83.57% 0.1761 262.65)",
+          "oklch(95.00% 0.1761 262.65)"
+        ]
+      },
+      "architecture-copy": {
+        "role": "neutral",
+        "displayName": "Architecture Copy",
+        "tonalRamp": [
+          "oklch(15.00% 0.0198 237.08)",
+          "oklch(26.43% 0.0198 237.08)",
+          "oklch(37.86% 0.0198 237.08)",
+          "oklch(49.29% 0.0198 237.08)",
+          "oklch(60.71% 0.0198 237.08)",
+          "oklch(72.14% 0.0198 237.08)",
+          "oklch(83.57% 0.0198 237.08)",
+          "oklch(95.00% 0.0198 237.08)"
+        ]
+      },
+      "architecture-light-ink": {
+        "role": "neutral",
+        "displayName": "Architecture Light Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.0067 233.64)",
+          "oklch(26.43% 0.0067 233.64)",
+          "oklch(37.86% 0.0067 233.64)",
+          "oklch(49.29% 0.0067 233.64)",
+          "oklch(60.71% 0.0067 233.64)",
+          "oklch(72.14% 0.0067 233.64)",
+          "oklch(83.57% 0.0067 233.64)",
+          "oklch(95.00% 0.0067 233.64)"
+        ]
+      },
+      "architecture-light-muted": {
+        "role": "neutral",
+        "displayName": "Architecture Light Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0264 244.49)",
+          "oklch(26.43% 0.0264 244.49)",
+          "oklch(37.86% 0.0264 244.49)",
+          "oklch(49.29% 0.0264 244.49)",
+          "oklch(60.71% 0.0264 244.49)",
+          "oklch(72.14% 0.0264 244.49)",
+          "oklch(83.57% 0.0264 244.49)",
+          "oklch(95.00% 0.0264 244.49)"
+        ]
+      },
+      "architecture-inspector": {
+        "role": "neutral",
+        "displayName": "Architecture Inspector",
+        "tonalRamp": [
+          "oklch(15.00% 0.0149 80.71)",
+          "oklch(26.43% 0.0149 80.71)",
+          "oklch(37.86% 0.0149 80.71)",
+          "oklch(49.29% 0.0149 80.71)",
+          "oklch(60.71% 0.0149 80.71)",
+          "oklch(72.14% 0.0149 80.71)",
+          "oklch(83.57% 0.0149 80.71)",
+          "oklch(95.00% 0.0149 80.71)"
+        ]
+      },
+      "architecture-module": {
+        "role": "neutral",
+        "displayName": "Architecture Module",
+        "tonalRamp": [
+          "oklch(15.00% 0.0294 245.03)",
+          "oklch(26.43% 0.0294 245.03)",
+          "oklch(37.86% 0.0294 245.03)",
+          "oklch(49.29% 0.0294 245.03)",
+          "oklch(60.71% 0.0294 245.03)",
+          "oklch(72.14% 0.0294 245.03)",
+          "oklch(83.57% 0.0294 245.03)",
+          "oklch(95.00% 0.0294 245.03)"
+        ]
+      },
+      "architecture-selected": {
+        "role": "neutral",
+        "displayName": "Architecture Selected",
+        "tonalRamp": [
+          "oklch(15.00% 0.0574 250.62)",
+          "oklch(26.43% 0.0574 250.62)",
+          "oklch(37.86% 0.0574 250.62)",
+          "oklch(49.29% 0.0574 250.62)",
+          "oklch(60.71% 0.0574 250.62)",
+          "oklch(72.14% 0.0574 250.62)",
+          "oklch(83.57% 0.0574 250.62)",
+          "oklch(95.00% 0.0574 250.62)"
+        ]
+      },
+      "architecture-selected-border": {
+        "role": "primary",
+        "displayName": "Architecture Selected Border",
+        "tonalRamp": [
+          "oklch(15.00% 0.1122 263.83)",
+          "oklch(26.43% 0.1122 263.83)",
+          "oklch(37.86% 0.1122 263.83)",
+          "oklch(49.29% 0.1122 263.83)",
+          "oklch(60.71% 0.1122 263.83)",
+          "oklch(72.14% 0.1122 263.83)",
+          "oklch(83.57% 0.1122 263.83)",
+          "oklch(95.00% 0.1122 263.83)"
+        ]
+      },
+      "galaxy-instrument": {
+        "role": "neutral",
+        "displayName": "Galaxy Instrument",
+        "tonalRamp": [
+          "oklch(15.00% 0.0254 260.23)",
+          "oklch(26.43% 0.0254 260.23)",
+          "oklch(37.86% 0.0254 260.23)",
+          "oklch(49.29% 0.0254 260.23)",
+          "oklch(60.71% 0.0254 260.23)",
+          "oklch(72.14% 0.0254 260.23)",
+          "oklch(83.57% 0.0254 260.23)",
+          "oklch(95.00% 0.0254 260.23)"
+        ]
+      },
+      "galaxy-panel": {
+        "role": "neutral",
+        "displayName": "Galaxy Panel",
+        "tonalRamp": [
+          "oklch(15.00% 0.0205 81.78)",
+          "oklch(26.43% 0.0205 81.78)",
+          "oklch(37.86% 0.0205 81.78)",
+          "oklch(49.29% 0.0205 81.78)",
+          "oklch(60.71% 0.0205 81.78)",
+          "oklch(72.14% 0.0205 81.78)",
+          "oklch(83.57% 0.0205 81.78)",
+          "oklch(95.00% 0.0205 81.78)"
+        ]
+      },
+      "galaxy-orange": {
+        "role": "primary",
+        "displayName": "Galaxy Orange",
+        "tonalRamp": [
+          "oklch(15.00% 0.1698 50.61)",
+          "oklch(26.43% 0.1698 50.61)",
+          "oklch(37.86% 0.1698 50.61)",
+          "oklch(49.29% 0.1698 50.61)",
+          "oklch(60.71% 0.1698 50.61)",
+          "oklch(72.14% 0.1698 50.61)",
+          "oklch(83.57% 0.1698 50.61)",
+          "oklch(95.00% 0.1698 50.61)"
+        ]
+      },
+      "galaxy-pink": {
+        "role": "secondary",
+        "displayName": "Galaxy Pink",
+        "tonalRamp": [
+          "oklch(15.00% 0.1842 349.98)",
+          "oklch(26.43% 0.1842 349.98)",
+          "oklch(37.86% 0.1842 349.98)",
+          "oklch(49.29% 0.1842 349.98)",
+          "oklch(60.71% 0.1842 349.98)",
+          "oklch(72.14% 0.1842 349.98)",
+          "oklch(83.57% 0.1842 349.98)",
+          "oklch(95.00% 0.1842 349.98)"
+        ]
+      },
+      "galaxy-lime": {
+        "role": "secondary",
+        "displayName": "Galaxy Lime",
+        "tonalRamp": [
+          "oklch(15.00% 0.1773 118.56)",
+          "oklch(26.43% 0.1773 118.56)",
+          "oklch(37.86% 0.1773 118.56)",
+          "oklch(49.29% 0.1773 118.56)",
+          "oklch(60.71% 0.1773 118.56)",
+          "oklch(72.14% 0.1773 118.56)",
+          "oklch(83.57% 0.1773 118.56)",
+          "oklch(95.00% 0.1773 118.56)"
+        ]
+      },
+      "galaxy-teal": {
+        "role": "secondary",
+        "displayName": "Galaxy Teal",
+        "tonalRamp": [
+          "oklch(15.00% 0.1319 186.34)",
+          "oklch(26.43% 0.1319 186.34)",
+          "oklch(37.86% 0.1319 186.34)",
+          "oklch(49.29% 0.1319 186.34)",
+          "oklch(60.71% 0.1319 186.34)",
+          "oklch(72.14% 0.1319 186.34)",
+          "oklch(83.57% 0.1319 186.34)",
+          "oklch(95.00% 0.1319 186.34)"
+        ]
+      },
+      "galaxy-muted": {
+        "role": "neutral",
+        "displayName": "Galaxy Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0371 247.01)",
+          "oklch(26.43% 0.0371 247.01)",
+          "oklch(37.86% 0.0371 247.01)",
+          "oklch(49.29% 0.0371 247.01)",
+          "oklch(60.71% 0.0371 247.01)",
+          "oklch(72.14% 0.0371 247.01)",
+          "oklch(83.57% 0.0371 247.01)",
+          "oklch(95.00% 0.0371 247.01)"
+        ]
+      },
+      "galaxy-ink": {
+        "role": "neutral",
+        "displayName": "Galaxy Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.0193 235.74)",
+          "oklch(26.43% 0.0193 235.74)",
+          "oklch(37.86% 0.0193 235.74)",
+          "oklch(49.29% 0.0193 235.74)",
+          "oklch(60.71% 0.0193 235.74)",
+          "oklch(72.14% 0.0193 235.74)",
+          "oklch(83.57% 0.0193 235.74)",
+          "oklch(95.00% 0.0193 235.74)"
+        ]
+      },
+      "galaxy-focus": {
+        "role": "primary",
+        "displayName": "Galaxy Focus",
+        "tonalRamp": [
+          "oklch(15.00% 0.1108 216.78)",
+          "oklch(26.43% 0.1108 216.78)",
+          "oklch(37.86% 0.1108 216.78)",
+          "oklch(49.29% 0.1108 216.78)",
+          "oklch(60.71% 0.1108 216.78)",
+          "oklch(72.14% 0.1108 216.78)",
+          "oklch(83.57% 0.1108 216.78)",
+          "oklch(95.00% 0.1108 216.78)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Desktop hero. Source: src/App.css (.hero-copy h1); responsive overrides remain local."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Incumbent case introductions. Source: src/App.css (.case-intro h2); project overrides remain local."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Incumbent introduction prose. Source: src/App.css (.lede/.case-intro p)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Incumbent uppercase eyebrows. Source: src/App.css (.eyebrow/.section-kicker)."
+      },
+      "project-number": {
+        "displayName": "Project Number",
+        "purpose": "Monospace rail identifier. Source: src/App.css (.project-number)."
+      },
+      "architecture-headline": {
+        "displayName": "Architecture Headline",
+        "purpose": "Scoped architecture introduction. Source: BrainArchitectureSection.css (.brain-intro h2)."
+      },
+      "architecture-title": {
+        "displayName": "Architecture Title",
+        "purpose": "Explorer/walkthrough section headings. Source: BrainArchitectureSection.css."
+      },
+      "architecture-body": {
+        "displayName": "Architecture Body",
+        "purpose": "Scoped intro prose, maximum 65ch. Source: BrainArchitectureSection.css (.brain-intro-copy > p)."
+      },
+      "galaxy-title": {
+        "displayName": "Galaxy Title",
+        "purpose": "Scoped Oxanium Bold instrument identity; self-hosted /motion-fonts/oxanium-bold.ttf with swap. Source: GalacticExplorer.css."
+      },
+      "galaxy-replay": {
+        "displayName": "Galaxy Replay",
+        "purpose": "Scoped Oxanium Medium replay narration; self-hosted /motion-fonts/oxanium-medium.ttf with swap. Source: GalacticExplorer.css."
+      },
+      "galaxy-annotation": {
+        "displayName": "Galaxy Annotation",
+        "purpose": "Scoped Oxanium Bold annotated-route heading. Source: GalacticExplorer.css."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-soft",
+        "value": "0 24px 80px rgba(34, 28, 20, 0.12)",
+        "purpose": "Root ambient elevation; source: src/index.css."
+      },
+      {
+        "name": "shadow-tight",
+        "value": "0 14px 34px rgba(31, 25, 18, 0.14)",
+        "purpose": "Root hover elevation; source: src/index.css and src/App.css."
+      },
+      {
+        "name": "button-primary",
+        "value": "0 16px 38px rgba(16, 24, 32, 0.22)",
+        "purpose": "Incumbent primary control; source: src/App.css."
+      },
+      {
+        "name": "architecture-tab-selected",
+        "value": "0 3px 8px #171c1f0a",
+        "purpose": "Active architecture tab; source: BrainArchitectureSection.css."
+      },
+      {
+        "name": "galaxy-instrument",
+        "value": "0 28px 70px #040c2224",
+        "purpose": "Scoped dark observatory elevation; source: GalacticExplorer.css."
+      },
+      {
+        "name": "galaxy-inspector",
+        "value": "0 12px 36px #0009",
+        "purpose": "Overlay component inspector; source: GalacticExplorer.css."
+      },
+      {
+        "name": "galaxy-path",
+        "value": "0 12px 30px #0008",
+        "purpose": "Adjacent canonical-route annotation; source: GalacticExplorer.css."
+      }
+    ],
+    "motion": [
+      {
+        "name": "control-transition",
+        "value": "180ms ease",
+        "purpose": "Incumbent controls and architecture module state changes; sources: src/App.css and BrainArchitectureSection.css."
+      },
+      {
+        "name": "accordion-ease",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Root work rail variable; source: src/App.css (.work-card-row)."
+      },
+      {
+        "name": "card-expansion",
+        "value": "650ms var(--accordion-ease)",
+        "purpose": "Incumbent work-card size transitions; source: src/App.css."
+      },
+      {
+        "name": "card-opacity",
+        "value": "260ms ease",
+        "purpose": "Incumbent work-card/media opacity transitions; source: src/App.css."
+      },
+      {
+        "name": "reduced-motion-global",
+        "value": "0.001ms",
+        "purpose": "Global animation and transition duration override under prefers-reduced-motion; source: src/index.css. Architecture also sets transition/animation to none."
+      },
+      {
+        "name": "galaxy-clockwise-orbit",
+        "value": "-0.009rad/s",
+        "purpose": "Whole planar network rotates clockwise using network.rotation.y=-time*.009; source: GalaxyScene.tsx. Black hole is an explicit visual metaphor."
+      },
+      {
+        "name": "galaxy-edge-signals",
+        "value": "fract(aPhase + uTime * .018)",
+        "purpose": "GPU shader samples documented canonical edges; repeated particles illustrate direction, not traffic or agents. Source: GalaxyScene.tsx."
+      },
+      {
+        "name": "galaxy-replay-interval",
+        "value": "5000ms",
+        "purpose": "Twelve illustrative replay stages advance only after requested playback; final stage enters learning attribution/validation. Source: GalacticExplorer.tsx."
+      },
+      {
+        "name": "galaxy-lifecycle",
+        "value": "visible && !paused && !reduced",
+        "purpose": "Offscreen/hidden suspension, pause and reduced-motion still mode preserve manual inspection/camera controls. Sources: GalacticExplorer.tsx and GalaxyScene.tsx."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "incumbent-wide",
+        "value": "1240px"
+      },
+      {
+        "name": "architecture-compact",
+        "value": "1100px"
+      },
+      {
+        "name": "shared-stacked",
+        "value": "820px"
+      },
+      {
+        "name": "shared-small",
+        "value": "480px"
+      },
+      {
+        "name": "galaxy-compact-wide",
+        "value": "1180px"
+      },
+      {
+        "name": "galaxy-tablet",
+        "value": "900px"
+      },
+      {
+        "name": "galaxy-mobile",
+        "value": "580px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Incumbent charcoal primary action, reused in the architecture introduction; source: src/App.css (.button).",
+      "html": "<button class=\"ds-button ds-primary\">See how it works</button>",
+      "css": ".ds-button { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:48px; padding:0 20px; font-family:var(--sans); font-weight:700; border:1px solid var(--line); border-radius:7px; cursor:pointer; transition:transform 180ms ease,border-color 180ms ease,background 180ms ease,box-shadow 180ms ease; } .ds-button:hover { transform:translateY(-2px); border-color:rgba(75,124,255,.48); box-shadow:var(--shadow-tight); } .ds-button:focus-visible { outline:3px solid rgba(75,124,255,.42); outline-offset:3px; } @media(prefers-reduced-motion:reduce) { .ds-button {transition:none;} } .ds-primary {color:#f7fbff; background:linear-gradient(135deg,#101820,#1a2a35); border-color:rgba(255,255,255,.08); box-shadow:0 16px 38px rgba(16,24,32,.22);}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Incumbent translucent paper secondary action; source: src/App.css (.button.ghost).",
+      "html": "<button class=\"ds-button ds-ghost\">View project</button>",
+      "css": ".ds-button { display:inline-flex; align-items:center; justify-content:center; gap:10px; min-height:48px; padding:0 20px; font-family:var(--sans); font-weight:700; border:1px solid var(--line); border-radius:7px; cursor:pointer; transition:transform 180ms ease,border-color 180ms ease,background 180ms ease,box-shadow 180ms ease; } .ds-button:hover { transform:translateY(-2px); border-color:rgba(75,124,255,.48); box-shadow:var(--shadow-tight); } .ds-button:focus-visible { outline:3px solid rgba(75,124,255,.42); outline-offset:3px; } @media(prefers-reduced-motion:reduce) { .ds-button {transition:none;} } .ds-ghost {color:var(--ink); background:rgba(255,250,242,.46);}"
+    },
+    {
+      "name": "Header Navigation",
+      "kind": "nav",
+      "description": "Compact link with understated underline feedback; source: src/App.css (.nav-links).",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Portfolio\"><a href=\"#work\">Work</a><a href=\"#contact\">Contact</a></nav>",
+      "css": ".ds-nav {display:flex;align-items:center;gap:52px;font-family:var(--sans);font-size:14px;color:#293139;} .ds-nav a {position:relative;padding:7px 0;color:inherit;text-decoration:none;} .ds-nav a::after {position:absolute;right:0;bottom:0;left:0;height:1px;content:'';background:currentColor;transform:scaleX(0);transform-origin:center;transition:transform 180ms ease;} .ds-nav a:hover::after,.ds-nav a:focus-visible::after {transform:scaleX(1);} .ds-nav a:focus-visible {outline:3px solid rgba(75,124,255,.42);outline-offset:3px;} @media(prefers-reduced-motion:reduce){.ds-nav a::after {transition:none;}}"
+    },
+    {
+      "name": "Work Card Tag",
+      "kind": "chip",
+      "description": "Noninteractive descriptor, shown with incumbent light-card defaults; source: src/App.css (.tag-row span).",
+      "html": "<span class=\"ds-tag\">Cognitive systems</span>",
+      "css": ".ds-tag {display:inline-block;padding:7px 9px;color:var(--muted);font-family:var(--sans);font-size:11px;border:1px solid rgba(23,28,31,.12);border-radius:999px;background:rgba(255,255,255,.64);}"
+    },
+    {
+      "name": "Project Card",
+      "kind": "card",
+      "refersTo": "project-card",
+      "description": "Incumbent light-card body and title treatment; source: src/App.css (.project-card/.project-card-body). Image and expansion remain governed by the live rail.",
+      "html": "<a class=\"ds-card\" href=\"#work\"><span class=\"ds-number\">01</span><h2>Adaptive Cognitive Architecture</h2><p>A research architecture connecting memory, prediction, judgment and validated learning.</p></a>",
+      "css": ".ds-card {display:flex;flex-direction:column;gap:10px;max-width:340px;padding:18px 18px 20px;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-radius:8px;background:rgba(255,250,242,.96);box-shadow:0 14px 38px rgba(35,28,19,.07);transition:box-shadow 180ms ease;} .ds-number {font-family:var(--mono);font-size:12px;font-weight:760;color:color-mix(in srgb,var(--blue) 76%,var(--ink));} .ds-card h2 {margin:0 0 7px;font-family:var(--serif);font-size:29px;font-weight:500;line-height:1.05;letter-spacing:0;} .ds-card p {margin:0;color:var(--muted);font-family:var(--sans);font-size:13px;line-height:1.42;} .ds-card:hover {border-color:color-mix(in srgb,var(--blue) 54%,rgba(255,255,255,.4));box-shadow:0 28px 70px rgba(30,34,38,.16);} .ds-card:focus-visible {outline:3px solid color-mix(in srgb,var(--blue) 44%,transparent);outline-offset:4px;} @media(prefers-reduced-motion:reduce){.ds-card{transition:none;}}"
+    },
+    {
+      "name": "Native Range Input",
+      "kind": "input",
+      "description": "Native full-width input with the incumbent blue accent; source: src/App.css (input[type='range']).",
+      "html": "<label class=\"ds-range-label\">Level<input class=\"ds-range\" type=\"range\" min=\"0\" max=\"100\" value=\"50\" /></label>",
+      "css": ".ds-range-label {display:block;font-family:var(--sans);color:var(--ink);} .ds-range {width:100%;accent-color:var(--blue);} .ds-range:focus-visible {outline:3px solid rgba(75,124,255,.42);outline-offset:3px;}"
+    },
+    {
+      "name": "Architecture Tabs",
+      "kind": "nav",
+      "refersTo": "architecture-tab-selected",
+      "description": "Architecture-specific view selector, including active and focus states; source: BrainArchitectureSection.css. Preview illustrates styles; live React supplies arrow-key behavior.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Architecture views\"><button role=\"tab\" aria-selected=\"true\">Cognition</button><button role=\"tab\" aria-selected=\"false\">Runtime</button><button role=\"tab\" aria-selected=\"false\">Learning</button></div>",
+      "css": ".ds-tabs {display:flex;gap:4px;padding:4px;background:#e9e3d9;border-radius:8px;width:fit-content;} .ds-tabs button {padding:11px 18px;border:0;background:transparent;color:#505c64;border-radius:5px;font-family:var(--sans);font-size:12px;font-weight:600;min-height:44px;cursor:pointer;} .ds-tabs button[aria-selected='true'] {background:var(--paper);color:#285bc6;box-shadow:0 3px 8px #171c1f0a;} .ds-tabs button:hover {color:#285bc6;} .ds-tabs button:focus-visible {outline:3px solid #668be5;outline-offset:4px;}"
+    },
+    {
+      "name": "Architecture Module",
+      "kind": "button",
+      "refersTo": "architecture-module",
+      "description": "Dark diagram module with separate hover, selection and focus feedback; source: BrainArchitectureSection.css (.brain-module).",
+      "html": "<button class=\"ds-module\" aria-pressed=\"false\"><strong>Present</strong><span>What should happen now?</span></button>",
+      "css": ".ds-module {display:flex;flex-direction:column;justify-content:center;gap:7px;min-width:0;min-height:64px;padding:12px;color:#d6e2ed;background:#1b2935;border:1px solid #3a4c5d;border-radius:6px;text-align:left;font-family:var(--sans);cursor:pointer;transition:background 180ms ease,border-color 180ms ease;} .ds-module strong {font-size:12px;font-weight:600;line-height:1.4;} .ds-module span {color:#afc1d1;font-size:10px;line-height:1.4;} .ds-module:hover {background:#263b4e;border-color:#7598c3;} .ds-module[aria-pressed='true'] {background:#223c57;border-color:#92b6ff;color:#fff;} .ds-module[aria-pressed='true'] span {color:#d1e0f5;} .ds-module:focus-visible {outline:3px solid #a4baff;outline-offset:4px;} @media(prefers-reduced-motion:reduce){.ds-module{transition:none;}}"
+    },
+    {
+      "name": "Observatory View Filters",
+      "kind": "nav",
+      "refersTo": "galaxy-view-selected",
+      "description": "Dense five-filter instrument controls with local orange selected state. Source: GalacticExplorer.tsx/.css. Live view filtering is supplied by React; this is a self-contained styling preview.",
+      "html": "<nav class=\"ds-galaxy-views\" aria-label=\"Observatory views\"><button aria-pressed=\"true\"><span>01</span>Galaxy</button><button aria-pressed=\"false\"><span>02</span>Cognitive</button><button aria-pressed=\"false\"><span>03</span>Runtime</button><button aria-pressed=\"false\"><span>04</span>Learning</button><button aria-pressed=\"false\"><span>05</span>Decision replay</button></nav>",
+      "css": ".ds-galaxy-views {display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;background:#060b10;font-family:var(--mono,'Courier New',monospace);} .ds-galaxy-views button {display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#080f17;color:#b4c8d8;border:1px solid #486174;min-height:33px;padding:6px 11px;border-radius:3px;font:10px var(--mono,'Courier New',monospace);cursor:pointer;} .ds-galaxy-views button>span {font-size:8px;color:#a5b8c9;} .ds-galaxy-views button[aria-pressed=true] {background:#ff8838;border-color:#ffb06d;color:#18100a;box-shadow:0 0 18px #ff883826;} .ds-galaxy-views button[aria-pressed=true]>span {color:#48260d;} .ds-galaxy-views button:hover {filter:brightness(1.18);} .ds-galaxy-views button:focus-visible {outline:3px solid #70e2ff;outline-offset:3px;} @media(max-width:580px){.ds-galaxy-views button{min-height:38px;font-size:9px;padding:7px 9px;}}"
+    },
+    {
+      "name": "Observatory Evidence Panel",
+      "kind": "card",
+      "refersTo": "galaxy-panel",
+      "description": "Cream grid-textured ledger inside the scoped dark instrument. Source: GalacticExplorer.tsx/.css. Counts describe documented structural evidence; runtime remains pending.",
+      "html": "<article class=\"ds-galaxy-panel\"><h4><span>05</span>Verification ledger</h4><strong class=\"ds-galaxy-evidence\">141<small>static checks passed</small></strong><div class=\"ds-galaxy-counts\"><span><b>03</b>canonical views</span><span><b>14</b>specified scenarios</span></div><small>Runtime experiments not run. No task-performance claim.</small></article>",
+      "css": ".ds-galaxy-panel {max-width:260px;background:#f4ecde;background-image:linear-gradient(#85755c07 1px,transparent 1px),linear-gradient(90deg,#85755c07 1px,transparent 1px);background-size:15px 15px;border:1px solid #b8ad99;border-radius:4px;padding:11px 12px;color:#20201d;min-height:183px;font-family:var(--mono,'Courier New',monospace);} .ds-galaxy-panel h4 {display:flex;align-items:center;gap:6px;margin:0 0 15px;font:700 10px/1.4 var(--mono,'Courier New',monospace);text-transform:uppercase;letter-spacing:-.02em;} .ds-galaxy-panel h4>span {font-size:8px;color:#655f56;} .ds-galaxy-evidence {display:block;color:#e86426;font:700 31px 'Oxanium',sans-serif;margin:13px 0;} .ds-galaxy-evidence small {display:block;color:#49453e;font:9px var(--mono,'Courier New',monospace);margin-top:3px;} .ds-galaxy-counts {display:flex;gap:15px;margin:14px 0;font-size:8px;} .ds-galaxy-counts b {display:block;font-size:15px;margin-bottom:4px;} .ds-galaxy-panel>small {display:block;font:9px/1.65 var(--mono,'Courier New',monospace);color:#635e54;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Preserve the deployed portfolio identity",
+    "overview": "The portfolio pairs warm ivory space and Georgia headlines with compact, inspectable engineering interfaces. Inter carries explanations and controls; blue identifies interactions, while charcoal supports technical artifacts. The atmosphere is editorial and inviting, with more density inside demonstrations than around their introductions.\n\nThis is a scan of the incumbent implementation, extended by the approved Adaptive Cognitive Architecture surface. Its vibrant cinematic voxel artwork and luminous blue introduction frame a dense futuristic cognitive observatory. The user explicitly approved the galactic dashboard aesthetic and asked to preserve it while making its network dots, paths and controls functional. Oxanium, a dark instrument, cream telemetry-style panels and orange/pink/lime/teal accents are scoped to that observatory. Existing portfolio typography, neutral canvas, projects, interaction coaching, loading behavior and optimized assets remain part of the deployed experience.",
+    "keyCharacteristics": [
+      "Warm editorial framing around concrete engineering artifacts.",
+      "Serif headlines and compact sans-serif controls.",
+      "Blue interaction accents and dark technical surfaces.",
+      "Visible evidence boundaries and accessible manual exploration."
+    ],
+    "rules": [
+      {
+        "name": "The Scoped Accent Rule",
+        "body": "Preserve root color names and incumbent project accents. Architecture literals apply within the architecture surface; they do not establish a new site-wide palette.",
+        "section": "colors"
+      },
+      {
+        "name": "The Editorial Heading Rule",
+        "body": "Keep Georgia for narrative headings. Technical labels and interactive module copy retain the sans-serif hierarchy rather than adopting oversized display type.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "**Do** preserve the deployed ivory canvas, Georgia headlines, Inter body stack and charcoal technical surfaces.",
+      "**Do** keep new color and composition decisions scoped to the architecture surface.",
+      "**Do** preserve visible keyboard focus, manual exploration and reduced-motion behavior.",
+      "**Do** label conceptual artwork and distinguish completed static design from pending runtime evaluation."
+    ],
+    "donts": [
+      "**Don't** turn the architecture's inviting voxel artwork into a replacement visual identity for existing projects.",
+      "**Don't** publish private workspace links or present mockup benchmarks as measured results.",
+      "**Don't** expose unexplained internal names or claim demonstrated execution, learning or general intelligence from static verification.",
+      "**Don't** repair unrelated incumbent visual differences by imposing a newly invented spacing, radius or type scale."
+    ]
+  }
+}

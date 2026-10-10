@@ -1,0 +1,73 @@
+export type ArchitectureView = 'cognition' | 'runtime' | 'learning'
+
+export type ArchitectureModule = {
+  id: string
+  title: string
+  subtitle: string
+  description: string
+  input: string
+  output: string
+  boundary: string
+}
+
+export type BrainMedia = {
+  videoSrc?: string
+  posterSrc?: string
+  captionsSrc?: string
+}
+
+// Add the eventual footage and caption file here; no component changes are needed.
+export const brainMedia = {
+  posterSrc: '/work-cards/adaptive-cognitive-world.webp',
+} satisfies BrainMedia
+
+export const architectureViews: { id: ArchitectureView; title: string; description: string }[] = [
+  { id: 'cognition', title: 'Cognition', description: 'Different evidence. Different timescales. One coordinated system.' },
+  { id: 'runtime', title: 'Runtime', description: 'From observations to an authorized action, with explicit gates along the way.' },
+  { id: 'learning', title: 'Learning', description: 'Experience becomes useful knowledge only after attribution and validation.' },
+]
+
+export const architectureModules: Record<ArchitectureView, ArchitectureModule[]> = {
+  cognition: [
+    { id: 'past', title: 'Past', subtitle: 'What worked before?', description: 'The historical branch retrieves observed experience, rules and action-value evidence. Its five levels move from deep historical abstraction through tactical interpretation, meta judgment and historical judgment to shared skills.', input: 'A pinned decision snapshot, supplied candidates and bounded historical evidence.', output: 'Historical advice, with source provenance and memory reliability.', boundary: 'Historical advice does not authorize execution. Observed history stays separate from simulated evidence.' },
+    { id: 'present', title: 'Present', subtitle: 'What should happen now?', description: 'The Present/Middle branch integrates history, predictions, goals and uncertainty. Its upper reasoning layers propose plans; the judgment layer selects from supplied behaviors; code controls the execution path.', input: 'The same snapshot and candidates, adviser outputs, goals, skill reliability and available meta guidance.', output: 'A typed candidate selection or a mission-constrained plan proposal.', boundary: 'Only Present/Middle synthesis can propose commit-eligible plans. Every selection still passes current-state validity checks.' },
+    { id: 'future', title: 'Future', subtitle: 'What might happen next?', description: 'The prospective branch evaluates candidate-conditioned forecasts over immediate, tactical and strategic horizons. Predictions of dynamics are evaluated separately from whether an outcome is desirable.', input: 'The same snapshot and candidates, a world model, goal/value/risk evaluation and prediction reliability.', output: 'Prospective advice with uncertainty and calibration information.', boundary: 'Predicted and simulated consequences are not observed truth. Future advice cannot directly change the environment.' },
+    { id: 'memory', title: 'Memory & world model', subtitle: 'Recall and anticipate', description: 'Hindsight holds episodic and semantic evidence; MemOS holds procedural traces. MemoryBridge assembles bounded recall without becoming a third store. A separate world model predicts consequences.', input: 'Provenance-tagged experiences, procedures, context and candidate actions.', output: 'Relevant recall and candidate-conditioned forecasts.', boundary: 'Contradictions, reliability and provenance remain visible; the world model does not decide desirability.' },
+    { id: 'escalation', title: 'Attention & escalation', subtitle: 'Reason more when needed', description: 'Uncertainty, novelty, weak coverage and persistent failure can trigger tactical or deep reasoning. All model invocations use the same scheduler and retain temporal role identity.', input: 'Current incidents, coverage, uncertainty, source reliability and a bounded context.', output: 'Scheduled reasoning jobs, information requests or plan proposals.', boundary: 'Upper layers are event-triggered. Conceptual symmetry does not require every model to run on every cycle.' },
+    { id: 'skills', title: 'Skills & execution', subtitle: 'One path into the world', description: 'The shared lowest level routes selected behavior through validated skills, controllers, hard safety, a command queue and a single execution authority.', input: 'A selected, currently valid supplied behavior and available validated skills.', output: 'An admitted command and an execution receipt.', boundary: 'The judgment layer is a typed semantic component in TypeScript. Code owns workflow, state, memory, learning and execution.' },
+  ],
+  runtime: [
+    { id: 'observations', title: 'Structured observations', subtitle: 'Observe', description: 'Screen, API or sensor input is extracted into structured state. Live state and recent-event summaries arrive through a typed event bus; a single reducer owns canonical state.', input: 'Observed state, entities, events and execution receipts.', output: 'A current Blackboard state with explicit versions.', boundary: 'Live factual state bypasses summarization. Model outputs do not directly mutate the Blackboard.' },
+    { id: 'snapshot', title: 'Immutable snapshot', subtitle: 'Pin the context', description: 'One decision cycle pins belief, goals, candidates, memory, world-model, policy and skill versions so its advisers operate against one coherent state.', input: 'Canonical Blackboard state and versioned supporting systems.', output: 'A shared, immutable decision-cycle snapshot.', boundary: 'Past, Future and Middle cannot silently mix different versions within one cycle.' },
+    { id: 'candidates', title: 'Candidate builder', subtitle: 'Define legal choices', description: 'Code combines legal primitives, validated skills and accepted plan actions. Coverage checks may request repair. Information, wait, abort, escalation and no-valid-action routes remain explicit.', input: 'The capability schema, state, skill registry and accepted plans.', output: 'One validated, versioned supplied candidate set.', boundary: 'The judgment layer cannot invent or select a behavior absent from the supplied set.' },
+    { id: 'scheduler', title: 'Cognitive scheduler', subtitle: 'Coordinate the services', description: 'Jobs pass through a type router, service guard and shared model services. Results are versioned, routed to their consumer and checked for freshness, with timeouts and degraded modes.', input: 'Role-tagged jobs, priorities, deadlines and compute budgets.', output: 'Fresh typed results or explicit timeout/fallback states.', boundary: 'Background learning cannot starve control; model jobs cannot bypass orchestration.' },
+    { id: 'judgment', title: 'Typed arbitration', subtitle: 'Select a behavior', description: 'The judgment layer uses the common snapshot, supplied candidates and available historical and prospective advice to select what to do now. Meta guidance helps choose how to arbitrate.', input: 'Candidate set, available advisers, uncertainty and cached valid meta guidance.', output: 'A typed selection, including wait, information gathering or escalation.', boundary: 'Judgment confidence is not system confidence or permission to execute. Missing advisers have bounded fallbacks.' },
+    { id: 'validity', title: 'Freshness & validity', subtitle: 'Check before acting', description: 'Plans pass mission and staleness checks. Selected behaviors, including fallback results, are rechecked against the current state before routing to execution.', input: 'Selected behavior, plan proposals, current state and mission constraints.', output: 'An accepted, rebased or rejected proposal; a valid routed behavior.', boundary: 'Stale goals, targets, plans and commands must be rejected rather than executed on confidence alone.' },
+    { id: 'authority', title: 'Execution authority', subtitle: 'Execute once admitted', description: 'Validated behavior flows through skills, controllers, safety and a command envelope. Queue admission checks ownership and epochs before the sole execution authority changes the environment.', input: 'A currently valid command with ownership, version and execution epoch.', output: 'An executed action or rejection receipt.', boundary: 'Cancellation, revocation and mission replacement fence obsolete commands. No model has a direct write path to the world.' },
+    { id: 'feedback', title: 'Feedback & journal', subtitle: 'Close the loop', description: 'Observed outcomes, local choices and execution receipts are durably journaled. They update state and feed outcome evaluation and the learning pipeline.', input: 'Actual observations, receipts, action IDs and later state.', output: 'Recoverable evidence and joined decision/action records.', boundary: 'Proposed, predicted and actually executed actions are recorded distinctly.' },
+  ],
+  learning: [
+    { id: 'experience', title: 'Observed experience', subtitle: 'Keep the evidence', description: 'The journal joins decision, action, skill, plan and prediction records into observed transitions. Real evidence is retained before long-term memory salience decisions.', input: 'Observed state, actual execution receipts and stable record IDs.', output: 'A recoverable observed transition and source lineage.', boundary: 'Observed, simulated, counterfactual and synthetic archives retain separate provenance.' },
+    { id: 'attribution', title: 'Outcome attribution', subtitle: 'Understand the result', description: 'An independent outcome evaluator checks the original mission. Variable-duration windows account for delayed effects; temporal credit carries confidence and incomplete outcomes.', input: 'Transitions, mission snapshot and later observations.', output: 'Complete, interrupted, censored, unknown or pending outcomes and derived credit.', boundary: 'Descriptive attribution alone does not prove causal benefit. Controlled evidence is required for that claim.' },
+    { id: 'recall', title: 'Memory updates', subtitle: 'Make experience retrievable', description: 'Durable delivery feeds episodic/semantic and procedural writers, historical statistics and consolidation. Recall preserves deduplication, context, exceptions and contradictions.', input: 'Provenance-tagged observed experience and derived candidate procedures.', output: 'Bounded, relevant recall with reliability and source IDs.', boundary: 'A memory suggestion is not automatically a validated rule or skill.' },
+    { id: 'models', title: 'Model & policy candidates', subtitle: 'Improve the supporting systems', description: 'Prediction errors inform dynamics and calibration; observed outcomes support historical values and arbitration. Learners produce versioned candidates rather than immediately changing the live runtime.', input: 'Observed outcomes, forecast errors and qualified training records.', output: 'Versioned world-model, calibration and policy candidate packages.', boundary: 'Supporting policies learn externally; no unverified judgment-model weight-training capability is assumed.' },
+    { id: 'distillation', title: 'Rules & skill distillation', subtitle: 'Compile reasoning downward', description: 'Accepted, executed and outcome-validated reasoning can become candidate rules or skills. Skills retain initiation conditions, termination, effects, fallback, competence and versioning.', input: 'Attributed demonstrations, evidence and reasoning influence records.', output: 'Candidate rules and skill artifacts ready for objective validation.', boundary: 'A model proposal cannot certify itself. Failed reasoning remains useful negative evidence.' },
+    { id: 'promotion', title: 'Validation & promotion', subtitle: 'Release with a way back', description: 'Candidates pass objective evidence checks, compatibility and regression tests before promotion. Deployed outcomes can trigger restriction, demotion, retraining or rollback.', input: 'Versioned candidates, validation evidence and regression results.', output: 'A compatible release bundle or an explicit rejected/restricted artifact.', boundary: 'Learning updates cannot bypass validation, release gates or skill-registry ownership.' },
+  ],
+}
+
+export const cognitiveLevels = [
+  { label: 'Deep strategy', note: 'L5 · when needed', modules: ['Historical abstraction', 'Goals & strategy', 'Prospective reasoning'] },
+  { label: 'Tactical reasoning', note: 'L4 · event-triggered', modules: ['Interpret history', 'Plan & verify', 'Compare consequences'] },
+  { label: 'Meta judgment', note: 'L3 · how to decide', modules: ['Adviser history', 'Arbitration strategy', 'Strategy forecasts'] },
+  { label: 'Typed judgment', note: 'L2 · action choices', modules: ['Historical judgment', 'Current judgment', 'Prospective judgment'] },
+]
+
+export const walkthrough = [
+  { title: 'Observe', view: 'runtime' as const, module: 'observations', heading: 'A blocked doorway becomes structured state.', text: 'In this illustrative scenario, the environment reports a blocked route. Code records the observation and creates a versioned state; it does not assume why the door is blocked.' },
+  { title: 'Compare', view: 'cognition' as const, module: 'past', heading: 'History and forecasts answer different questions.', text: 'Past retrieves relevant observed attempts. Future predicts consequences of the supplied options. Both use the same snapshot, while unknown causes remain uncertain.' },
+  { title: 'Decide', view: 'runtime' as const, module: 'judgment', heading: 'Choose a supplied information-gathering behavior.', text: 'Middle can choose to inspect the door instead of repeating movement. The judgment layer returns a typed selection; it neither invents an action nor sends a control command.' },
+  { title: 'Validate', view: 'runtime' as const, module: 'validity', heading: 'Recheck the choice against the world now.', text: 'Code checks the target, mission and current state. If the goal or door changed while reasoning ran, the stale choice is rejected and the system requests a fresh decision.' },
+  { title: 'Execute', view: 'runtime' as const, module: 'authority', heading: 'Only an admitted command reaches the environment.', text: 'A valid choice passes skills, control and safety, then command admission. The single execution authority performs the inspection and records the actual receipt.' },
+  { title: 'Learn', view: 'learning' as const, module: 'promotion', heading: 'Feedback becomes evidence before it becomes a skill.', text: 'The observed result is journaled and attributed. Any resulting rule or skill stays a candidate until independent validation and regression checks support its promotion.' },
+]

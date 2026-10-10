@@ -75,6 +75,7 @@ import LoadingScreen from './components/LoadingScreen'
 import { COUPLING_BOLT_VIEWER_VERSION } from './couplingBoltPreloader'
 import { notifyEngineReady } from './sceneReadiness'
 import './App.css'
+import BrainArchitectureSection from './components/BrainArchitectureSection'
 
 const revealVariants: Variants = {
   hidden: { opacity: 0.42, y: 12 },
@@ -96,7 +97,7 @@ const engineeringCoreItems = [
     icon: Box,
     support: 'Interactive systems built around real engineering problems.',
     response:
-      'I build interactive engineering systems: diesel-engine digital twins, CAD/mechanical artifacts, bleeding-control training simulators, HVAC design tools, CubeSat thermal simulations, and AI screenshot assistants.',
+      'I build interactive engineering systems: diesel-engine digital twins, CAD/mechanical artifacts, bleeding-control training simulators, HVAC design tools, CubeSat thermal simulations, and AI screenshot assistants. I also design cognitive architectures that connect memory, prediction and controlled action.',
   },
   {
     id: 'skills',
@@ -128,7 +129,7 @@ const engineeringCoreItems = [
     icon: PanelTop,
     support: 'The portfolio cases this site is built around.',
     response:
-      'Explore Snipping GPT, BMT Diesel Engine Digital Twin, Coupling Bolt, Bleeding Control Simulator, GMP HVAC System, and CubeSat Thermal.',
+      'Explore Adaptive Cognitive Architecture, Snipping GPT, BMT Diesel Engine Digital Twin, Coupling Bolt, Bleeding Control Simulator, GMP HVAC System, and CubeSat Thermal.',
   },
 ] as const
 
@@ -183,6 +184,7 @@ const coreRobotLookTargets: Record<CorePillId, { x: number; y: number; rotate: n
 }
 
 const coreProjectLinks = [
+  { title: 'Adaptive Cognitive Architecture', meta: 'Memory, prediction, judgment and validated learning', href: '#adaptive-cognitive-architecture' },
   { title: 'Diesel Engine Digital Twin', meta: 'Synthetic telemetry, ML health scoring, RUL', href: '#digital-twin' },
   { title: 'Bleeding Control Simulator', meta: 'Sensor feedback, flow logic, training UI', href: '#bleeding-simulator' },
   { title: 'Snipping GPT', meta: 'Screenshot intent system for fast AI help', href: '#snipping-gpt' },
@@ -666,6 +668,7 @@ function App() {
         <Header />
         <main>
           <Hero />
+          <BrainArchitectureSection />
           <SnippingGPTSection />
           <DigitalTwinSection />
           <CouplingBoltSection />
@@ -1515,9 +1518,13 @@ function SelectedWork() {
   const rowRef = useRef<HTMLDivElement | null>(null)
   const reduceMotion = useReducedMotion()
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null)
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(workCards[0].id)
   const activeCardId = hoveredCardId ?? selectedCardId
   const evidenceCard = workCards.find((card) => card.id === activeCardId) ?? workCards[0]
+  const selectCard = useCallback((cardId: string) => {
+    setHoveredCardId(null)
+    setSelectedCardId(cardId)
+  }, [])
 
   const scrollWorkCards = useCallback(
     (direction: -1 | 1) => {
@@ -1570,7 +1577,7 @@ function SelectedWork() {
             isActive={activeCardId === card.id}
             isDimmed={activeCardId !== null && activeCardId !== card.id}
             onHover={setHoveredCardId}
-            onSelect={setSelectedCardId}
+            onSelect={selectCard}
           />
         ))}
       </div>
@@ -1637,7 +1644,7 @@ const ProjectCard = React.memo(function ProjectCard({
   }
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (pointerIntentRef.current.dragged) {
+    if (event.detail !== 0 && pointerIntentRef.current.dragged) {
       event.preventDefault()
       pointerIntentRef.current.dragged = false
       return
@@ -3606,7 +3613,7 @@ function DigitalTwinSection() {
         <aside className="diesel-story">
           <p className="diesel-project-kicker">
             <span aria-hidden="true" />
-            Project 02
+            Project 03
           </p>
           <h2>BMT Diesel Engine Digital Twin</h2>
           <p className="diesel-subtitle">Predict. Monitor. Optimize.</p>
@@ -4396,7 +4403,7 @@ function CouplingBoltSection() {
     <SectionReveal id="coupling-bolt" className="case-section light-section bolt-section">
       <div className="bolt-layout">
         <div className="case-intro">
-          <p className="eyebrow">03 / Mechanical design</p>
+          <p className="eyebrow">04 / Mechanical design</p>
           <h2>Coupling Bolt</h2>
           <p>
             A precision fastener component designed for high-load mechanical connections. The
@@ -4616,7 +4623,7 @@ function BleedingSimulatorSection() {
     <SectionReveal id="bleeding-simulator" className="case-section clinical-section advanced-bleeding-section">
       <div className="case-intro two-column bleeding-case-intro">
         <div>
-          <p className="eyebrow">04 / Medical engineering</p>
+          <p className="eyebrow">05 / Medical engineering</p>
           <h2>Bleeding Control Simulator</h2>
           <p className="case-kicker">Clinical training device / sensing / control feedback</p>
           <div className="bleeding-actions">
@@ -4862,7 +4869,7 @@ function HvacSection() {
       <div className="hvac-hero">
         <div className="case-intro hvac-copy">
           <a className="hvac-breadcrumb" href="#work">
-            <span>Project 05</span>
+            <span>Project 06</span>
             <i aria-hidden="true">/</i>
             Work
             <i aria-hidden="true">/</i>
@@ -5116,7 +5123,7 @@ function CubeSatSection() {
       <div className="thermal-layout">
         <div className="case-intro thermal-copy">
           <a className="back-link" href="#work">All projects</a>
-          <p className="eyebrow">06 / Thermal simulation</p>
+          <p className="eyebrow">07 / Thermal simulation</p>
           <h2>CubeSat Thermal<span>.</span></h2>
           <p className="thermal-subtitle">Simulate. Stabilize. Survive.</p>
           <p>
