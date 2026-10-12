@@ -11,6 +11,7 @@ import {
   type BrainMedia,
 } from '../data/brainArchitecture'
 import './BrainArchitectureSection.css'
+import BrainExplanation from './BrainExplanation'
 const GalacticExplorer = lazy(() => import('./GalacticExplorer'))
 
 const branches = ['past', 'present', 'future'] as const
@@ -101,10 +102,9 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
           <a href="#work" className="brain-back-link"><ChevronLeft size={15} aria-hidden="true" /> All projects <span>01</span></a>
           <h2 id="brain-title">Adaptive Cognitive <em>Architecture.</em></h2>
           <p className="brain-subtitle">Different timescales. One mind.</p>
-          <p>This is a system design for an AI agent: software that observes an environment and takes actions toward a goal. I designed its software brain to connect memory of past events, predictions about possible actions, and a decision about what to do now. It also specifies how the agent should check an action, carry it out and learn from the result.</p>
-          <p className="brain-judgment-note"><strong>A design for an agent, from observation to learning.</strong> Jev is the name of the TypeScript judgment component inside this architecture: it chooses among the actions supplied to it. The surrounding software manages state and memory, checks that a choice is still valid, and controls execution. The architecture is documented and statically checked; its behavior in a running environment still needs evaluation.</p>
+          <p>I’m designing a brain-inspired AI system that reacts quickly to familiar situations and calls on deeper thinking when problems become difficult. The research explores how it can remember useful experiences, turn successful strategies into skills, and reduce low-value memory over time.</p>
           <div className="brain-intro-actions">
-            <a href="#brain-motion" className="button primary">See how it works <ArrowDown size={17} aria-hidden="true" /></a>
+            <a href="#brain-explanation" className="button primary">See how it works <ArrowDown size={17} aria-hidden="true" /></a>
             <span className="brain-status"><span aria-hidden="true" /> Research & architecture design</span>
           </div>
         </div>
@@ -112,16 +112,13 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
       </div>
 
       <dl className="project-proof-bar brain-project-proof" aria-label="Adaptive Cognitive Architecture project evidence summary">
-        <div><dt>Role</dt><dd>Cognitive, runtime and learning system design; contracts and structural verification.</dd></div>
-        <div><dt>Tools</dt><dd>Notion, Miro, Mermaid and TypeScript judgment interfaces.</dd></div>
-        <div><dt>Built Artifact</dt><dd>Three v1.10 architecture views, documented contracts and an interactive map of their connections.</dd></div>
-        <div><dt>Outcome</dt><dd>141 documented static checks passed; 14 acceptance scenarios specified. Runtime evaluation is pending.</dd></div>
+        <div><dt>Role</dt><dd><strong>Cognitive system design</strong><small>Designed how thinking, memory, learning and execution connect.</small></dd></div>
+        <div><dt>Tools</dt><dd><strong>Notion · Miro · TypeScript</strong><small>Architecture diagrams, Mermaid documentation and typed interfaces.</small></dd></div>
+        <div><dt>Built Artifact</dt><dd><strong>3 architecture views</strong><small>Cognition, runtime and learning, with an interactive component map.</small></dd></div>
+        <div><dt>Outcome</dt><dd><strong>141 static checks passed</strong><small>14 acceptance scenarios specified.<br />Runtime evaluation pending.</small></dd></div>
       </dl>
 
-      <div className="brain-rationale">
-        <h3>What happens<br />between thinking and acting?</h3>
-        <div><p>Imagine an agent trying to reach a destination when its route becomes blocked. It needs to notice the obstacle, recall relevant attempts, compare possible next steps and choose an action. Before acting, the software must check that the route, goal and permissions have not changed.</p><p>This architecture gives those jobs separate components and defines what they exchange. After an action, the observed result becomes evidence; any proposed new rule or skill must pass independent validation before release.</p></div>
-      </div>
+      <BrainExplanation />
 
       <Suspense fallback={<div id="brain-motion">Loading the cognitive observatory…</div>}><GalacticExplorer /></Suspense>
       <details id="brain-explorer" className="brain-detail-disclosure">
@@ -184,9 +181,9 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
       <section className="snip-why-strip brain-purpose" aria-labelledby="brain-purpose-title">
         <p id="brain-purpose-title">Why It Exists</p>
         <div className="snip-why-grid">
-          <article className="snip-why-card"><span>01</span><div><h3>Problem</h3><p>A model can suggest a next step, but a persistent agent also needs to remember events, handle changing conditions and distinguish a proposal from an action that actually happened. These responsibilities need explicit boundaries.</p></div></article>
-          <article className="snip-why-card"><span>02</span><div><h3>Idea</h3><p>Design a connected software brain: Past supplies observed history, Future predicts consequences, and Present chooses among available actions. A shared runtime manages state, scheduling and permission to act.</p></div></article>
-          <article className="snip-why-card"><span>03</span><div><h3>How It Solves It</h3><p>The specification gives each component a defined input, output and owner. It checks choices before execution and keeps observed outcomes separate from predictions, so candidate improvements can be validated before they enter the system.</p></div></article>
+          <article className="snip-why-card"><span>01</span><div><h3>Problem</h3><p>A single model response does not give an agent lasting memory, reliable actions or a way to improve from experience.</p></div></article>
+          <article className="snip-why-card"><span>02</span><div><h3>Idea</h3><p>Connect quick judgment, deeper reasoning and selective memory into one brain-inspired system.</p></div></article>
+          <article className="snip-why-card"><span>03</span><div><h3>How It Solves It</h3><p>The design separates thinking from acting: check each choice, record what happened and validate proposed skills before reuse.</p></div></article>
         </div>
       </section>
       <div className="brain-evidence" aria-labelledby="brain-evidence-title">

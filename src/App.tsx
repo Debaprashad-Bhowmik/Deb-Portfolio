@@ -184,7 +184,7 @@ const coreRobotLookTargets: Record<CorePillId, { x: number; y: number; rotate: n
 }
 
 const coreProjectLinks = [
-  { title: 'Adaptive Cognitive Architecture', meta: 'Memory, prediction, judgment and validated learning', href: '#adaptive-cognitive-architecture' },
+  { title: 'Adaptive Cognitive Architecture', meta: 'Quick choices, deeper thinking and learning from experience', href: '#adaptive-cognitive-architecture' },
   { title: 'Diesel Engine Digital Twin', meta: 'Synthetic telemetry, ML health scoring, RUL', href: '#digital-twin' },
   { title: 'Bleeding Control Simulator', meta: 'Sensor feedback, flow logic, training UI', href: '#bleeding-simulator' },
   { title: 'Snipping GPT', meta: 'Screenshot intent system for fast AI help', href: '#snipping-gpt' },

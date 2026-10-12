@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useReducedMotion } from 'framer-motion'
-import { Maximize2, Pause, Play, RotateCcw, ChevronLeft, ChevronRight, Search, X, Upload, Minus, Plus, ArrowUpRight, Check } from 'lucide-react'
+import { Maximize2, Pause, Play, RotateCcw, ChevronLeft, ChevronRight, Search, X, Upload, Minus, Plus, ArrowUpRight, Check, Orbit, Waypoints, Radio } from 'lucide-react'
 import { canonicalGraph } from '../data/canonicalGraph'
 import { demoStages, parseRecordedTrace, type RecordedTrace } from '../data/galaxyTrace'
 import { inspectGraph, type GraphTarget } from '../data/galaxyInspection'
@@ -57,9 +57,9 @@ export default function GalacticExplorer(){
  return <section id="brain-motion" ref={root} className="galactic-explorer" aria-labelledby="galactic-title" onKeyDown={e=>{if(e.key==='Escape'){setHovered(null);setFocusedTarget(null);setPinned(null);setSearchOpen(false);setSelected(null)}}}>
   <div className="galaxy-title"><div><h3 id="galactic-title">The cognitive observatory.</h3><p>An interactive map of the software components and their documented connections.</p></div><span>Design v1.10 / runtime evaluation pending</span></div>
   <dl className="galaxy-reading-guide" aria-label="How to read the architecture map">
-   <div><dt>The central black hole</dt><dd>A visual symbol for the judgment layer, where past evidence and future advice inform a present choice. It gives the map a visual center; the lines show the actual documented connections between components.</dd></div>
-   <div><dt>The branching network</dt><dd>Each selectable node is a component in the cognitive, runtime or learning design. Lines are documented handoffs between components: observations, advice, commands or feedback. Hover a node or line to trace one connected route and read its meaning.</dd></div>
-   <div><dt>The moving signals</dt><dd>The smaller traveling dots illustrate information moving along those connections. Their motion and the orbit help reveal the structure; they do not show measured traffic or a running AI. Click to pin a path, or use search and the inspector to explore by keyboard.</dd></div>
+   <div><dt><Orbit size={21} aria-hidden="true" />Center = judgment</dt><dd>Past experience and predictions inform a present choice.<details><summary>How the center works</summary><p>The black hole is a visual symbol for the judgment layer. It gives the map a center; it is not an extra software component.</p></details></dd></div>
+   <div><dt><Waypoints size={21} aria-hidden="true" />Branches = component connections</dt><dd>Hover a node or line to trace a documented handoff.<details><summary>How the branches work</summary><p>Nodes represent components in the cognitive, runtime or learning design. Lines carry observations, advice, commands or feedback. Click to pin a route, or explore it using search and the keyboard-accessible inspector.</p></details></dd></div>
+   <div><dt><Radio size={21} aria-hidden="true" />Moving dots = illustrative information flow</dt><dd>Signals help you follow the connections.<details><summary>What the motion represents</summary><p>Small traveling dots illustrate information moving along documented connections. They do not show measured traffic or a running AI. The orbit helps reveal the structure.</p></details></dd></div>
   </dl>
   <div className="galaxy-instrument">
    <header className="galaxy-header"><span className="galaxy-brand">ACA</span><div className="galaxy-identity"><strong>Adaptive Cognitive Architecture</strong><small>Memory · prediction · typed judgment · validated learning</small></div><dl>{[['Views','03'],['Diagram nodes','455'],['Static checks','141'],['Scenarios specified','14']].map(([a,b])=><div key={a}><dt>{a}</dt><dd>{b}</dd></div>)}</dl><span className="galaxy-demo-indicator">{recorded?'IMPORTED RECORD':'ILLUSTRATIVE DEMO'}</span></header>
