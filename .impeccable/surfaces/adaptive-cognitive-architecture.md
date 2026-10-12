@@ -6,7 +6,7 @@ This is an approved scoped replacement of the architecture illustration, within 
 
 ## Implemented composition
 
-Project 01 remains first and initially expanded, with vibrant voxel concept art, a desktop dark overlay and pale-blue CTA. Its case study keeps the ivory two-column introduction, luminous blue wash, 16:9 future-gameplay frame and four proof items. The primary action targets `#brain-motion`: a lazy Three.js cognitive observatory. A dark instrument header, five view filters, planar network, annotations, replay strip and dense cream panels present the canonical design. The three-tab detailed explorer and manual six-step technical walkthrough remain inside an initially collapsed native details disclosure.
+Project 01 remains first in the rail, with vibrant voxel concept art, a desktop dark overlay and pale-blue CTA. Its case study keeps the ivory two-column introduction, luminous blue wash, 16:9 future-gameplay frame and four proof items. The primary action targets `#brain-motion`: a lazy Three.js cognitive observatory. A dark instrument header, five view filters, planar network, annotations, replay strip and dense cream panels present the canonical design. The three-tab detailed explorer and manual six-step technical walkthrough remain inside an initially collapsed native details disclosure.
 
 The observatory uses self-hosted Oxanium Medium/Bold for identity, inspector headings and narration, and the incumbent monospace stack for dense controls and records. Its local instrument is `#030711`, panels `#f4ecde`, primary accent `#ff8838`, with pink `#ff75bd`, lime `#d9f45b` and teal `#38ded0` mapped to canonical kinds/callouts. Root portfolio tokens are preserved.
 
@@ -64,3 +64,5 @@ Accumulated incumbent CSS overrides, varied case-heading sizes, additional break
 ## First-visit explanation
 
 The introduction defines an AI agent in plain language and identifies Jev as its internal TypeScript judgment component. A blocked-route example explains the observation-to-learning cycle. The top evidence band reuses `project-proof-bar` with charcoal/orange scope; the lower purpose strip reuses the incumbent three-card Problem / Idea / How It Solves It layout as explicitly requested. The always-visible map guide explains that the black hole symbolizes judgment, nodes are design components, lines are documented handoffs, and smaller moving dots illustrate edge signals rather than measured traffic. No renderer or graph behavior changes.
+
+Card behavior restored: no card is selected initially; the first project uses the shared expanded width and inactive-card opacity. Pointer hover, keyboard/click selection and Escape remain supported. The first project retains its artwork and expanded image treatment.

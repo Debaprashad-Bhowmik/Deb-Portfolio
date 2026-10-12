@@ -119,7 +119,7 @@
 .project-card-brain h2 { -webkit-line-clamp: unset; }
 .project-card-brain .project-details { display: none; }
 @media (min-width: 821px) {
-  .has-active-card .project-card-brain.is-active { grid-template-rows: 1fr; min-width: min(640px, 56vw); }
+  .has-active-card .project-card-brain.is-active { grid-template-rows: 1fr; }
   .project-card-brain.is-active .project-media { position: absolute; inset: 0; }
   .project-card-brain.is-active .project-media::after { opacity: 0; }
   .project-card-brain.is-active .project-card-body { position: relative; padding: 28px; background: linear-gradient(90deg, #071624f2 0%, #0d2339d9 40%, #10284233 74%, transparent); }
@@ -129,7 +129,6 @@
   .project-card-brain.is-active .project-card-heading p { font-size: 10px; line-height: 1.5; }
   .project-card-brain.is-active .tag-row { margin-top: 8px; max-height: 90px; }
   .project-card-brain.is-active .project-cta { background: #def0ff; color: #1458bd; border-color: #acc8eb; letter-spacing: 0; text-transform: none; }
-  .has-active-card:has(.project-card-brain.is-active) .project-card { opacity: 1; }
 }
 @media (max-width: 1100px) {
   .brain-section { padding: 64px 36px; }

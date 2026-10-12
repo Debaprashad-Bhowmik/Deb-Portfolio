@@ -1518,7 +1518,7 @@ function SelectedWork() {
   const rowRef = useRef<HTMLDivElement | null>(null)
   const reduceMotion = useReducedMotion()
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null)
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(workCards[0].id)
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const activeCardId = hoveredCardId ?? selectedCardId
   const evidenceCard = workCards.find((card) => card.id === activeCardId) ?? workCards[0]
   const selectCard = useCallback((cardId: string) => {

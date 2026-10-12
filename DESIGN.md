@@ -324,3 +324,5 @@ The twelve-stage illustrative replay supports previous/next, direct stage select
 ## Architecture explanation and project framing
 
 The project introduction defines an AI agent before introducing its memory, prediction and judgment architecture. A charcoal four-column Role / Tools / Built Artifact / Outcome summary uses the existing `project-proof-bar` structure, scoped to the observatory palette. A visible three-part map guide explains the black-hole visual symbol, source component connections and illustrative signal motion before the console. After the interactive artifact, the existing Problem / Idea / How It Solves It pattern frames the purpose on ivory. These sections reflow for phones and preserve the galaxy renderer and controls.
+
+Card behavior restored: no card is selected initially; the first project uses the shared expanded width and inactive-card opacity. Pointer hover, keyboard/click selection and Escape remain supported. The first project retains its artwork and expanded image treatment.
