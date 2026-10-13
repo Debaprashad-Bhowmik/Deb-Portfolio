@@ -11819,6 +11819,10 @@ input[type='range'] {
     min-height: 150px;
   }
 
+  .diesel-rul-card > p {
+    padding-right: 16px;
+  }
+
   .diesel-rul-card strong {
     margin-top: 15px;
     font-size: 34px;
