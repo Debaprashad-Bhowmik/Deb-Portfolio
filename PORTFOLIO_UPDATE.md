@@ -137,3 +137,17 @@ The user has authorized uploading the reviewed source to GitHub and deploying it
 Footer consistency refinement: summary icons are centered above their labels across all five tabs, including phones. The project now uses the existing Coupling Bolt keyword-strip styling for Cognitive Design, AI Systems, Memory, Reasoning and Learning, with runtime evaluation pending. Desktop, tablet and phone checks found centered icons and no horizontal overflow. Production build and scoped lint passed. No project content or galaxy behavior changed.
 
 Diesel dashboard responsive fix: below 1240px, the remaining-life card moves into row 3, but previously inherited the desktop 106px scenario track. Its 218px minimum height overlapped the following telemetry card by 98px. The intermediate layout now uses content-sized stacked rows. Phone overrides and the wide desktop layout are preserved. Browser checks at 320, 390, 768, 820, 821, 1024, 1240 and 1448px found no overlapping dashboard cards or page overflow, and the confidence text remains contained. Production build and diff checks passed. CSS-only change; full lint retains the known baseline errors.
+
+
+## Local 3D brain prototype - 2026-10-13
+
+The responsive diesel overlap fix was published before this prototype. The user requested that this brain version remain local: do not upload or deploy it without new authorization.
+
+The black-hole metaphor has been replaced by a translucent cortical surface, with the existing colorful software graph placed inside its 3D volume. The surface derives from Nilearn's fsaverage5 pial meshes; asset attribution and BSD license are included in public/brain. Component positions are illustrative, not biological localization. Canonical nodes and relationships remain unchanged.
+
+All packet streams, highlighted lines, picking geometry and camera-follow paths use the same 3D quadratic connection. The brain slowly rotates clockwise and floats while visible. Pausing, reduced motion and offscreen suspension retain their existing gates. Clicked nodes, edges, callouts and replay stages still lock the selected path; wide view, reset or Escape unlocks it. Full orbital inspection is enabled. The reading guide explains the new metaphor without claiming measured neural traffic or runtime results. No dependencies added.
+
+Prototype verification: production build and scoped ESLint pass. Full lint reports the same six baseline errors in unchanged App, LoadingScreen and ModelInteractionCoach files. Canonical graph audit still passes all 1,434 node/edge inspection targets and twelve replay paths. The cortical binary validates with 20,484 vertices, 40,960 triangles and 1,024 unique layout anchors. In-browser checks covered desktop, tablet and phone without page overflow; all nine component callouts activate by keyboard and lock/unlock; all twelve manual replay stages lock and display their own descriptions. Direct edge picking, ignoring other canvas clicks while locked, pause/resume and offscreen suspension pass. Browser error log empty. Reduced-motion gating remains intact in code. Local proof: .impeccable/review/brain-local-prototype.png. No GitHub push or Vercel deployment was performed for this prototype.
+
+
+Brain publication authorized - 2026-10-13: the user approved uploading and deploying the reviewed 3D brain version. This supersedes the local-only restriction for this prototype. Publish from Portfolio-Deployed to the existing GitHub branch and Vercel production project, retaining the already published responsive dashboard fixes.
