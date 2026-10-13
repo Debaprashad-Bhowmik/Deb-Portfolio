@@ -31,4 +31,27 @@
 .galaxy-reading-guide summary { cursor: pointer; color: #285bc6; padding: 6px 0; font-size: 11px; }
 .galaxy-reading-guide details p { margin: 8px 0 0; font-size: 12px; }
 .galaxy-reading-guide dd { font: 12px/1.65 var(--sans, Inter, sans-serif); margin: 0; color: #505c64; max-width: 65ch; }
+.galaxy-coverage-scan { display:block; width:100%; height:44px; overflow:visible; }
+.galaxy-coverage-link { stroke:#487c93; fill:none; stroke-width:1; }
+.galaxy-coverage-column { fill:#466f85; animation:galaxy-coverage-read 5.4s ease-in-out infinite; }
+.galaxy-coverage-scan circle { fill:#88b6c9; }
+.galaxy-coverage-scan text { fill:#a6bdd0; font:6px var(--galaxy-mono); }
+.galaxy-coverage-scan .galaxy-coverage-signal { fill:#7cebd6; offset-distance:0%; animation:galaxy-coverage-trace 5.4s linear infinite; }
+.galaxy-state-plate > small { display:block; font:7px/1.5 var(--galaxy-mono); color:#a6bdd0; margin-top:5px; }
+@keyframes galaxy-coverage-trace { to { offset-distance:100%; } }
+@keyframes galaxy-coverage-read { 0%,30%,100% { fill:#466f85; } 15% { fill:#7cebd6; } }
+.galaxy-cycle-plate .galaxy-replay-track { fill:none; stroke:#355567; stroke-width:.7; stroke-dasharray:1 4; }
+.galaxy-cycle-plate .galaxy-replay-orbit { transform-origin:50px 50px; animation:galaxy-replay-orbit 18s linear infinite; }
+.galaxy-replay-orbit path { stroke:#48e5cc; stroke-width:1.5; fill:none; }
+.galaxy-replay-orbit circle { fill:#b1ffe9; }
+.galaxy-cycle-plate .galaxy-replay-current,.galaxy-cycle-plate li.is-current i { animation:galaxy-replay-pulse 3s ease-in-out infinite; }
+.galaxy-cycle-plate li.is-current { color:#b7f4e2; }
+@keyframes galaxy-replay-orbit { to { transform:rotate(360deg); } }
+@keyframes galaxy-replay-pulse { 50% { opacity:.45; } }
+.galaxy-viewport[data-motion=paused] .galaxy-coverage-scan *,.galaxy-viewport[data-motion=paused] .galaxy-cycle-plate * { animation-play-state:paused!important; }
+.galaxy-viewport.is-connection-locked .galaxy-callout,.galaxy-viewport.is-connection-locked .galaxy-state-plate,.galaxy-viewport.is-connection-locked .galaxy-cycle-plate,.galaxy-viewport.is-connection-locked .galaxy-core-label { display:none; }
+.galaxy-inspector .galaxy-unlock-button { display:block; width:100%; padding:10px; margin:15px 0; border:1px solid #6e9da6; background:#172d3e; text-align:center; }
+.galaxy-path-annotation header button { display:flex; align-items:center; gap:6px; }
+@media(min-width:901px) and (max-width:1180px){.galaxy-callout.meta { top:41%; }}
+@media(prefers-reduced-motion:reduce){.galaxy-coverage-scan *,.galaxy-cycle-plate * { animation:none!important; }}
 @media(max-width:900px) { .galaxy-reading-guide { grid-template-columns: 1fr; gap: 18px; margin: 0 0 25px; } }

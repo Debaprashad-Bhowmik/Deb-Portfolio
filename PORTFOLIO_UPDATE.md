@@ -68,14 +68,68 @@ The artwork is a concept illustration, not a gameplay capture. It was generated 
 - `useReducedMotion` makes the observatory still and disables timed replay while retaining manual controls and inspection. Visible/offscreen/hidden lifecycle and pause controls gate animation. The deployed global reduced-motion rules are preserved.
 - A fresh independent review compared the galactic captures and references. Its five requested fixes were applied in one batch and the targeted confirmation returned ship, with no regressions observed. No separate QUALITY BAR file was available. An earlier sci-fi reviewer encountered a usage limit and was replaced. Runtime architecture evaluation remains pending.
 
-Local QA captures are excluded from Git under `.impeccable/review/`. GitHub upload and Vercel production deployment are authorized; deployment details are recorded in the delivery message.
+Local QA captures are excluded from Git under `.impeccable/review/`. The latest light-explanation revision remains local: the user revoked GitHub and Vercel publication after the previous revision's deployment.
 
 The approved observatory uses self-hosted Oxanium Medium/Bold, a dark `#030711` instrument, cream `#f4ecde` panels and scoped orange/pink/lime/teal accents. Existing ivory, Georgia, Inter, charcoal, blue accents and deployed interactions/assets remain preserved. The removed `BrainDecisionMotion`/`CognitiveMesh` implementations are not part of the current delivery.
 
-First-visit copy now explains the brain-inspired research design in one paragraph. Three scan-friendly concepts and an interactive thinking-speed/memory diagram replace the repeated prose. Five manual example steps, lane and memory selection, moving code/signals, pause/resume and optional model details lead into the preserved galaxy. The four evidence fields use short headlines with supporting lines; the galaxy guide has illustrated labels and optional fuller explanations. The lower purpose strip remains, with shorter plain-language copy.
+First-visit copy explains the brain-inspired research design in one paragraph. At the user's request, the circular motion graphic was removed in favor of the supplied straightforward reference: the restored black-and-gold evidence band and a six-stage Observe / Recall / Compare / Decide / Validate / Learn row. Selecting a stage shows one short illustrative example. The row wraps to three columns on tablets and two on phones. Optional technical details explain thinking speeds, short-term context, long-term memory and checked skills. The existing galaxy, artwork, media support, canonical graph and original rail interactions are retained. This update stays local.
 
 The optional graph extraction script expects a separately supplied raw Miro export in `.impeccable/research/`. That private input is excluded from Git; production builds use the committed curated `canonicalGraph.ts` and do not need the raw export.
 
 Card behavior restored: no card is selected initially; the first project uses the shared expanded width and inactive-card opacity. Pointer hover, keyboard/click selection and Escape remain supported. The first project retains its artwork and expanded image treatment.
 
 2026-10-12 explanation update: production build and scoped component lint passed; full lint retains six baseline issues. Desktop (1448px), tablet (820px) and mobile (390px) inspections found no page overflow. Manual examples, memory selection, keyboard priority, pause/resume, offscreen suspension and original rail fading were verified. Reduced-motion behavior is implemented with CSS media rules plus the existing motion preference hook. No runtime architecture experiment or latency benchmark was performed.
+
+
+## Local replay update — 2026-10-12
+
+The introductory Role / Tools / Built Artifact / Outcome band is restored byte-for-byte from HEAD’s CSS and with the saved proof-bar markup. Its background is #09121d and labels #ffb47e. The simpler process explanation remains; no unrelated project or rail styling changed.
+
+The angle-dependent rectangle came from the black-hole billboard: zero-alpha quad corners wrote depth. The lens shader now discards nearly invisible fragments and disables depth writes; the opaque horizon still occludes the center.
+
+Each of the twelve illustrative replay stages now drives ten cream instrument panels via `galaxyReplayPresentation.ts` and `GalaxyReplayDashboard.tsx/.css`: canonical route, immutable pins, memory, payload, verification, execution boundary, judgment roles, record, prediction and learning release. All stage-specific payloads and motion are labeled illustrative. Static counts remain 3 views, 141 passed checks and 14 specified acceptance scenarios; runtime evaluation remains pending. Imported traces show supplied event references and do not animate or claim missing memory, forecast or learning activity.
+
+Selecting a stage frames and follows its canonical planar connection with a moving route marker, brighter route nodes and dimmed context. The camera travels for five seconds, then tracks the endpoint with the slow clockwise orbit. Replay selection locks hover, picking, orbit, pan and zoom to the canonical route. Return to wide view, the Galaxy tab or the equivalent camera reset restores exploration. Reduced motion frames the route instantly. Pause and offscreen/hidden suspension stop the camera and signals; the renderer and dashboard each have visibility gates.
+
+This update is local only. Do not push to GitHub or deploy to Vercel without renewed user authorization.
+
+Verification: production build, scoped ESLint and 1,434 canonical inspection checks passed. Browser checks covered all twelve changing stages, desktop/tablet/mobile overflow, keyboard activation, pause/resume, offscreen suspension, trace import, camera follow/reset and shallow-angle rendering. A clean reload produced no new browser errors. Exact evidence CSS and markup were compared against HEAD. Full lint retains the six known baseline issues. Reduced-motion still framing was reviewed in source; no runtime AI evaluation was performed.
+
+
+## Replay refinements - 2026-10-13
+
+Replay routes take precedence over pointer previews; picking and OrbitControls are disabled until Return to wide view or Galaxy resets exploration. Stage controls and Pause/Resume remain available.
+
+Stage-specific, syntax-colored explanatory pseudocode uses numbered lines, a bounded line highlight and a slow code stream. Headings and source lines remain stationary. Existing visibility, pause and reduced-motion gates apply; imported traces show only supplied event fields.
+
+All twelve stages have different context circuits, judgment inputs and record contracts. Content is curated from the v1.10 overview and Notion pages 03 (runtime), 11 (roles), 30 (learning) and 31 (mission/execution authority). Future separates forecasts from value/risk; Meta combines distinct historical and prospective strategy advice; Middle selects supplied candidates; Execute checks leases, epochs and expiry; Learn separates observed receipts from derived attribution and independently validated artifacts. Source links stay private. Pseudocode does not claim production APIs or successful runtime execution.
+
+Existing styling, proof band, artwork, canonical graph and rail behavior are preserved. No dependencies or external uploads.
+
+Verification: production build and changed-file lint passed; full lint retains exactly six baseline errors. The 1,434-target graph audit passed. Browser checks covered pointer lock and Galaxy unlock, all twelve keyboard-controlled stage contracts, desktop/tablet/mobile overflow, Pause/Resume, offscreen suspension and factual imported trace rendering. Browser error log was empty. Original evidence CSS remains identical to HEAD. Reduced-motion animation suppression and still camera framing were checked in source. Final capture: `.impeccable/review/replay-code-contracts-final.png`.
+
+
+## Component route locks and miniature motion - 2026-10-13
+
+Every clicked canonical component or edge now pins a camera-followed route. Pointer previews, scene picking and OrbitControls remain blocked while pinned. Explicit inspector selections may choose another pinned route; Unlock connection, Galaxy/camera reset, inspector close and Escape restore wide exploration. Replay keeps its existing lock and manual stage controls.
+
+The specification panel plots the actual 129/178/148 diagram-node counts. A scanning signal and sequenced column highlights read those fixed values without changing the counts. The replay plate has a slow orbiting signal and a pulse on the manually selected phase; ambient motion never advances the story. Both miniature graphics follow viewport visibility, Pause/Resume, document visibility and reduced-motion gates. Compact desktop spacing keeps the taller coverage plate clear of Meta arbitration. Tablet/mobile retain their existing plate visibility rules.
+
+Verification: all nine callouts locked/unlocked in browser; pointer click/drag could not replace World Model; Escape restored exploration. Pause froze both miniature animations. Tablet/mobile keyboard and touch-style click paths had no page overflow. The compact desktop plate/callout gap is positive. Production build, changed-file lint and the 1,434-target canonical graph audit passed. No graph data or project styling changed; no dependencies or uploads.
+
+Final confirmation: offscreen viewport set both miniature animations to paused. Compact desktop spacing has a 5.5px minimum measured clearance at 1071px. Screenshot: `.impeccable/review/connection-lock-animated-plates.png`. Reduced-motion suppression was reviewed in source. Local preview remains on port 5190; nothing was published.
+
+
+## Plain-language project closing panel - 2026-10-13
+
+The former two-column evidence list is replaced with a compact white review panel inspired by the existing Coupling Bolt review surface. Overview, Design, Design checks, Planned tests and Next steps use manual tabs with linked ARIA panels, roving focus and arrow/Home/End navigation. The default overview explains the current design stage and the meaning of three maps, 141 passed diagram/specification checks, fourteen written test situations and pending live evaluation. Optional tabs give concrete examples without jargon. The planned-test tab explicitly states none have run.
+
+Content was checked against canonical Notion page 32, the current v1.10 scenario and verification ledger. Examples translate S06 (changed targets/goals), S10 (outages), S08 (transfer) and S09 (learning/regression) into everyday language. Source links are kept private. No runtime result or intelligence capability is implied.
+
+The ivory page, serif/blue heading, line icons and blue tab underline follow existing portfolio styling. Phones use two balanced rows of tabs and two columns of summaries; body copy remains readable. The project introduction, original black-and-gold evidence band, galaxy locks/motion, artwork, media support, project anchors and rail are unchanged. New footer anchor: #brain-project-status. This remains local only; no GitHub or Vercel uploads.
+
+Footer verification: production build and scoped ESLint passed. All five tabs, arrow/Home/End keys and ARIA selected/focused state were checked in-browser. Desktop, tablet and phone layouts have no page/panel horizontal overflow. Phone tabs are 44px high in balanced rows; body/summary copy is 13px/12px. Contact link still targets #contact. Original evidence markup matches HEAD. Browser error log was empty. Proof: `.impeccable/review/brain-footer-plain-language.png`.
+
+## Publication authorized - 2026-10-13
+
+The user has authorized uploading the reviewed source to GitHub and deploying it to the existing Vercel portfolio project. This supersedes the earlier local-only instructions above. Publish from this recovered checkout on `codex/adaptive-cognitive-architecture`. Private research and local QA files remain excluded from Git and Vercel uploads.

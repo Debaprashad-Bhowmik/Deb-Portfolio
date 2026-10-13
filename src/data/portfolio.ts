@@ -23,7 +23,7 @@ export const workCards: WorkCard[] = [
     number: '01',
     title: 'Adaptive Cognitive Architecture',
     kicker: 'Different timescales. One mind.',
-    summary: 'A brain-inspired AI design combining quick choices, deeper thinking and learning from experience.',
+    summary: 'Connecting language-model thinking, short-term and long-term memory, skills and learning into a brain-inspired AI design.',
     role: 'Designed how thinking, memory, learning and execution connect.',
     tools: ['Notion', 'Miro', 'Mermaid', 'TypeScript interfaces'],
     proof: 'Three canonical v1.10 architecture views; 141 documented static checks passed.',

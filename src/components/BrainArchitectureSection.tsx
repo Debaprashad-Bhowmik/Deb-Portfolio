@@ -1,5 +1,5 @@
 import { lazy, Suspense, useRef, useState, type KeyboardEvent } from 'react'
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronLeft, ChevronRight, Film, RotateCcw } from 'lucide-react'
+import { ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Film, RotateCcw } from 'lucide-react'
 import {
   architectureModules,
   architectureViews,
@@ -12,6 +12,7 @@ import {
 } from '../data/brainArchitecture'
 import './BrainArchitectureSection.css'
 import BrainExplanation from './BrainExplanation'
+import BrainProjectStatus from './BrainProjectStatus'
 const GalacticExplorer = lazy(() => import('./GalacticExplorer'))
 
 const branches = ['past', 'present', 'future'] as const
@@ -102,7 +103,7 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
           <a href="#work" className="brain-back-link"><ChevronLeft size={15} aria-hidden="true" /> All projects <span>01</span></a>
           <h2 id="brain-title">Adaptive Cognitive <em>Architecture.</em></h2>
           <p className="brain-subtitle">Different timescales. One mind.</p>
-          <p>I’m designing a brain-inspired AI system that reacts quickly to familiar situations and calls on deeper thinking when problems become difficult. The research explores how it can remember useful experiences, turn successful strategies into skills, and reduce low-value memory over time.</p>
+          <p>I’m designing a brain-inspired AI system that combines fast decisions, deeper reasoning, short-term and long-term memory, and reusable skills. The research explores how it can learn from experience, keep useful memories and reduce repetitive clutter over time.</p>
           <div className="brain-intro-actions">
             <a href="#brain-explanation" className="button primary">See how it works <ArrowDown size={17} aria-hidden="true" /></a>
             <span className="brain-status"><span aria-hidden="true" /> Research & architecture design</span>
@@ -186,10 +187,7 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
           <article className="snip-why-card"><span>03</span><div><h3>How It Solves It</h3><p>The design separates thinking from acting: check each choice, record what happened and validate proposed skills before reuse.</p></div></article>
         </div>
       </section>
-      <div className="brain-evidence" aria-labelledby="brain-evidence-title">
-        <div><h3 id="brain-evidence-title">What is established.<br /><em>What comes next.</em></h3><p>The v1.10 record separates structural verification from behavior in a running environment.</p><a href="#contact">Discuss the architecture <ArrowUpRight size={16} aria-hidden="true" /></a></div>
-        <dl><div><dt>Completed design</dt><dd>Three canonical architecture views, with explicit cognitive, runtime and learning contracts.</dd></div><div><dt>Static verification</dt><dd><strong>141 documented checks passed.</strong> These check structural coverage and selected boundaries; they do not prove execution or learning.</dd></div><div><dt>Planned evaluation</dt><dd>Fourteen acceptance scenarios specified, including stale commands, interruption, transfer and lost evidence. <strong>Runtime experiments have not run.</strong></dd></div><div><dt>Next milestone</dt><dd>Implement environment adapters and runtime integrations, record gameplay, then evaluate under controlled resource budgets.</dd></div></dl>
-      </div>
+      <BrainProjectStatus />
     </section>
   )
 }
