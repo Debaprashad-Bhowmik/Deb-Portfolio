@@ -133,3 +133,5 @@ Footer verification: production build and scoped ESLint passed. All five tabs, a
 ## Publication authorized - 2026-10-13
 
 The user has authorized uploading the reviewed source to GitHub and deploying it to the existing Vercel portfolio project. This supersedes the earlier local-only instructions above. Publish from this recovered checkout on `codex/adaptive-cognitive-architecture`. Private research and local QA files remain excluded from Git and Vercel uploads.
+
+Footer consistency refinement: summary icons are centered above their labels across all five tabs, including phones. The project now uses the existing Coupling Bolt keyword-strip styling for Cognitive Design, AI Systems, Memory, Reasoning and Learning, with runtime evaluation pending. Desktop, tablet and phone checks found centered icons and no horizontal overflow. Production build and scoped lint passed. No project content or galaxy behavior changed.

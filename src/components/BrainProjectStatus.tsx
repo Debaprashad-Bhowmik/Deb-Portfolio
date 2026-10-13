@@ -80,5 +80,13 @@ export default function BrainProjectStatus() {
         </div>
       </div>
     </div>
+    <div className="bolt-footer-strip" aria-label="Adaptive Cognitive Architecture project metadata">
+      <b>Cognitive Design</b><i aria-hidden="true" />
+      <b>AI Systems</b><i aria-hidden="true" />
+      <b>Memory</b><i aria-hidden="true" />
+      <b>Reasoning</b><i aria-hidden="true" />
+      <b>Learning</b>
+      <span><i aria-hidden="true" />Runtime evaluation pending</span>
+    </div>
   </footer>
 }
