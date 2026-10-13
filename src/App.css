@@ -9052,6 +9052,8 @@ input[type='range'] {
 
   .diesel-console-grid {
     grid-template-columns: 70px minmax(0, 1fr) minmax(220px, 0.72fr);
+    /* Stacked cards need their own content-sized rows, not desktop tracks. */
+    grid-template-rows: minmax(218px, auto) minmax(286px, auto) auto auto auto auto;
   }
 
   .engine-model-card {
