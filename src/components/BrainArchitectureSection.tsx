@@ -1,4 +1,5 @@
 import { lazy, Suspense, useRef, useState, type KeyboardEvent } from 'react'
+import { useInView } from 'framer-motion'
 import { ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Film, RotateCcw } from 'lucide-react'
 import {
   architectureModules,
@@ -57,6 +58,8 @@ function GameplayMedia({ media }: { media: BrainMedia }) {
 }
 
 export default function BrainArchitectureSection({ media = brainMedia }: { media?: BrainMedia }) {
+  const hookRef = useRef<HTMLParagraphElement>(null)
+  const hookVisible = useInView(hookRef, { amount: 0.2 })
   const [view, setView] = useState<ArchitectureView>('cognition')
   const [selectedId, setSelectedId] = useState('present')
   const [stepIndex, setStepIndex] = useState<number | null>(null)
@@ -103,7 +106,39 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
           <a href="#work" className="brain-back-link"><ChevronLeft size={15} aria-hidden="true" /> All projects <span>01</span></a>
           <h2 id="brain-title">Adaptive Cognitive <em>Architecture.</em></h2>
           <p className="brain-subtitle">Different timescales. One mind.</p>
-          <p>I’m designing a brain-inspired AI system that combines fast decisions, deeper reasoning, short-term and long-term memory, and reusable skills. The research explores how it can learn from experience, keep useful memories and reduce repetitive clutter over time.</p>
+          <p ref={hookRef} className="brain-research-hook" data-visible={hookVisible}>
+            <svg className="brain-hook-comic" viewBox="0 0 700 260" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <pattern id="brain-comic-dots" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#305b51" opacity=".2" /></pattern>
+              </defs>
+              <g className="brain-hook-speed-anchor brain-hook-speed-anchor-rise"><g className="brain-hook-speed brain-hook-speed-rise" fill="none" strokeLinecap="round" strokeWidth="4.5">
+                <path d="M-62 230 L8 191 M-46 247 L19 209" stroke="#247d9c" />
+                <path d="M-66 205 L-4 170" stroke="#c88b24" />
+                <path d="M5 293 L37 253" stroke="#608353" />
+              </g>
+              </g>
+              <g className="brain-hook-speed-anchor brain-hook-speed-anchor-rock"><g className="brain-hook-speed brain-hook-speed-rock" fill="none" strokeLinecap="round" strokeWidth="4.5">
+                <path d="M697 23 L764 -12 M706 44 L775 7" stroke="#247d9c" />
+                <path d="M666 4 L704 -38" stroke="#c88b24" />
+                <path d="M703 65 L759 36" stroke="#608353" />
+              </g>
+              </g>
+              <path d="M3 10 L688 2 L698 250 L12 258 Z" fill="#f4cb73" stroke="#24463e" strokeWidth="3" />
+              <path d="M350 132 L70 8 L118 8 Z M350 132 L222 5 L260 5 Z M350 132 L415 4 L452 4 Z M350 132 L572 3 L625 3 Z M350 132 L697 52 L697 88 Z" fill="#ffe5a9" />
+              <path d="M7 175 L350 132 L696 140 L698 250 L12 258 Z" fill="#b9deeb" stroke="#24463e" strokeWidth="3" />
+              <path d="M350 132 L180 255 L238 255 Z M350 132 L390 255 L450 254 Z M350 132 L606 252 L656 252 Z" fill="#e1f1f3" />
+              <path d="M7 100 L195 133 L12 258 Z" fill="#8fae83" stroke="#24463e" strokeWidth="3" />
+              <path d="M7 100 L195 133 L12 258 Z M587 4 L695 50 L696 139 L622 154 Z" fill="url(#brain-comic-dots)" />
+              <path className="brain-hook-burst-shadow" d="M48 55 Q120 80 155 36 L167 13 Q209 57 253 43 L298 10 Q330 62 385 39 L440 18 Q442 62 498 55 L566 12 Q547 70 608 80 L679 68 Q645 111 674 140 L697 164 Q639 157 632 186 L668 231 Q610 204 563 224 L523 250 Q503 211 449 223 L400 249 Q381 209 342 224 L292 251 Q281 211 239 222 L181 249 Q188 211 139 209 L91 224 Q113 181 66 179 L18 193 Q55 147 16 120 Z" fill="#356b77" stroke="#24463e" strokeWidth="5" transform="translate(3 5)" />
+              <path d="M48 55 Q120 80 155 36 L167 13 Q209 57 253 43 L298 10 Q330 62 385 39 L440 18 Q442 62 498 55 L566 12 Q547 70 608 80 L679 68 Q645 111 674 140 L697 164 Q639 157 632 186 L668 231 Q610 204 563 224 L523 250 Q503 211 449 223 L400 249 Q381 209 342 224 L292 251 Q281 211 239 222 L181 249 Q188 211 139 209 L91 224 Q113 181 66 179 L18 193 Q55 147 16 120 Z" fill="#fffdf2" stroke="#24463e" strokeWidth="4" strokeLinejoin="round" />
+              <g fill="#ffe5a9" stroke="#24463e" strokeWidth="2.5">
+                <path className="brain-hook-star brain-hook-star-first" d="M56 20 L61 30 L73 31 L64 39 L66 50 L56 44 L45 50 L48 38 L39 30 L51 29 Z" />
+                <path className="brain-hook-star brain-hook-star-second" d="M651 204 L656 214 L668 215 L659 223 L661 234 L650 228 L639 234 L642 222 L633 214 L646 213 Z" />
+              </g>
+            </svg>
+            <span>Can one AI <strong>learn a new game</strong> through trial and error—and carry what it learns into <strong>the next one?</strong></span>
+          </p>
+          <p>I’m designing a brain-inspired AI system to explore that question. It connects language-model reasoning with short-term memory, long-term memory and reusable skills, so the agent can try, observe, remember and improve instead of starting over each time.</p>
           <div className="brain-intro-actions">
             <a href="#brain-explanation" className="button primary">See how it works <ArrowDown size={17} aria-hidden="true" /></a>
             <span className="brain-status"><span aria-hidden="true" /> Research & architecture design</span>
@@ -182,9 +217,9 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
       <section className="snip-why-strip brain-purpose" aria-labelledby="brain-purpose-title">
         <p id="brain-purpose-title">Why It Exists</p>
         <div className="snip-why-grid">
-          <article className="snip-why-card"><span>01</span><div><h3>Problem</h3><p>A single model response does not give an agent lasting memory, reliable actions or a way to improve from experience.</p></div></article>
-          <article className="snip-why-card"><span>02</span><div><h3>Idea</h3><p>Connect quick judgment, deeper reasoning and selective memory into one brain-inspired system.</p></div></article>
-          <article className="snip-why-card"><span>03</span><div><h3>How It Solves It</h3><p>The design separates thinking from acting: check each choice, record what happened and validate proposed skills before reuse.</p></div></article>
+          <article className="snip-why-card"><span>01</span><div><h3>Problem</h3><p>Success in one game doesn’t tell us whether an agent can adapt when the rules, objects or available actions change.</p></div></article>
+          <article className="snip-why-card"><span>02</span><div><h3>Idea</h3><p>Design a shared cognitive core that can learn through experience and carry useful knowledge between environments.</p></div></article>
+          <article className="snip-why-card"><span>03</span><div><h3>How It Solves It</h3><p>Each environment supplies observations and actions. The core uses memory and reasoning to propose skills, then checks whether they work in the new setting.</p></div></article>
         </div>
       </section>
       <BrainProjectStatus />

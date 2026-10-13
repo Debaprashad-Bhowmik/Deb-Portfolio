@@ -6,7 +6,7 @@ import { ArrowUpRight, Brain, CheckCircle2, Clock3, Code2, FileCheck2, FlaskConi
 const statusTabs = [
   {
     id: 'overview', label: 'Overview',
-    copy: 'So far, I’ve designed how the parts of this AI system should work together: how it thinks, remembers, acts and learns. The diagrams have been checked. The next step is to build the software connections and test the system in an environment.',
+    copy: 'So far, I’ve designed how the system should think, remember, act and learn. The three maps and their written specifications have been checked. The next step is to connect the software to an environment and test the research goal: learning through experience and adapting useful skills to unfamiliar situations.',
     features: [
       { icon: Waypoints, title: '3 design maps', detail: 'Maps for thinking, taking actions and learning from experience.' },
       { icon: CheckCircle2, title: '141 design checks', detail: 'Passed checks for required parts, connections and key safeguards in the diagrams.' },
@@ -39,13 +39,13 @@ const statusTabs = [
     features: [
       { icon: Clock3, title: 'A situation changes', detail: 'Reject an old action when its target or goal has changed.' },
       { icon: RotateCcw, title: 'A service fails', detail: 'Continue safely or stop, without repeating an outdated command.' },
-      { icon: Waypoints, title: 'A task is unfamiliar', detail: 'Test whether a learned skill can adapt to new tools or objects.' },
+      { icon: Waypoints, title: 'A task is unfamiliar', detail: 'Map a learned skill to new tools or objects, then check it in the new setting.' },
       { icon: GraduationCap, title: 'Learning changes', detail: 'Check older abilities still work; roll back a harmful update.' },
     ],
   },
   {
     id: 'next', label: 'Next steps',
-    copy: 'Build the software that connects this design to an environment, record what the agent actually does, and run the planned tests. Then compare it with simpler approaches using similar time and computing budgets.',
+    copy: 'Build the software interfaces for observations and actions, record real gameplay, and run the planned tests. For transfer, compare reusing a skill, adapting it and learning from scratch under the same interaction and computing budgets. Cross-game learning remains a research goal to test.',
     features: [
       { icon: Code2, title: 'Build the connections', detail: 'Connect observations, model services, memory and controlled actions.' },
       { icon: Play, title: 'Record real behavior', detail: 'Capture gameplay, actions and outcomes so the work can be inspected.' },
