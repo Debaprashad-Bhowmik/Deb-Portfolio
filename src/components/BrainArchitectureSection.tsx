@@ -1,6 +1,6 @@
 import { lazy, Suspense, useRef, useState, type KeyboardEvent } from 'react'
 import { useInView } from 'framer-motion'
-import { ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Film, RotateCcw } from 'lucide-react'
+import { ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, Film, Play, RotateCcw } from 'lucide-react'
 import {
   architectureModules,
   architectureViews,
@@ -19,28 +19,46 @@ const GalacticExplorer = lazy(() => import('./GalacticExplorer'))
 const branches = ['past', 'present', 'future'] as const
 
 function GameplayMedia({ media }: { media: BrainMedia }) {
+  const videoRef = useRef<HTMLVideoElement>(null)
   const [failedSource, setFailedSource] = useState<string | null>(null)
   const [posterFailed, setPosterFailed] = useState(false)
+  const [startedSource, setStartedSource] = useState<string | null>(null)
   const hasVideo = Boolean(media.videoSrc && failedSource !== media.videoSrc)
   const posterSrc = media.posterSrc ?? brainMedia.posterSrc
+
+  function playOverview() {
+    const video = videoRef.current
+    if (!video) return
+    video.focus()
+    void video.play().catch(() => setStartedSource(null))
+  }
 
   return (
     <figure className="brain-media">
       <div className="brain-media-frame">
         {hasVideo ? (
-          <video
-            key={media.videoSrc}
-            controls
-            playsInline
-            preload="metadata"
-            poster={posterSrc}
-            aria-label="Adaptive Cognitive Architecture overview and Minecraft prototype video"
-            onError={() => setFailedSource(media.videoSrc ?? null)}
-          >
-            <source src={media.videoSrc} onError={() => setFailedSource(media.videoSrc ?? null)} />
-            {media.captionsSrc ? <track kind="captions" src={media.captionsSrc} srcLang="en" label="English" default /> : null}
-            Your browser cannot play this video.
-          </video>
+          <>
+            <video
+              ref={videoRef}
+              key={media.videoSrc}
+              controls
+              playsInline
+              preload="metadata"
+              poster={posterSrc}
+              aria-label="Adaptive Cognitive Architecture overview and Minecraft prototype video"
+              onPlay={() => setStartedSource(media.videoSrc ?? null)}
+              onError={() => setFailedSource(media.videoSrc ?? null)}
+            >
+              <source src={media.videoSrc} onError={() => setFailedSource(media.videoSrc ?? null)} />
+              {media.captionsSrc ? <track kind="captions" src={media.captionsSrc} srcLang="en" label="English" default /> : null}
+              Your browser cannot play this video.
+            </video>
+            {startedSource !== media.videoSrc && (
+              <button type="button" className="brain-media-play" aria-label="Play architecture overview" onClick={playOverview}>
+                <Play aria-hidden="true" fill="currentColor" strokeWidth={1.2} />
+              </button>
+            )}
+          </>
         ) : (
           <>
             {!posterFailed && <img src={posterSrc} alt="Concept illustration of an embodied robot beside a river and cabin in a vibrant voxel world." onError={() => setPosterFailed(true)} />}
@@ -52,7 +70,7 @@ function GameplayMedia({ media }: { media: BrainMedia }) {
           </>
         )}
       </div>
-      <figcaption>{hasVideo ? 'An 80-second tour of the software brain, its architecture diagrams and a recorded Minecraft prototype. Learning across games remains the research goal.' : 'Designed for environments with observations, actions and feedback. Gameplay will be documented here when footage is available.'}</figcaption>
+      <figcaption>{hasVideo ? 'A 90-second tour of the software brain, its architecture diagrams and a recorded Minecraft prototype. Learning across games remains the research goal.' : 'Designed for environments with observations, actions and feedback. Gameplay will be documented here when footage is available.'}</figcaption>
     </figure>
   )
 }

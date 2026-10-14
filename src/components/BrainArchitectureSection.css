@@ -35,6 +35,14 @@
 .brain-media-frame { position: relative; aspect-ratio: 16 / 9; background: #101820; border-radius: 12px; overflow: hidden; }
 .brain-media-frame > img { width: 100%; height: 100%; object-fit: cover; object-position: 68% 50%; }
 .brain-media-frame video { width: 100%; height: 100%; object-fit: contain; }
+.brain-media-play { position: absolute; inset: 0; margin: auto; width: clamp(68px, 7vw, 94px); height: clamp(68px, 7vw, 94px); display: grid; place-items: center; padding: 0; border: 1px solid #ffffffb3; border-radius: 50%; background: #10182026; color: #fffdf2; cursor: pointer; box-shadow: 0 6px 24px #07162426; transition: transform 240ms cubic-bezier(.16, 1, .3, 1), background-color 180ms ease, border-color 180ms ease, box-shadow 240ms ease; }
+.brain-media-play svg { width: 39%; height: 39%; margin-left: 4%; filter: drop-shadow(0 2px 3px #07162466); transition: transform 240ms cubic-bezier(.16, 1, .3, 1); }
+.brain-media-play:focus-visible { outline: 3px solid #fffdf2; outline-offset: 5px; border-color: #fffdf2; background: #10182040; }
+.brain-media-play:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) {
+  .brain-media-play:hover { transform: translateY(-2px) scale(1.06); border-color: #fffdf2; background: #10182038; box-shadow: 0 10px 30px #07162438; }
+  .brain-media-play:hover svg { transform: translateX(2px); }
+}
 .brain-media-note { position: absolute; bottom: 0; left: 0; right: 0; display: flex; align-items: center; gap: 12px; padding: 25px 20px 16px; background: linear-gradient(transparent, #071624d9 35%); color: #eef3f6; font-size: 13px; }
 .brain-media-note small { display: block; margin-top: 5px; color: #b6c6d4; font-size: 10px; line-height: 1.5; }
 .brain-media figcaption { margin-top: 12px; color: #505c64; font-size: 11px; line-height: 1.6; max-width: 65ch; }
@@ -198,6 +206,7 @@
   .brain-step-detail h4 { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .brain-section *, .brain-section *::before, .brain-section *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { .brain-media-play:hover, .brain-media-play:active, .brain-media-play:hover svg { transform: none; } }
 
 .brain-purpose { margin: 44px 0 0; width: 100%; }
 .brain-purpose .snip-why-card h3 { font-family: var(--sans, Inter, sans-serif); font-size: 14px; font-weight: 800; letter-spacing: 0; }

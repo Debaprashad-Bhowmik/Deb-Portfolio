@@ -376,3 +376,8 @@ Content was checked against canonical Notion page 32, the current v1.10 scenario
 The ivory page, serif/blue heading, line icons and blue tab underline follow existing portfolio styling. Phones use two balanced rows of tabs and two columns of summaries; body copy remains readable. The project introduction, original black-and-gold evidence band, galaxy locks/motion, artwork, media support, project anchors and rail are unchanged. New footer anchor: #brain-project-status. This remains local only; no GitHub or Vercel uploads.
 
 Footer verification: production build and scoped ESLint passed. All five tabs, arrow/Home/End keys and ARIA selected/focused state were checked in-browser. Desktop, tablet and phone layouts have no page/panel horizontal overflow. Phone tabs are 44px high in balanced rows; body/summary copy is 13px/12px. Contact link still targets #contact. Original evidence markup matches HEAD. Browser error log was empty. Proof: `.impeccable/review/brain-footer-plain-language.png`.
+
+
+## Architecture film playback control — 2026-10-14
+
+The original voxel artwork remains the poster. A centered translucent circular play button uses a 68–94px responsive size, a restrained 240ms hover lift/scale and a small icon nudge. The artwork stays visible through the charcoal tint. Keyboard focus is visible; Enter/Space start the native video and focus transfers to its controls. The overlay disappears on playback and stays hidden at the end so the contact invitation remains unobstructed; native controls provide replay. Playback failure retains the existing poster fallback. Reduced motion removes the hover/press transforms. No dependency or project-rail change.

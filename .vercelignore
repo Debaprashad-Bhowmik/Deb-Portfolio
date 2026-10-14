@@ -9,5 +9,5 @@ dist
 .vite-*
 .impeccable/
 
-# Previous local film retained for review; the page uses overview-v2.mp4.
+# Previous local film retained for review; the page uses overview-v5.mp4.
 public/videos/adaptive-cognitive-architecture/overview.mp4
