@@ -18,7 +18,7 @@ export type BrainMedia = {
 
 // The film includes readable captions and retains the project's original poster.
 export const brainMedia = {
-  videoSrc: '/videos/adaptive-cognitive-architecture/overview-v5.mp4',
+  videoSrc: '/videos/adaptive-cognitive-architecture/overview-v8.mp4',
   posterSrc: '/work-cards/adaptive-cognitive-world.webp',
 } satisfies BrainMedia
 
