@@ -34,7 +34,7 @@ function GameplayMedia({ media }: { media: BrainMedia }) {
             playsInline
             preload="metadata"
             poster={posterSrc}
-            aria-label="Adaptive Cognitive Architecture gameplay video"
+            aria-label="Adaptive Cognitive Architecture overview and Minecraft prototype video"
             onError={() => setFailedSource(media.videoSrc ?? null)}
           >
             <source src={media.videoSrc} onError={() => setFailedSource(media.videoSrc ?? null)} />
@@ -52,7 +52,7 @@ function GameplayMedia({ media }: { media: BrainMedia }) {
           </>
         )}
       </div>
-      <figcaption>Designed for environments with observations, actions and feedback. Gameplay will be documented here when footage is available.</figcaption>
+      <figcaption>{hasVideo ? 'An 80-second tour of the software brain, its architecture diagrams and a recorded Minecraft prototype. Learning across games remains the research goal.' : 'Designed for environments with observations, actions and feedback. Gameplay will be documented here when footage is available.'}</figcaption>
     </figure>
   )
 }
