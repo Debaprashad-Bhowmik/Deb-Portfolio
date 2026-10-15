@@ -11,7 +11,12 @@ dist
 
 # Superseded local exports retained for review; only current films are deployed.
 public/videos/adaptive-cognitive-architecture/overview.mp4
+public/videos/adaptive-cognitive-architecture/overview-v2.mp4
+public/videos/adaptive-cognitive-architecture/overview-v5.mp4
 public/videos/adaptive-cognitive-architecture/overview-v6.mp4
 public/videos/adaptive-cognitive-architecture/overview-v7.mp4
+public/videos/adaptive-cognitive-architecture/overview-v8.mp4
+public/videos/adaptive-cognitive-architecture/overview-v9.mp4
+public/videos/adaptive-cognitive-architecture/overview-v10.mp4
 public/videos/adaptive-cognitive-architecture/gameplay-v1.mp4
 public/videos/adaptive-cognitive-architecture/gameplay-v1.vtt

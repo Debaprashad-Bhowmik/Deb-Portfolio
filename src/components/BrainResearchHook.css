@@ -1,0 +1,32 @@
+@font-face{font-family:'Portfolio Sport';src:url('/motion-fonts/BarlowCondensed-BlackItalic.ttf') format('truetype');font-style:italic;font-weight:900;font-display:swap}
+.brain-intro-copy .brain-research-hook{--sport-hook-surface:#09121d;--sport-hook-rear:#26394b;--sport-hook-accent:#ffb47e;--sport-hook-copy:#eff5f9;--sport-hook-trace:#70e2ff;position:relative;isolation:isolate;width:100%;max-width:650px;margin:24px 0 28px;padding:28px 32px 40px;container-type:inline-size}
+.sport-hook-graphic{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:-1}
+.brain-section .sport-hook-question{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;margin:0;color:var(--sport-hook-copy);text-align:center;font-family:'Portfolio Sport',sans-serif;font-style:italic;font-weight:900;text-transform:uppercase;line-height:1.04;letter-spacing:0}
+.sport-hook-lead{display:block;font-size:clamp(20px,5.2cqi,28px)}
+.sport-hook-bridge{display:block;max-width:100%;font-size:clamp(18px,5.2cqi,28px);text-wrap:balance}
+.sport-hook-word{position:relative;display:block;color:var(--sport-hook-accent);font-size:clamp(29px,9.1cqi,51px);font-weight:900;line-height:1.02;white-space:nowrap;transform-origin:50% 80%}
+.sport-hook-letter-mask{display:inline-block;vertical-align:bottom;overflow:hidden;padding:.13em .08em .11em;margin:-.13em -.08em -.11em}
+.sport-hook-letter{display:inline-block;animation:sport-hook-glyph-in 620ms cubic-bezier(.16,1,.3,1) calc(var(--word-delay) + var(--letter)*12ms) both;transform-origin:50% 90%}
+.sport-hook-word-echo{position:absolute;inset:0;color:transparent;-webkit-text-stroke:1px var(--sport-hook-accent);pointer-events:none;opacity:0;animation:sport-hook-echo-in 740ms cubic-bezier(.16,1,.3,1) var(--word-delay) both}
+.sport-hook-mainplate{transform-box:fill-box;transform-origin:center;animation:sport-hook-plate 5.8s cubic-bezier(.16,1,.3,1) 850ms infinite}
+.sport-hook-backplate{transform-box:fill-box;transform-origin:center;animation:sport-hook-back 5.8s cubic-bezier(.16,1,.3,1) 850ms infinite}
+.sport-hook-speedlines{animation:sport-hook-speed 5.8s ease-out 850ms infinite}
+.sport-hook-trail{animation:sport-hook-trail 5.8s ease-out 850ms infinite}
+.sport-hook-forward{animation:sport-hook-forward 5.8s cubic-bezier(.16,1,.3,1) 850ms infinite;transform-box:fill-box;transform-origin:center}
+.sport-hook-star{animation:sport-hook-star 5.8s cubic-bezier(.16,1,.3,1) 850ms infinite;transform-box:fill-box;transform-origin:center}
+.brain-research-hook *{animation-play-state:paused}
+.brain-research-hook[data-active=true] *{animation-play-state:running}
+.sport-hook-motion{position:absolute;left:18px;bottom:14px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--sport-hook-copy);cursor:pointer;transition:background-color 160ms ease}
+.sport-hook-motion:hover{background:#eff5f91a}.sport-hook-motion:focus-visible{outline:2px solid var(--sport-hook-accent);outline-offset:-5px}
+.sport-hook-question::selection,.sport-hook-question *::selection{background:var(--sport-hook-accent);color:var(--sport-hook-surface)}
+.sport-hook-word .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@keyframes sport-hook-glyph-in{0%{transform:translate(8px,85%) rotate(-9deg) scale(.76,1.2)}64%{transform:translate(0,-4%) rotate(1deg) scale(1.025,.98)}100%{transform:none}}
+@keyframes sport-hook-echo-in{0%{opacity:0;transform:translate(12px,8px)}10%{opacity:.45}100%{opacity:0;transform:none}}
+@keyframes sport-hook-plate{0%,38%,100%{transform:none}8%{transform:translate(5px,-2px) skewX(-.4deg)}18%{transform:translate(-2px,1px)}26%{transform:none}}
+@keyframes sport-hook-back{0%,38%,100%{transform:none}10%{transform:translate(-5px,3px)}23%{transform:translate(2px,-1px)}34%{transform:none}}
+@keyframes sport-hook-speed{0%,30%,100%{opacity:0;transform:translateX(-16px)}5%{opacity:.95;transform:translateX(9px)}21%{opacity:0;transform:translateX(31px)}}
+@keyframes sport-hook-trail{0%,30%,100%{opacity:0;transform:translateX(0)}7%{opacity:.9}23%{opacity:0;transform:translateX(28px)}}
+@keyframes sport-hook-forward{0%,38%,100%{transform:none;opacity:.65}8%{transform:translateX(10px);opacity:1}22%{transform:none;opacity:.65}}
+@keyframes sport-hook-star{0%,38%,100%{transform:rotate(-6deg) scale(1)}8%{transform:translate(3px,-3px) rotate(16deg) scale(1.12)}23%{transform:rotate(-6deg) scale(1)}}
+@media(max-width:480px){.brain-intro-copy .brain-research-hook{padding:25px 24px 40px;margin:23px 0 28px}.sport-hook-motion{left:12px}.sport-hook-bridge{font-size:clamp(17px,5.2cqi,25px)}}
+@media(prefers-reduced-motion:reduce){.brain-research-hook *{animation:none!important;transform:none!important}.sport-hook-word-echo,.sport-hook-speedlines,.sport-hook-trail{display:none}.sport-hook-motion{display:none}}
