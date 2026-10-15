@@ -23,7 +23,7 @@ export const workCards: WorkCard[] = [
     number: '01',
     title: 'Adaptive Cognitive Architecture',
     kicker: 'Different timescales. One mind.',
-    summary: 'Can one AI learn new games through trial and error, then reuse what it learns? A brain-inspired research design for memory, reasoning and transferable skills.',
+    summary: 'A language-model agent designed to adapt through notes and reusable skills, without retraining its core model. Cross-game learning is the research goal.',
     role: 'Designed how thinking, memory, learning and execution connect.',
     tools: ['Notion', 'Miro', 'Mermaid', 'TypeScript interfaces'],
     proof: 'Three canonical v1.10 architecture views; 141 documented static checks passed.',

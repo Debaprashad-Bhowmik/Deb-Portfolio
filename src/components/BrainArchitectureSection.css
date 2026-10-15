@@ -11,6 +11,7 @@
 .brain-intro h2 em { display: block; color: #3768df; font-weight: 400; }
 .brain-intro-copy > p { color: #505c64; font-size: 16px; max-width: 65ch; }
 .brain-intro-copy .brain-subtitle { font-family: var(--serif); color: var(--ink); font-size: 24px; line-height: 1.3; margin: 23px 0 15px; }
+.brain-intro-copy > .brain-approach-lead { color: #253447; font-size: clamp(17px, 1.7vw, 21px); font-weight: 600; line-height: 1.5; margin: 15px 0 0; max-width: 48ch; text-wrap: pretty; }
 .brain-intro-actions { display: flex; align-items: center; gap: 19px; flex-wrap: wrap; margin-top: 26px; }
 .brain-intro-actions .button { font-size: 13px; gap: 9px; }
 .brain-status { display: flex; align-items: center; gap: 7px; color: #505c64; font-size: 11px; }

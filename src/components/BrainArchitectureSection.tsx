@@ -15,6 +15,7 @@ import BrainExplanation from './BrainExplanation'
 import BrainProjectStatus from './BrainProjectStatus'
 import ArchitectureMediaGallery from './ArchitectureMediaGallery'
 import BrainResearchHook from './BrainResearchHook'
+import BrainApproach from './BrainApproach'
 const GalacticExplorer = lazy(() => import('./GalacticExplorer'))
 
 const branches = ['past', 'present', 'future'] as const
@@ -66,10 +67,11 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
           <a href="#work" className="brain-back-link"><ChevronLeft size={15} aria-hidden="true" /> All projects <span>01</span></a>
           <h2 id="brain-title">Adaptive Cognitive <em>Architecture.</em></h2>
           <p className="brain-subtitle">Different timescales. One mind.</p>
+          <p className="brain-approach-lead">An AI designed to adapt by updating its notes—not retraining its language model.</p>
           <BrainResearchHook />
-          <p>I’m designing a brain-inspired AI system to explore that question. It connects language-model reasoning with short-term memory, long-term memory and reusable skills, so the agent can try, observe, remember and improve instead of starting over each time.</p>
+          <p>Think of a player with a notebook. A pretrained large language model (LLM) reads useful experience from earlier attempts, reasons about the current situation and proposes its next move. Short-term context, long-term notes and tested skills give it more to work with next time.</p>
           <div className="brain-intro-actions">
-            <a href="#brain-explanation" className="button primary">See how it works <ArrowDown size={17} aria-hidden="true" /></a>
+            <a href="#brain-approach" className="button primary">See what’s different <ArrowDown size={17} aria-hidden="true" /></a>
             <span className="brain-status"><span aria-hidden="true" /> Research & architecture design</span>
           </div>
         </div>
@@ -83,6 +85,7 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
         <div><dt>Outcome</dt><dd><strong>141 static checks passed</strong><small>14 acceptance scenarios specified.<br />Runtime evaluation pending.</small></dd></div>
       </dl>
 
+      <BrainApproach />
       <BrainExplanation />
 
       <Suspense fallback={<div id="brain-motion">Loading the cognitive observatory…</div>}><GalacticExplorer /></Suspense>
@@ -146,9 +149,9 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
       <section className="snip-why-strip brain-purpose" aria-labelledby="brain-purpose-title">
         <p id="brain-purpose-title">Why It Exists</p>
         <div className="snip-why-grid">
-          <article className="snip-why-card"><span>01</span><div><h3>Problem</h3><p>Success in one game doesn’t tell us whether an agent can adapt when the rules, objects or available actions change.</p></div></article>
-          <article className="snip-why-card"><span>02</span><div><h3>Idea</h3><p>Design a shared cognitive core that can learn through experience and carry useful knowledge between environments.</p></div></article>
-          <article className="snip-why-card"><span>03</span><div><h3>How It Solves It</h3><p>Each environment supplies observations and actions. The core uses memory and reasoning to propose skills, then checks whether they work in the new setting.</p></div></article>
+          <article className="snip-why-card"><span>01</span><div><h3>Why I’m building it</h3><p>I want to explore whether an agent can use experience like a player with a notebook: remember what happened, change its approach and carry useful lessons into another game.</p></div></article>
+          <article className="snip-why-card"><span>02</span><div><h3>The approach</h3><p>Keep the core language model fixed. Use reasoning, working context, stored experience and checked procedures to change what the agent does next.</p></div></article>
+          <article className="snip-why-card"><span>03</span><div><h3>The benefit to test</h3><p>Useful experience could be inspected, corrected and reused without retraining the core LLM. Whether this reduces repeated mistakes or helps in another game needs controlled testing.</p></div></article>
         </div>
       </section>
       <BrainProjectStatus />
