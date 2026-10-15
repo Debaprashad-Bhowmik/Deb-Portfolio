@@ -1,0 +1,61 @@
+WEBVTT
+
+00:00:00.160 --> 00:00:03.430
+What happens between a plan and the next move?
+
+00:00:05.190 --> 00:00:07.740
+This is a recorded Minecraft prototype.
+
+00:00:08.070 --> 00:00:12.540
+The game is on the left; the agent’s live decision panel is on the right.
+
+00:00:15.190 --> 00:00:17.940
+The larger goal is to survive and progress.
+
+00:00:18.150 --> 00:00:20.780
+For now, the active plan is smaller:
+
+00:00:20.870 --> 00:00:24.100
+equip a pickaxe and look for safely reachable stone.
+
+00:00:27.190 --> 00:00:29.980
+But the known stone has no confirmed safe route.
+
+00:00:30.390 --> 00:00:32.900
+The plan warns against digging toward it.
+
+00:00:33.190 --> 00:00:36.060
+In the game, movement continues among the trees.
+
+00:00:43.160 --> 00:00:45.070
+The tactical plan updates.
+
+00:00:45.560 --> 00:00:49.630
+It now proposes moving away from the cramped workbench area to a
+
+00:00:49.720 --> 00:00:55.150
+safe standing position, then reassessing nearby stone from fresh observations.
+
+00:01:02.190 --> 00:01:04.580
+Another revision turns toward the oak.
+
+00:01:04.750 --> 00:01:08.820
+It calls for a safe route, the right tool, and a log within reach.
+
+00:01:10.120 --> 00:01:12.510
+Now a new checkpoint appears:
+
+00:01:12.520 --> 00:01:15.070
+clear the flower, then recheck the stone.
+
+00:01:15.640 --> 00:01:19.630
+A proposed step is not the same as an executed action.
+
+00:01:20.930 --> 00:01:24.080
+This recording shows movement and changing decisions.
+
+00:01:24.290 --> 00:01:27.040
+Learning and transfer still need testing.
+
+00:01:28.190 --> 00:01:34.420
+The research challenge: turn useful experience into skills, then test what transfers.

@@ -33,7 +33,7 @@ export const brainMedia = {
   posterSrc: '/work-cards/adaptive-cognitive-world.webp',
   clips: [
     { id: 'overview', title: 'Architecture overview', duration: '1:30', videoSrc: '/videos/adaptive-cognitive-architecture/overview-v11.mp4', posterSrc: '/work-cards/adaptive-cognitive-world.webp', description: 'A 90-second tour of the software brain, its architecture diagrams and a recorded Minecraft prototype. Learning across games remains the research goal.' },
-    { id: 'gameplay', title: 'Minecraft gameplay', duration: '1:36', videoSrc: '/videos/adaptive-cognitive-architecture/gameplay-v2.mp4', posterSrc: '/videos/adaptive-cognitive-architecture/gameplay-poster.webp', captionsSrc: '/videos/adaptive-cognitive-architecture/gameplay-v2.vtt', description: 'Follow the complete 08:20–09:40 recording with narration and callouts explaining the changing plans. A prototype demonstration; learning and transfer still need testing.' },
+    { id: 'gameplay', title: 'Minecraft gameplay', duration: '1:36', videoSrc: '/videos/adaptive-cognitive-architecture/gameplay-v3.mp4', posterSrc: '/videos/adaptive-cognitive-architecture/gameplay-poster.webp', captionsSrc: '/videos/adaptive-cognitive-architecture/gameplay-v3.vtt', description: 'Follow the complete 08:20–09:40 recording with narration and callouts explaining the changing plans. A prototype demonstration; learning and transfer still need testing.' },
   ],
 } satisfies BrainMedia
 
