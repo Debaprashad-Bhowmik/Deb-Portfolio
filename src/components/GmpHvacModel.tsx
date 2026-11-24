@@ -3,6 +3,7 @@ import { RotateCcw } from 'lucide-react'
 import type { Material, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three'
 import type { HvacOption } from '../data/portfolio'
 import { notifyHvacReady } from '../sceneReadiness'
+import { useNearViewport } from '../useNearViewport'
 import ModelInteractionCoach, { useModelInteractionCoach } from './ModelInteractionCoach'
 
 type GmpHvacModelProps = {
@@ -214,7 +215,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
     activeOptionRef.current = activeOption
   }, [activeOption])
 
-  const [shouldMount] = useState(true)
+  const shouldMount = useNearViewport(mountRef)
   const notifyReadyOnce = () => {
     if (readyNotifiedRef.current) return
     readyNotifiedRef.current = true
@@ -223,7 +224,7 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
 
   useEffect(() => {
     const containerElement = mountRef.current
-    if (!containerElement) return
+    if (!shouldMount || !containerElement) return
     const container: HTMLDivElement = containerElement
 
     let cancelled = false

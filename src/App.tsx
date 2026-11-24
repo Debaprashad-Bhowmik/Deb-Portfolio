@@ -56,6 +56,7 @@ import {
   contactLinks,
   engineScenarios,
   hvacOptions,
+  projectNumbers,
   supervisorFeedback,
   workCards,
   type EngineScenario,
@@ -71,11 +72,12 @@ import CubeSatThermalViewer, {
   type ThermalTelemetry,
 } from './components/CubeSatThermalViewer'
 import ModelInteractionCoach, { useModelInteractionCoach } from './components/ModelInteractionCoach'
-import LoadingScreen from './components/LoadingScreen'
 import { COUPLING_BOLT_VIEWER_VERSION } from './couplingBoltPreloader'
 import { notifyEngineReady } from './sceneReadiness'
+import { useNearViewport } from './useNearViewport'
 import './App.css'
 import BrainArchitectureSection from './components/BrainArchitectureSection'
+import LunarNavigatorSection from './components/LunarNavigatorSection'
 
 const revealVariants: Variants = {
   hidden: { opacity: 0.42, y: 12 },
@@ -184,6 +186,7 @@ const coreRobotLookTargets: Record<CorePillId, { x: number; y: number; rotate: n
 }
 
 const coreProjectLinks = [
+  { title: 'NASA Lunar Landing Site Navigator', meta: 'NASA Space Apps · South Pole mission planning', href: '#lunar-landing-site-navigator' },
   { title: 'Adaptive Cognitive Architecture', meta: 'Research into learning new games and transferring useful skills', href: '#adaptive-cognitive-architecture' },
   { title: 'Diesel Engine Digital Twin', meta: 'Synthetic telemetry, ML health scoring, RUL', href: '#digital-twin' },
   { title: 'Bleeding Control Simulator', meta: 'Sensor feedback, flow logic, training UI', href: '#bleeding-simulator' },
@@ -609,8 +612,6 @@ function Sparkline({
 }
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true)
-
   const scrollToCurrentHash = useCallback(() => {
     const hash = window.location.hash
     if (!hash) return
@@ -638,14 +639,7 @@ function App() {
     }
   }, [])
 
-  const handleLoadingComplete = useCallback(() => {
-    setIsLoading(false)
-    scrollToCurrentHash()
-  }, [scrollToCurrentHash])
-
   useEffect(() => {
-    if (isLoading) return
-
     let cancelPendingScroll = scrollToCurrentHash()
     const handleHashChange = () => {
       cancelPendingScroll?.()
@@ -658,16 +652,16 @@ function App() {
       cancelPendingScroll?.()
       window.removeEventListener('hashchange', handleHashChange)
     }
-  }, [isLoading, scrollToCurrentHash])
+  }, [scrollToCurrentHash])
 
   return (
     <>
       <MotionConfig reducedMotion="never">
-      {isLoading && <LoadingScreen onComplete={handleLoadingComplete} />}
       <div className="site-shell">
         <Header />
         <main>
           <Hero />
+          <LunarNavigatorSection />
           <BrainArchitectureSection />
           <SnippingGPTSection />
           <DigitalTwinSection />
@@ -1478,33 +1472,35 @@ function CoreCommandPanelContent({ id }: { id: CorePillId }) {
 }
 
 function SplineRobotViewer() {
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const viewerRef = useRef<HTMLElement | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const shouldLoad = useNearViewport(containerRef)
 
   useEffect(() => {
     const viewer = viewerRef.current
-    if (!viewer) {
-      loadSplineViewerScript()
-        .then(() => setStatus('ready'))
-        .catch(() => setStatus('error'))
-      return
-    }
+    if (!shouldLoad || !viewer) return
+    let disposed = false
 
     const markReady = () => { setStatus('ready'); notifySplineSceneLoaded() }
     const markError = () => { setStatus('error'); notifySplineSceneLoaded() }
 
     viewer.addEventListener('load', markReady)
     viewer.addEventListener('error', markError)
+    void loadSplineViewerScript().catch(() => {
+      if (!disposed) markError()
+    })
 
     return () => {
+      disposed = true
       viewer.removeEventListener('load', markReady)
       viewer.removeEventListener('error', markError)
     }
-  }, [])
+  }, [shouldLoad])
 
   return (
-    <div className={`spline-robot-viewer is-${status}`} aria-label="Interactive Spline robot model">
-      {React.createElement('spline-viewer', {
+    <div ref={containerRef} className={`spline-robot-viewer is-${status}`} aria-label="Interactive Spline robot model">
+      {shouldLoad && React.createElement('spline-viewer', {
         ref: viewerRef,
         url: splineRobotSceneUrl,
         loading: 'eager',
@@ -1630,6 +1626,7 @@ const ProjectCard = React.memo(function ProjectCard({
   onSelect: (cardId: string) => void
 }) {
   const pointerIntentRef = useRef({ x: 0, y: 0, dragged: false })
+  const displayTitle = card.titleLead ? `${card.titleLead} ${card.title}` : card.title
 
   const handlePointerDown = (event: React.PointerEvent<HTMLAnchorElement>) => {
     pointerIntentRef.current = { x: event.clientX, y: event.clientY, dragged: false }
@@ -1658,7 +1655,7 @@ const ProjectCard = React.memo(function ProjectCard({
       className={`project-card project-card-${card.variant} ${isActive ? 'is-active' : ''} ${isDimmed ? 'is-dimmed' : ''}`}
       href={`#${card.id}`}
       style={{ '--project-accent': card.accent } as CSSProperties}
-      aria-label={`View ${card.title} project`}
+      aria-label={`View ${displayTitle} project`}
       aria-expanded={isActive}
       onMouseEnter={() => onHover(card.id)}
       onFocus={() => onSelect(card.id)}
@@ -1667,12 +1664,16 @@ const ProjectCard = React.memo(function ProjectCard({
       onClick={handleClick}
     >
       <div className="project-media">
-        <img src={card.image} alt={card.imageAlt} style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
+        <img src={card.image} alt={card.imageAlt} loading="lazy" decoding="async"
+          style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
       </div>
       <div className="project-card-body">
         <span className="project-number">{card.number}</span>
         <div className="project-card-heading">
-          <h2>{card.title}</h2>
+          <h2>
+            {card.titleLead && <span className="project-title-lead">{card.titleLead}{' '}</span>}
+            {card.title}
+          </h2>
           <p>{card.kicker}</p>
         </div>
         <p className="project-summary">{card.summary}</p>
@@ -3613,7 +3614,7 @@ function DigitalTwinSection() {
         <aside className="diesel-story">
           <p className="diesel-project-kicker">
             <span aria-hidden="true" />
-            Project 03
+            Project {projectNumbers['digital-twin']}
           </p>
           <h2>BMT Diesel Engine Digital Twin</h2>
           <p className="diesel-subtitle">Predict. Monitor. Optimize.</p>
@@ -3975,6 +3976,7 @@ function hasVisibleCanvasPixels(canvas: HTMLCanvasElement, gl: WebGLRenderingCon
 
 function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   const mountRef = useRef<HTMLDivElement | null>(null)
+  const shouldLoad = useNearViewport(mountRef)
   const scenarioRef = useRef(scenarioId)
   const [coachReady, setCoachReady] = useState(false)
   const [renderMode, setRenderMode] = useState<EngineRenderMode>('standard')
@@ -3994,7 +3996,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
 
   useEffect(() => {
     const mount = mountRef.current
-    if (!mount) return
+    if (!shouldLoad || !mount) return
 
     const container = mount
     let cancelled = false
@@ -4009,7 +4011,6 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
     setCoachReady(false)
 
     async function setupScene() {
-      // These resolve instantly from module cache (preloader already imported them)
       const THREE = await import('three')
       if (cancelled) return
 
@@ -4263,7 +4264,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       cancelled = true
       cleanup()
     }
-  }, [renderMode])
+  }, [renderMode, shouldLoad])
 
   return (
     <div
@@ -4403,7 +4404,7 @@ function CouplingBoltSection() {
     <SectionReveal id="coupling-bolt" className="case-section light-section bolt-section">
       <div className="bolt-layout">
         <div className="case-intro">
-          <p className="eyebrow">04 / Mechanical design</p>
+          <p className="eyebrow">{projectNumbers['coupling-bolt']} / Mechanical design</p>
           <h2>Coupling Bolt</h2>
           <p>
             A precision fastener component designed for high-load mechanical connections. The
@@ -4623,7 +4624,7 @@ function BleedingSimulatorSection() {
     <SectionReveal id="bleeding-simulator" className="case-section clinical-section advanced-bleeding-section">
       <div className="case-intro two-column bleeding-case-intro">
         <div>
-          <p className="eyebrow">05 / Medical engineering</p>
+          <p className="eyebrow">{projectNumbers['bleeding-simulator']} / Medical engineering</p>
           <h2>Bleeding Control Simulator</h2>
           <p className="case-kicker">Clinical training device / sensing / control feedback</p>
           <div className="bleeding-actions">
@@ -4869,7 +4870,7 @@ function HvacSection() {
       <div className="hvac-hero">
         <div className="case-intro hvac-copy">
           <a className="hvac-breadcrumb" href="#work">
-            <span>Project 06</span>
+            <span>Project {projectNumbers['gmp-hvac']}</span>
             <i aria-hidden="true">/</i>
             Work
             <i aria-hidden="true">/</i>
@@ -5123,7 +5124,7 @@ function CubeSatSection() {
       <div className="thermal-layout">
         <div className="case-intro thermal-copy">
           <a className="back-link" href="#work">All projects</a>
-          <p className="eyebrow">07 / Thermal simulation</p>
+          <p className="eyebrow">{projectNumbers['cubesat-thermal']} / Thermal simulation</p>
           <h2>CubeSat Thermal<span>.</span></h2>
           <p className="thermal-subtitle">Simulate. Stabilize. Survive.</p>
           <p>

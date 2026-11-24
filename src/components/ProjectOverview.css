@@ -1,0 +1,230 @@
+.case-section .project-back-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  margin-bottom: 27px;
+  color: #3d62bc;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.project-back-link span {
+  margin-left: 14px;
+  color: var(--muted);
+}
+
+.project-overview {
+  margin-top: 44px;
+  scroll-margin-top: 96px;
+}
+
+.project-overview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.project-overview-heading h3 {
+  margin: 0;
+  font: 500 32px/1.3 var(--serif);
+  letter-spacing: -.025em;
+  text-wrap: balance;
+}
+
+.project-overview-heading em {
+  color: #3768df;
+}
+
+.project-overview .project-overview-heading a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 0;
+  color: #285bc6;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.project-overview-panel {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdfbf0;
+}
+
+.project-overview-tabs {
+  display: flex;
+  gap: 28px;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.project-overview-tabs button {
+  position: relative;
+  padding: 16px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #59626b;
+  font: 700 10px/1.5 var(--mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.project-overview-tabs button[aria-selected="true"] {
+  color: #25303a;
+}
+
+.project-overview-tabs button[aria-selected="true"]::after {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: var(--blue, #3768df);
+  content: '';
+}
+
+.project-overview-tabs button:hover {
+  color: #285bc6;
+}
+
+.project-overview-body {
+  display: grid;
+  min-height: 225px;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.6fr);
+  align-items: center;
+  gap: 32px;
+  padding: 28px;
+}
+
+.project-overview-body[hidden] {
+  display: none;
+}
+
+.project-overview .project-overview-body > p {
+  max-width: 55ch;
+  margin: 0;
+  color: #505c64;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.project-overview-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 20px;
+  padding-left: 28px;
+  border-left: 1px solid var(--line);
+  text-align: center;
+}
+
+.project-overview-features[data-count="3"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.project-overview-features article {
+  min-width: 0;
+}
+
+.project-overview-features svg {
+  margin: 0 auto 12px;
+  color: #55616a;
+}
+
+.project-overview-features h4 {
+  margin: 0 0 10px;
+  color: #27343d;
+  font: 700 12px/1.5 var(--sans, Inter, sans-serif);
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.project-overview .project-overview-features p {
+  margin: 0;
+  color: #505c64;
+  font-size: 11px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.project-overview .project-overview-tabs button:focus-visible,
+.project-overview .project-overview-heading a:focus-visible,
+.project-overview-body:focus-visible {
+  outline: 3px solid #3768df;
+  outline-offset: 4px;
+}
+
+.project-overview-body:focus-visible {
+  outline-offset: -4px;
+}
+
+@media (max-width: 1100px) {
+  .project-overview-body {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .project-overview .project-overview-body > p {
+    max-width: 75ch;
+  }
+
+  .project-overview-features {
+    padding: 24px 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 580px) {
+  .project-overview-heading {
+    flex-direction: column;
+    align-items: start;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .project-overview-heading h3 {
+    font-size: 28px;
+  }
+
+  .project-overview-tabs {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    padding: 0 12px;
+  }
+
+  .project-overview-tabs button {
+    min-height: 44px;
+    grid-column: span 2;
+    padding: 12px 4px;
+    font-size: 9px;
+  }
+
+  .project-overview-tabs button:nth-last-child(-n+2) {
+    grid-column: span 3;
+  }
+
+  .project-overview-body {
+    padding: 23px 20px;
+  }
+
+  .project-overview-features,
+  .project-overview-features[data-count="3"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 25px 18px;
+  }
+
+  .project-overview .project-overview-features p {
+    font-size: 12px;
+  }
+
+  .project-overview-features h4 {
+    font-size: 13px;
+  }
+}

@@ -1,9 +1,9 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
-import { ArrowUpRight, Brain, CheckCircle2, Clock3, Code2, FileCheck2, FlaskConical, GraduationCap, Layers3, Link2, Play, RotateCcw, ShieldCheck, Waypoints, Workflow } from 'lucide-react'
+import { Brain, CheckCircle2, Clock3, Code2, FileCheck2, FlaskConical, GraduationCap, Layers3, Link2, Play, RotateCcw, ShieldCheck, Waypoints, Workflow } from 'lucide-react'
+import ProjectOverview, { type ProjectOverviewTab } from './ProjectOverview'
 
 // Curated from the v1.10 scenario and verification record. Design checks and
 // specified scenarios are deliberately kept separate from runtime results.
-const statusTabs = [
+const statusTabs: ProjectOverviewTab[] = [
   {
     id: 'overview', label: 'Overview',
     copy: 'So far, I’ve designed how the system should think, remember, act and learn. The three maps and their written specifications have been checked. The next step is to connect the software to an environment and test the research goal: learning through experience and adapting useful skills to unfamiliar situations.',
@@ -55,38 +55,19 @@ const statusTabs = [
 ]
 
 export default function BrainProjectStatus() {
-  const [active, setActive] = useState(0)
-  const buttons = useRef<(HTMLButtonElement | null)[]>([])
-  const tab = statusTabs[active]
-  function navigate(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    const next = event.key === 'ArrowRight' ? (index + 1) % statusTabs.length
-      : event.key === 'ArrowLeft' ? (index + statusTabs.length - 1) % statusTabs.length
-      : event.key === 'Home' ? 0 : event.key === 'End' ? statusTabs.length - 1 : null
-    if (next === null) return
-    event.preventDefault()
-    setActive(next)
-    buttons.current[next]?.focus()
-  }
-  return <footer id="brain-project-status" className="brain-project-status" aria-labelledby="brain-evidence-title">
-    <div className="brain-status-heading"><h3 id="brain-evidence-title">Designed so far. <em>What comes next.</em></h3><a href="#contact">Talk about the project <ArrowUpRight size={16} aria-hidden="true" /></a></div>
-    <div className="brain-status-panel">
-      <div className="brain-status-tabs" role="tablist" aria-label="Project progress explained">
-        {statusTabs.map((item, index) => <button key={item.id} ref={node => { buttons.current[index] = node }} type="button" role="tab" id={`brain-status-tab-${item.id}`} aria-controls={`brain-status-panel-${item.id}`} aria-selected={index === active} tabIndex={index === active ? 0 : -1} onClick={() => setActive(index)} onKeyDown={event => navigate(event, index)}>{item.label}</button>)}
+  return (
+    <ProjectOverview id="brain-project-status" titleId="brain-evidence-title"
+      title={<>Designed so far. <em>What comes next.</em></>}
+      link={{ href: '#contact', label: 'Talk about the project' }}
+      tabLabel="Project progress explained" tabs={statusTabs}>
+      <div className="bolt-footer-strip" aria-label="Adaptive Cognitive Architecture project metadata">
+        <b>Cognitive Design</b><i aria-hidden="true" />
+        <b>AI Systems</b><i aria-hidden="true" />
+        <b>Memory</b><i aria-hidden="true" />
+        <b>Reasoning</b><i aria-hidden="true" />
+        <b>Learning</b>
+        <span><i aria-hidden="true" />Runtime evaluation pending</span>
       </div>
-      <div className="brain-status-body" role="tabpanel" id={`brain-status-panel-${tab.id}`} aria-labelledby={`brain-status-tab-${tab.id}`} tabIndex={0}>
-        <p>{tab.copy}</p>
-        <div className="brain-status-features" data-count={tab.features.length}>
-          {tab.features.map(feature => { const Icon = feature.icon; return <article key={feature.title}><Icon size={27} strokeWidth={1.6} aria-hidden="true" /><h4>{feature.title}</h4><p>{feature.detail}</p></article> })}
-        </div>
-      </div>
-    </div>
-    <div className="bolt-footer-strip" aria-label="Adaptive Cognitive Architecture project metadata">
-      <b>Cognitive Design</b><i aria-hidden="true" />
-      <b>AI Systems</b><i aria-hidden="true" />
-      <b>Memory</b><i aria-hidden="true" />
-      <b>Reasoning</b><i aria-hidden="true" />
-      <b>Learning</b>
-      <span><i aria-hidden="true" />Runtime evaluation pending</span>
-    </div>
-  </footer>
+    </ProjectOverview>
+  )
 }

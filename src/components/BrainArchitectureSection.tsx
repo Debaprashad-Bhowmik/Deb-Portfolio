@@ -1,5 +1,6 @@
 import { lazy, Suspense, useRef, useState, type KeyboardEvent } from 'react'
 import { ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
+import { projectNumbers } from '../data/portfolio'
 import {
   architectureModules,
   architectureViews,
@@ -64,7 +65,7 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
     <section id="adaptive-cognitive-architecture" className="brain-section case-section" aria-labelledby="brain-title">
       <div className="brain-intro">
         <div className="brain-intro-copy">
-          <a href="#work" className="brain-back-link"><ChevronLeft size={15} aria-hidden="true" /> All projects <span>01</span></a>
+          <a href="#work" className="project-back-link"><ChevronLeft size={15} aria-hidden="true" /> All projects <span>{projectNumbers['adaptive-cognitive-architecture']}</span></a>
           <h2 id="brain-title">Adaptive Cognitive <em>Architecture.</em></h2>
           <p className="brain-subtitle">Different timescales. One mind.</p>
           <p className="brain-approach-lead">An AI designed to adapt by updating its notes—not retraining its language model.</p>

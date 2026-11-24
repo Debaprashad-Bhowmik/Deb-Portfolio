@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { notifyCubesatReady } from '../sceneReadiness'
+import { useNearViewport } from '../useNearViewport'
 import ModelInteractionCoach, { useModelInteractionCoach } from './ModelInteractionCoach'
 
 export type ThermalAnchorKey = 'xFace' | 'panel' | 'battery' | 'radio' | 'nadir'
@@ -1039,7 +1040,7 @@ export default function CubeSatThermalViewer({
   onReady,
 }: CubeSatThermalViewerProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
-  const [shouldMountScene, setShouldMountScene] = useState(false)
+  const shouldMountScene = useNearViewport(mountRef)
   const [sceneEpoch, setSceneEpoch] = useState(0)
   const [sceneStatus, setSceneStatus] = useState<CubeSatSceneStatus>('waiting')
   const [renderQuality, setRenderQuality] = useState<RenderQuality>('standard')
@@ -1082,45 +1083,6 @@ export default function CubeSatThermalViewer({
     onReadyRef.current?.()
     notifyCubesatReady()
   }
-
-  useEffect(() => {
-    const container = mountRef.current
-    if (!container || shouldMountScene) return
-
-    const beginSceneMount = () => {
-      setSceneStatus('preparing')
-      setShouldMountScene(true)
-    }
-
-    if (!('IntersectionObserver' in window)) {
-      beginSceneMount()
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          beginSceneMount()
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '900px 0px' },
-    )
-    observer.observe(container)
-
-    const idleCallback = window.requestIdleCallback?.(beginSceneMount, { timeout: 1200 })
-    const idleTimer = idleCallback === undefined ? window.setTimeout(beginSceneMount, 900) : undefined
-
-    return () => {
-      observer.disconnect()
-      if (idleCallback !== undefined) {
-        window.cancelIdleCallback?.(idleCallback)
-      }
-      if (idleTimer !== undefined) {
-        window.clearTimeout(idleTimer)
-      }
-    }
-  }, [shouldMountScene])
 
   useEffect(() => {
     if (!shouldMountScene) return

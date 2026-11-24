@@ -2,6 +2,7 @@ export type WorkCard = {
   id: string
   number: string
   title: string
+  titleLead?: string
   kicker: string
   summary: string
   role: string
@@ -14,13 +15,32 @@ export type WorkCard = {
   imageAlt: string
   accent: string
   imagePosition?: string
-  variant: 'brain' | 'snip' | 'engine' | 'bolt' | 'medical' | 'hvac' | 'thermal'
+  variant: 'brain' | 'lunar' | 'snip' | 'engine' | 'bolt' | 'medical' | 'hvac' | 'thermal'
 }
 
 export const workCards: WorkCard[] = [
   {
-    id: 'adaptive-cognitive-architecture',
+    id: 'lunar-landing-site-navigator',
     number: '01',
+    title: 'Lunar Landing Site Navigator',
+    titleLead: 'NASA',
+    kicker: 'NASA Space Apps Challenge 2026',
+    summary: 'Find new places to land at the Moon’s South Pole based on when you arrive and how long you stay.',
+    role: 'Led Team Astralis and designed the algorithm that finds new landing candidates.',
+    tools: ['NASA/JPL SPICE', 'LRO/LOLA', 'WebGL', 'JavaScript'],
+    proof: 'A 3D navigator that checks 6,685 spots for solar energy, an unbroken view of Earth, and gentle slopes.',
+    outcome: 'Found a new landing candidate for a seven-day Christmas mission with 156.6 hours of uninterrupted Earth view.',
+    details: ['Compare solar energy, views of Earth, and ground steepness', 'Fly down from orbit and walk the lunar surface'],
+    tags: ['Lunar mission planning', '3D simulation'],
+    image: '/work-cards/lunar-landing-site-navigator.jpg',
+    imageAlt: 'Concept art of a solar-powered lander on the lunar South Pole with Earth above the crater rim',
+    imagePosition: '50% 28%',
+    accent: '#6785b5',
+    variant: 'lunar',
+  },
+  {
+    id: 'adaptive-cognitive-architecture',
+    number: '02',
     title: 'Adaptive Cognitive Architecture',
     kicker: 'Different timescales. One mind.',
     summary: 'A language-model agent designed to adapt through notes and reusable skills, without retraining its core model. Cross-game learning is the research goal.',
@@ -37,7 +57,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'snipping-gpt',
-    number: '02',
+    number: '03',
     title: 'Snipping GPT',
     kicker: 'AI assistant tool',
     summary: 'Screenshot assistant for fast technical screen summaries.',
@@ -47,7 +67,7 @@ export const workCards: WorkCard[] = [
     outcome: 'Shows how screen context can become useful AI help without copy-paste friction.',
     details: ['Capture and annotate screen regions', 'Intent presets for summaries, answers, and procedures', 'Built around low-friction engineering review workflows'],
     tags: ['Browser extension', 'Intent UI', 'Capture flow'],
-    image: '/work-cards/snipping-gpt.png',
+    image: '/work-cards/snipping-gpt.webp',
     imageAlt: 'Snipping GPT dark interface card with captured engineering drawing and AI summary panel',
     accent: '#78a6ff',
     imagePosition: '50% 54%',
@@ -55,7 +75,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'digital-twin',
-    number: '03',
+    number: '04',
     title: 'BMT Diesel Engine Digital Twin',
     kicker: 'Predict. Monitor. Optimize.',
     summary: 'Digital twin for diesel health and maintenance signals.',
@@ -65,7 +85,7 @@ export const workCards: WorkCard[] = [
     outcome: 'Created predictive-maintenance evidence even when field data was unavailable.',
     details: ['Synthetic sensor streams for unavailable field data', 'Fault-mode scenarios with health and RUL signals', 'Dashboard patterns for operators and maintenance planning'],
     tags: ['Telemetry', 'Fault modes', 'Maintenance AI'],
-    image: '/work-cards/diesel-digital-twin.png',
+    image: '/work-cards/diesel-digital-twin.webp',
     imageAlt: 'Diesel engine digital twin card with engine render, health ring, and telemetry panels',
     accent: '#27c58b',
     imagePosition: '50% 47%',
@@ -73,7 +93,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'coupling-bolt',
-    number: '04',
+    number: '05',
     title: 'Coupling Bolt',
     kicker: 'Precision. Strength. Standard.',
     summary: 'Mechanical drawing and manufacturable bolt design.',
@@ -83,7 +103,7 @@ export const workCards: WorkCard[] = [
     outcome: 'Communicates material, thread, fit, and serviceability choices clearly.',
     details: ['AutoCAD drawing package and dimensions', 'Thread, fit, material, and manufacturing constraints', 'Clear visual review flow for technical communication'],
     tags: ['AutoCAD', 'Tolerances', 'Manufacturable'],
-    image: '/work-cards/coupling-bolt.png',
+    image: '/work-cards/coupling-bolt.webp',
     imageAlt: 'Coupling bolt card with a metal fastener over mechanical blueprint drawings',
     accent: '#6f7b84',
     imagePosition: '50% 54%',
@@ -91,7 +111,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'bleeding-simulator',
-    number: '05',
+    number: '06',
     title: 'Bleeding Control Simulator',
     kicker: 'Clinical training hardware',
     summary: 'Training simulator with pressure, flow, and feedback.',
@@ -101,7 +121,7 @@ export const workCards: WorkCard[] = [
     outcome: 'Turns pressure and flow behavior into repeatable first-aid training feedback.',
     details: ['Arduino-based sensor and indicator loop', 'Pressure and flow feedback for repeatable training', 'Hardware/software interface for clinical practice'],
     tags: ['Sensors', 'Flow loop', 'Feedback UI'],
-    image: '/work-cards/bleeding-control-simulator.png',
+    image: '/work-cards/bleeding-control-simulator.webp',
     imageAlt: 'Bleeding control simulator card with training arm, tubes, pump, Arduino controller, and pressure UI',
     accent: '#9b1f22',
     imagePosition: '50% 56%',
@@ -109,7 +129,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'gmp-hvac',
-    number: '06',
+    number: '07',
     title: 'GMP HVAC System',
     kicker: 'Clean air. Controlled.',
     summary: 'Cleanroom HVAC concept for airflow and pressure control.',
@@ -119,7 +139,7 @@ export const workCards: WorkCard[] = [
     outcome: 'Connects ISO 8 cleanliness, CFM demand, pressure cascade, and budget tradeoffs.',
     details: ['Cleanroom airflow and ACH reasoning', 'HEPA and pressure cascade comparison', 'Recommendation logic tied to cost and compliance'],
     tags: ['HEPA', 'Pressure cascade', 'Compliance'],
-    image: '/work-cards/gmp-hvac-system.png',
+    image: '/work-cards/gmp-hvac-system.webp',
     imageAlt: 'GMP HVAC system card with cleanroom model and glowing airflow paths',
     accent: '#5ecdf1',
     imagePosition: '50% 55%',
@@ -127,7 +147,7 @@ export const workCards: WorkCard[] = [
   },
   {
     id: 'cubesat-thermal',
-    number: '07',
+    number: '08',
     title: 'CubeSat Thermal',
     kicker: 'Simulate. Stabilize. Survive.',
     summary: 'Thermal viewer for CubeSat orbit conditions.',
@@ -137,13 +157,15 @@ export const workCards: WorkCard[] = [
     outcome: 'Makes sunlight, eclipse, and component temperature behavior easier to review.',
     details: ['Component-level thermal field visualization', 'Sunlight and eclipse orbit controls', 'COMSOL-style temperature reasoning in a browser interface'],
     tags: ['COMSOL', 'Orbit analysis', 'Thermal model'],
-    image: '/work-cards/cubesat-thermal.png',
+    image: '/work-cards/cubesat-thermal.webp',
     imageAlt: 'CubeSat thermal card with satellite model, heat map grid, and temperature legend',
     accent: '#4b7cff',
     imagePosition: '50% 57%',
     variant: 'thermal',
   },
 ]
+
+export const projectNumbers = Object.fromEntries(workCards.map(({ id, number }) => [id, number]))
 
 export type SupervisorFeedback = {
   id: string

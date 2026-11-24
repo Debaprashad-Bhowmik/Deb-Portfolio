@@ -65,5 +65,3 @@ export function waitForSplineScene(): Promise<void> {
 export function getSplineSceneUrl(): string {
   return splineRobotSceneUrl
 }
-
-loadSplineViewerScript()

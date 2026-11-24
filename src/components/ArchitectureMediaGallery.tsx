@@ -72,7 +72,7 @@ export default function ArchitectureMediaGallery({ media }: { media: BrainMedia 
     <figure className="brain-media" aria-label="Adaptive Cognitive Architecture video gallery">
       <div id={playerId} className="brain-media-frame">
         {hasVideo ? <>
-          <video ref={videoRef} key={selected.videoSrc} controls playsInline preload="metadata" poster={posterSrc}
+          <video ref={videoRef} key={selected.videoSrc} controls playsInline preload="none" poster={posterSrc}
             aria-label={`${selected.title} video`}
             onPlay={() => setStartedSource(selected.videoSrc)} onError={() => setFailedSource(selected.videoSrc)}>
             <source src={selected.videoSrc} onError={() => setFailedSource(selected.videoSrc)} />

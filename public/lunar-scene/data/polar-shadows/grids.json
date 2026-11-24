@@ -1,0 +1,42 @@
+[
+  {
+    "name": "regional",
+    "source": "LDEM_60S_240MPP_ADJ.TIF",
+    "file": "regional.bin",
+    "spacing": 960,
+    "left": -576000,
+    "top": 576000,
+    "width": 1200,
+    "height": 1200
+  },
+  {
+    "name": "cap",
+    "source": "LDEM_80S_80MPP_ADJ.TIF",
+    "file": "cap.bin",
+    "spacing": 240,
+    "left": -192000,
+    "top": 192000,
+    "width": 1600,
+    "height": 1600
+  },
+  {
+    "name": "central",
+    "source": "LDEM_80S_80MPP_ADJ.TIF",
+    "file": "central.bin",
+    "spacing": 80,
+    "left": -64000,
+    "top": 64000,
+    "width": 1600,
+    "height": 1600
+  },
+  {
+    "name": "shackleton",
+    "source": "Site04_final_adj_5mpp_surf.tif",
+    "file": "shackleton.bin",
+    "spacing": 10,
+    "left": -9000.0,
+    "top": 1000.0,
+    "width": 1600,
+    "height": 1600
+  }
+]

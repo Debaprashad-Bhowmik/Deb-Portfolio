@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team Astralis · Lunar 3D scene</title>
+  <link rel="stylesheet" href="./scene.css">
+  <script type="module" src="./scene.mjs"></script>
+</head>
+<body>
+  <main id="scene" data-view="map" aria-label="Lunar mission 3D scene">
+    <div class="viewer-layer" id="orbit" inert>
+      <canvas id="orbit-canvas" tabindex="0" aria-label="Orbit view. Drag to rotate."></canvas>
+      <canvas id="orbit-labels" aria-hidden="true"></canvas>
+    </div>
+    <div class="viewer-layer" id="map">
+      <canvas id="moon" tabindex="0" aria-label="Rotatable Moon map. Drag to rotate."></canvas>
+      <div id="markers"></div>
+    </div>
+    <div class="viewer-layer" id="surface" inert>
+      <canvas id="surface-sky" aria-hidden="true"></canvas>
+      <canvas id="surface-canvas" tabindex="0" aria-label="First-person lunar terrain. Drag to look and use W, A, S and D to walk."></canvas>
+      <canvas id="surface-labels" aria-hidden="true"></canvas>
+      <span id="texture-credit">AI-generated surface texture</span>
+    </div>
+  </main>
+</body>
+</html>
