@@ -506,6 +506,10 @@ function Sparkline({
 }
 
 function App() {
+  const [waitForHeroScene] = useState(() => !window.location.hash || window.location.hash === '#top')
+  const [heroSceneSettled, setHeroSceneSettled] = useState(false)
+  const finishOpening = useCallback(() => setHeroSceneSettled(true), [])
+
   useEffect(() => {
     let scrollFrame = 0
     let stopTrackingLayout = () => {}
@@ -570,10 +574,10 @@ function App() {
   return (
     <>
       <MotionConfig reducedMotion="never">
-      <div className="site-shell">
+      <div className="site-shell" inert={waitForHeroScene && !heroSceneSettled}>
         <Header />
         <main>
-          <Hero />
+          <Hero onSceneSettled={waitForHeroScene ? finishOpening : undefined} />
           <LunarNavigatorSection />
           <BrainArchitectureSection />
           <SnippingGPTSection />
@@ -790,7 +794,11 @@ function CaseEvidenceArtifact({
   )
 }
 
-function Hero() {
+type HeroSceneProps = {
+  onSceneSettled?: () => void
+}
+
+function Hero({ onSceneSettled }: HeroSceneProps) {
   return (
     <section id="top" className="hero-section">
       <div className="hero-grid">
@@ -838,7 +846,7 @@ function Hero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
-          <EngineeringCore />
+          <EngineeringCore onSceneSettled={onSceneSettled} />
         </motion.div>
       </div>
 
@@ -847,7 +855,7 @@ function Hero() {
   )
 }
 
-function EngineeringCore() {
+function EngineeringCore({ onSceneSettled }: HeroSceneProps) {
   const reduceMotion = useReducedMotion()
   const stageRef = useRef<HTMLDivElement | null>(null)
   const pillRefs = useRef<Record<CorePillId, HTMLButtonElement | null>>({
@@ -1085,7 +1093,7 @@ function EngineeringCore() {
           <i className="core-orbit-node core-orbit-node-four" />
         </div>
 
-        <SplineRobotViewer />
+        <SplineRobotViewer onSceneSettled={onSceneSettled} />
 
         <AnimatePresence>
           {openItem ? (
@@ -1384,21 +1392,40 @@ function CoreCommandPanelContent({ id }: { id: CorePillId }) {
   )
 }
 
-function SplineRobotViewer() {
+function SplineRobotViewer({ onSceneSettled }: HeroSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const viewerRef = useRef<HTMLElement | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const shouldLoad = useNearViewport(containerRef)
+  const nearViewport = useNearViewport(containerRef)
+  const shouldLoad = Boolean(onSceneSettled) || nearViewport
 
   useEffect(() => {
     const viewer = viewerRef.current
     if (!shouldLoad || !viewer) return
     let disposed = false
+    let readyFrame = 0
+    // Give the scene time to load while keeping the site reachable if Spline stalls.
+    const deadline = onSceneSettled ? window.setTimeout(onSceneSettled, 20_000) : undefined
 
-    const markReady = () => setStatus('ready')
-    const markError = () => setStatus('error')
+    const markReady = () => {
+      window.cancelAnimationFrame(readyFrame)
+      // Spline reveals its canvas in the next task after dispatching load-complete.
+      readyFrame = window.requestAnimationFrame(() => {
+        readyFrame = window.requestAnimationFrame(() => {
+          window.clearTimeout(deadline)
+          setStatus('ready')
+          onSceneSettled?.()
+        })
+      })
+    }
+    const markError = () => {
+      window.cancelAnimationFrame(readyFrame)
+      window.clearTimeout(deadline)
+      setStatus('error')
+      onSceneSettled?.()
+    }
 
-    viewer.addEventListener('load', markReady)
+    viewer.addEventListener('load-complete', markReady)
     viewer.addEventListener('error', markError)
     void loadSplineViewerScript().catch(() => {
       if (!disposed) markError()
@@ -1406,10 +1433,12 @@ function SplineRobotViewer() {
 
     return () => {
       disposed = true
-      viewer.removeEventListener('load', markReady)
+      window.cancelAnimationFrame(readyFrame)
+      window.clearTimeout(deadline)
+      viewer.removeEventListener('load-complete', markReady)
       viewer.removeEventListener('error', markError)
     }
-  }, [shouldLoad])
+  }, [onSceneSettled, shouldLoad])
 
   return (
     <div ref={containerRef} className={`spline-robot-viewer is-${status}`} aria-label="Interactive Spline robot model">

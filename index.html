@@ -13,6 +13,7 @@
         display: grid;
         place-items: center;
         overflow: auto;
+        overscroll-behavior: contain;
         padding: 16px;
         color: #111c33;
         background:
@@ -22,7 +23,7 @@
         transition: opacity 170ms ease-out, visibility 170ms;
       }
 
-      #root:not(:empty) + .portfolio-opening {
+      #root:has(.site-shell:not([inert])) + .portfolio-opening {
         visibility: hidden;
         opacity: 0;
         pointer-events: none;
@@ -127,7 +128,7 @@
         animation: portfolio-opening-slide 1.15s ease-in-out infinite;
       }
 
-      #root:not(:empty) + .portfolio-opening .portfolio-opening-bar::before {
+      #root:has(.site-shell:not([inert])) + .portfolio-opening .portfolio-opening-bar::before {
         animation-play-state: paused;
       }
 
