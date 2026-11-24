@@ -1,14 +1,32 @@
-import { ArrowUpRight, ChevronLeft } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { ArrowUpRight, ChevronLeft, Play } from 'lucide-react'
 import { projectNumbers } from '../data/portfolio'
 import LunarProjectOverview from './LunarProjectOverview'
 import LunarScene from './LunarScene'
+import './BrainArchitectureSection.css'
 import './LunarNavigatorSection.css'
 
 const liveApp = 'https://debaprashad-bhowmik.github.io/project-astralis/'
 const demoPage = `${liveApp}docs/demo/`
 const media = '/videos/lunar-landing-site-navigator'
+const poster = `${media}/demo-poster.webp`
+const certificate = '/certificates/nasa-space-apps-2026.png'
+const certificateSpring = { type: 'spring', stiffness: 270, damping: 23, mass: 0.85 } as const
 
 export default function LunarNavigatorSection() {
+  const [showCertificate, setShowCertificate] = useState(false)
+  const [demoStarted, setDemoStarted] = useState(false)
+  const video = useRef<HTMLVideoElement>(null)
+  const reduceMotion = useReducedMotion()
+
+  function playDemo() {
+    const player = video.current
+    if (!player) return
+    player.focus()
+    void player.play().catch(() => setDemoStarted(false))
+  }
+
   return (
     <section className="case-section lunar-case" id="lunar-landing-site-navigator" aria-labelledby="lunar-case-title">
       <div className="lunar-case-intro">
@@ -36,21 +54,57 @@ export default function LunarNavigatorSection() {
           </dl>
         </div>
 
-        <figure className="lunar-film">
-          <video
-            aria-label="Team Astralis 30-second project demo"
-            controls
-            playsInline
-            preload="none"
-            poster={`${media}/demo-poster.webp`}
-          >
-            <source src={`${media}/team-astralis-demo.mp4`} type="video/mp4" />
-            <track kind="captions" src={`${media}/captions.vtt`} srcLang="en" label="English" />
-            <a href={demoPage}>Watch the Team Astralis demo</a>
-          </video>
-          <figcaption>
-            <span>Team Astralis · 30-second demo</span>
-            <a href={demoPage} target="_blank" rel="noreferrer">Open video <ArrowUpRight size={14} aria-hidden="true" /></a>
+        <figure className="brain-media lunar-media" aria-label="Team Astralis media gallery">
+          <div className="brain-media-frame" id="lunar-media-preview">
+            {showCertificate ? (
+              <motion.img className="lunar-certificate-image" src={certificate} width={1056} height={816}
+                alt="Galactic Problem Solver certificate issued to Debaprashad Bhowmik for participating in the NASA Space Apps Challenge, November 14–15, 2026."
+                initial={reduceMotion ? false : { scale: 0.94, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ scale: certificateSpring, opacity: { duration: 0.15 } }}
+                decoding="async" />
+            ) : (
+              <>
+                <video ref={video} aria-label="Team Astralis 30-second project demo" controls playsInline
+                  preload="none" poster={poster} onPlay={() => setDemoStarted(true)}>
+                  <source src={`${media}/team-astralis-demo.mp4`} type="video/mp4" />
+                  <track kind="captions" src={`${media}/captions.vtt`} srcLang="en" label="English" />
+                  <a href={demoPage}>Watch the Team Astralis demo</a>
+                </video>
+                {!demoStarted && (
+                  <button type="button" className="brain-media-play" aria-label="Play project demo" onClick={playDemo}>
+                    <Play aria-hidden="true" fill="currentColor" strokeWidth={1.2} />
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="brain-media-gallery" role="group" aria-label="Choose Team Astralis media">
+            <div className="brain-media-thumbnails lunar-media-thumbnails">
+              <button type="button" className="brain-media-thumbnail" aria-pressed={!showCertificate}
+                aria-controls="lunar-media-preview" onClick={() => setShowCertificate(false)}>
+                <span className="brain-media-thumbnail-image">
+                  <img src={poster} alt="" loading="lazy" decoding="async" />
+                  <span className="brain-media-thumbnail-play"><Play size={18} fill="currentColor" strokeWidth={1.2} aria-hidden="true" /></span>
+                  <span className="brain-media-duration" aria-hidden="true">0:30</span>
+                </span>
+                <span className="brain-media-thumbnail-title">Project demo</span>
+              </button>
+              <button type="button" className="brain-media-thumbnail" aria-pressed={showCertificate}
+                aria-controls="lunar-media-preview" onClick={() => {
+                  setDemoStarted(false)
+                  setShowCertificate(true)
+                }}>
+                <span className="brain-media-thumbnail-image lunar-certificate-thumbnail">
+                  <img src={certificate} alt="" loading="lazy" decoding="async" fetchPriority="low" />
+                </span>
+                <span className="brain-media-thumbnail-title">Participation certificate</span>
+              </button>
+            </div>
+          </div>
+          <figcaption className="lunar-media-caption">
+            {!showCertificate && <a href={demoPage} target="_blank" rel="noreferrer">Open video <ArrowUpRight size={14} aria-hidden="true" /></a>}
           </figcaption>
         </figure>
       </div>
