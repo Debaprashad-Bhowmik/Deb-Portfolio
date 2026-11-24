@@ -612,47 +612,38 @@ function Sparkline({
 }
 
 function App() {
-  const scrollToCurrentHash = useCallback(() => {
-    const hash = window.location.hash
-    if (!hash) return
-
-    const scroll = () => {
-      const target = document.getElementById(decodeURIComponent(hash.slice(1)))
-      if (!target) return
-
-      const headerOffset = document.querySelector('.site-header')?.getBoundingClientRect().height ?? 0
-      const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - 10
-      const nextTop = Math.max(0, top)
-      window.scrollTo(0, nextTop)
-      document.documentElement.scrollTop = nextTop
-      document.body.scrollTop = nextTop
-    }
-
-    const timeoutIds = [140, 420, 900, 1800, 3200, 5200].map((delay) => window.setTimeout(scroll, delay))
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(scroll)
-    })
-
-    return () => {
-      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId))
-    }
-  }, [])
-
   useEffect(() => {
-    let cancelPendingScroll = scrollToCurrentHash()
-    const handleHashChange = () => {
-      cancelPendingScroll?.()
-      cancelPendingScroll = scrollToCurrentHash()
+    let scrollFrame = 0
+
+    function scrollToCurrentHash(behavior: ScrollBehavior) {
+      window.cancelAnimationFrame(scrollFrame)
+      const fragment = window.location.hash.slice(1)
+      if (!fragment) return
+
+      let id: string
+      try {
+        id = decodeURIComponent(fragment)
+      } catch {
+        return
+      }
+
+      scrollFrame = window.requestAnimationFrame(() => {
+        const target = document.getElementById(id)
+        if (!target) return
+        const headerOffset = document.querySelector('.site-header')?.getBoundingClientRect().height ?? 0
+        const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - 10
+        window.scrollTo({ top: Math.max(0, top), behavior })
+      })
     }
 
+    scrollToCurrentHash('instant')
+    const handleHashChange = () => scrollToCurrentHash('auto')
     window.addEventListener('hashchange', handleHashChange)
-
     return () => {
-      cancelPendingScroll?.()
+      window.cancelAnimationFrame(scrollFrame)
       window.removeEventListener('hashchange', handleHashChange)
     }
-  }, [scrollToCurrentHash])
+  }, [])
 
   return (
     <>
@@ -1664,7 +1655,7 @@ const ProjectCard = React.memo(function ProjectCard({
       onClick={handleClick}
     >
       <div className="project-media">
-        <img src={card.image} alt={card.imageAlt} loading="lazy" decoding="async"
+        <img src={card.image} alt={card.imageAlt} loading="lazy" decoding="async" fetchPriority="low"
           style={{ objectPosition: card.imagePosition ?? '50% 50%' }} />
       </div>
       <div className="project-card-body">
@@ -5516,7 +5507,7 @@ function SupervisorFeedbackCard({
     <article className={`feedback-card is-${position}`}>
       <div className="feedback-card-top">
         <span className="feedback-company-lockup">
-          <img className="feedback-company-logo" src={item.companyLogo} alt={item.companyLogoAlt} />
+          <img className="feedback-company-logo" src={item.companyLogo} alt={item.companyLogoAlt} loading="lazy" />
           <span>{item.company}</span>
         </span>
         {isFeatured ? <span className="feedback-featured-badge">Featured</span> : null}
@@ -5524,7 +5515,7 @@ function SupervisorFeedbackCard({
       <Quote className="feedback-quote-icon" size={30} strokeWidth={3} aria-hidden="true" />
       <blockquote>{item.quote}</blockquote>
       <footer className="feedback-person">
-        <img src={item.portrait} alt={item.personName} />
+        <img src={item.portrait} alt={item.personName} loading="lazy" />
         <span>
           <strong>{item.personName}</strong>
           <small>{item.personTitle}</small>

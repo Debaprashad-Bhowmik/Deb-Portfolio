@@ -1,6 +1,7 @@
 import { lazy, Suspense, useRef, useState, type KeyboardEvent } from 'react'
 import { ArrowDown, ArrowRight, Check, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { projectNumbers } from '../data/portfolio'
+import { useNearViewport } from '../useNearViewport'
 import {
   architectureModules,
   architectureViews,
@@ -26,6 +27,8 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
   const [selectedId, setSelectedId] = useState('present')
   const [stepIndex, setStepIndex] = useState<number | null>(null)
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const observatory = useRef<HTMLDivElement>(null)
+  const showObservatory = useNearViewport(observatory)
   const modules = architectureModules[view]
   const selected = modules.find((module) => module.id === selectedId) ?? modules[0]
   const activeView = architectureViews.find((item) => item.id === view)!
@@ -89,7 +92,13 @@ export default function BrainArchitectureSection({ media = brainMedia }: { media
       <BrainApproach />
       <BrainExplanation />
 
-      <Suspense fallback={<div id="brain-motion">Loading the cognitive observatory…</div>}><GalacticExplorer /></Suspense>
+      <div id="brain-motion" ref={observatory}>
+        {showObservatory && (
+          <Suspense fallback={<p role="status">Loading the cognitive observatory…</p>}>
+            <GalacticExplorer />
+          </Suspense>
+        )}
+      </div>
       <details id="brain-explorer" className="brain-detail-disclosure">
       <summary>Explore the detailed architecture</summary>
       <div className="brain-explorer" aria-labelledby="brain-explorer-title">

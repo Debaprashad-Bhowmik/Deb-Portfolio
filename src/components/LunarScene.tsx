@@ -246,7 +246,6 @@ export default function LunarScene() {
           ref={frame}
           src="/lunar-scene/index.html"
           title="Interactive lunar orbit, Moon map and first-person surface"
-          loading="lazy"
           onLoad={() => command('status')}
         />}
         {scene.phase === 'loading' && <p className="lunar-scene-overlay" role="status">Loading the 3D scene…</p>}
