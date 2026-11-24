@@ -278,12 +278,15 @@ export default function LunarScene() {
       )}
       <LunarMissionTimeline context="main" {...timeline} />
       <div className="lunar-scene-toolbar">
-        <p>
-          {onSurface ? <>Drag to look. Focus the scene to walk with <strong>WASD</strong>.</> : 'Drag to rotate, or focus the scene and use the arrow keys.'}
+        <p id="lunar-viewer-controls-help">
+          {onSurface ? 'Drag or use the arrow keys to look around.' : 'Drag to rotate the view.'}
           {onSurface && <span className="lunar-distance">{scene.distance} m from landing point</span>}
         </p>
         <div className="lunar-scene-actions" role="group" aria-label="Scene controls">
-          <button type="button" className="lunar-scene-button" disabled={!ready} onClick={() => command('focus')}>Focus scene</button>
+          <button type="button" className="lunar-scene-button" disabled={!ready} aria-controls="lunar-explorer-stage"
+            aria-describedby="lunar-viewer-controls-help" onClick={() => command('focus')}>
+            {onSurface ? 'Walk with WASD' : 'Rotate with arrow keys'}
+          </button>
           {onSurface ? walkDirections.map(({ id, label, Icon }) => (
             <button key={id} type="button" className="lunar-scene-button" disabled={!ready}
               aria-label={label} title={label} onClick={() => command('walk', id)}>

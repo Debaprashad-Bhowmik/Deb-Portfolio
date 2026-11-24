@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { RotateCcw } from 'lucide-react'
 import type { Material, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three'
 import type { HvacOption } from '../data/portfolio'
-import { notifyHvacReady } from '../sceneReadiness'
 import { useNearViewport } from '../useNearViewport'
 import ModelInteractionCoach, { useModelInteractionCoach } from './ModelInteractionCoach'
 
@@ -209,18 +208,12 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
   const [activeCallout, setActiveCallout] = useState<CalloutKey>('hepa')
   const [annotations, setAnnotations] = useState<Record<CalloutKey, CalloutAnnotation>>(createDefaultAnnotations)
   const modelCoach = useModelInteractionCoach({ containerRef: mountRef, ready: isLoaded })
-  const readyNotifiedRef = useRef(false)
 
   useEffect(() => {
     activeOptionRef.current = activeOption
   }, [activeOption])
 
   const shouldMount = useNearViewport(mountRef)
-  const notifyReadyOnce = () => {
-    if (readyNotifiedRef.current) return
-    readyNotifiedRef.current = true
-    notifyHvacReady()
-  }
 
   useEffect(() => {
     const containerElement = mountRef.current
@@ -1268,7 +1261,6 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
         setIsRecovering(false)
         setIsLoaded(false)
         setHasError(true)
-        notifyReadyOnce()
       }
 
       const verifyRenderedFrame = () => {
@@ -1280,7 +1272,6 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
           setHasError(false)
           setIsRecovering(false)
           setIsLoaded(true)
-          notifyReadyOnce()
           return
         }
         if (renderProbeFrames >= 150) {
@@ -1423,7 +1414,6 @@ export default function GmpHvacModel({ activeOption }: GmpHvacModelProps) {
       setIsRecovering(false)
       setHasError(true)
       setIsLoaded(false)
-      notifyReadyOnce()
     })
 
     return () => {

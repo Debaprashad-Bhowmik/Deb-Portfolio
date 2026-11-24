@@ -72,8 +72,6 @@ import CubeSatThermalViewer, {
   type ThermalTelemetry,
 } from './components/CubeSatThermalViewer'
 import ModelInteractionCoach, { useModelInteractionCoach } from './components/ModelInteractionCoach'
-import { COUPLING_BOLT_VIEWER_VERSION } from './couplingBoltPreloader'
-import { notifyEngineReady } from './sceneReadiness'
 import { useNearViewport } from './useNearViewport'
 import './App.css'
 import BrainArchitectureSection from './components/BrainArchitectureSection'
@@ -283,7 +281,7 @@ const bestFitCards = [
   },
 ]
 
-import { loadSplineViewerScript, getSplineSceneUrl, notifySplineSceneLoaded } from './splinePreloader'
+import { loadSplineViewerScript, getSplineSceneUrl } from './splinePreloader'
 
 const splineRobotSceneUrl = getSplineSceneUrl()
 
@@ -365,50 +363,6 @@ const feedbackProofItems: Array<{ icon: LucideIcon; title: string; detail: strin
   },
 ]
 
-type EngineeringHandoffData = {
-  id: string
-  from: string
-  to: string
-  variant: 'dark' | 'light'
-  artType: 'bolt' | 'flow' | 'orbit'
-  headline: string
-  subline: string
-  tags: string[]
-}
-
-const engineeringHandoffs: Record<'dieselToBolt' | 'boltToBleeding' | 'hvacToCubesat', EngineeringHandoffData> = {
-  dieselToBolt: {
-    id: 'diesel-to-bolt',
-    from: 'BMT Diesel Engine Digital Twin',
-    to: 'Coupling Bolt',
-    variant: 'dark',
-    artType: 'bolt',
-    headline: 'Preparing next engineering system',
-    subline: 'Moving from live machinery telemetry into controlled mechanical failure design.',
-    tags: ['CAD Data', 'Stress Path', 'Simulation', 'Build'],
-  },
-  boltToBleeding: {
-    id: 'bolt-to-bleeding',
-    from: 'Coupling Bolt',
-    to: 'Bleeding Control Simulator',
-    variant: 'light',
-    artType: 'flow',
-    headline: 'Calibrating pressure feedback',
-    subline: 'Turning mechanical intent into sensor-driven training, flow response, and live guidance.',
-    tags: ['Pressure', 'Flow Rate', 'Sensors', 'Training UI'],
-  },
-  hvacToCubesat: {
-    id: 'hvac-to-cubesat',
-    from: 'GMP HVAC System',
-    to: 'CubeSat Thermal',
-    variant: 'light',
-    artType: 'orbit',
-    headline: 'Opening thermal viewport',
-    subline: 'Shifting from cleanroom airflow control to orbit-scale heat maps and component limits.',
-    tags: ['Orbit Cycle', 'Thermal Map', 'Callouts', 'Mission Context'],
-  },
-}
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
@@ -455,14 +409,14 @@ function SectionReveal({
   )
 }
 
-function EngineeringHandoff({ handoff }: { handoff: EngineeringHandoffData }) {
+function CouplingBoltLoading() {
   const reduceMotion = useReducedMotion()
 
   return (
     <motion.div
-      className={`engineering-handoff handoff-${handoff.variant} handoff-art-${handoff.artType}`}
+      className="engineering-handoff"
       role="status"
-      aria-label={`${handoff.from} to ${handoff.to} loading transition`}
+      aria-label="Loading the Coupling Bolt viewer"
       initial={reduceMotion ? false : { opacity: 0 }}
       animate={reduceMotion ? undefined : { opacity: 1 }}
       exit={reduceMotion ? undefined : { opacity: 0, transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] } }}
@@ -472,20 +426,20 @@ function EngineeringHandoff({ handoff }: { handoff: EngineeringHandoffData }) {
       <div className="handoff-scanline" aria-hidden="true" />
       <div className="handoff-label handoff-label-from">
         <span>Current system</span>
-        <strong>{handoff.from}</strong>
+        <strong>BMT Diesel Engine Digital Twin</strong>
       </div>
       <div className="handoff-label handoff-label-to">
         <span>Next system</span>
-        <strong>{handoff.to}</strong>
+        <strong>Coupling Bolt</strong>
       </div>
-      <HandoffBlueprintArt id={handoff.id} artType={handoff.artType} />
+      <BoltBlueprint />
       <div className="handoff-panel">
         <span className="handoff-status-dot" aria-hidden="true" />
         <p>System handoff</p>
-        <h2>{handoff.headline}</h2>
-        <span>{handoff.subline}</span>
+        <h2>Preparing next engineering system</h2>
+        <span>Moving from live machinery telemetry into controlled mechanical failure design.</span>
         <div className="handoff-tags" aria-label="Transition context">
-          {handoff.tags.map((tag) => (
+          {['CAD Data', 'Stress Path', 'Simulation', 'Build'].map((tag) => (
             <b key={tag}>{tag}</b>
           ))}
         </div>
@@ -494,67 +448,7 @@ function EngineeringHandoff({ handoff }: { handoff: EngineeringHandoffData }) {
   )
 }
 
-function HandoffBlueprintArt({ artType, id }: { artType: EngineeringHandoffData['artType']; id: string }) {
-  const gradientId = `handoff-gradient-${id}`
-
-  if (artType === 'flow') {
-    return (
-      <svg className="handoff-technical-art" viewBox="0 0 1200 420" aria-hidden="true">
-        <defs>
-          <linearGradient id={gradientId} x1="240" x2="960" y1="210" y2="210" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#4b7cff" stopOpacity="0.15" />
-            <stop offset="0.52" stopColor="#1e9cff" stopOpacity="0.68" />
-            <stop offset="1" stopColor="#d62f2f" stopOpacity="0.28" />
-          </linearGradient>
-        </defs>
-        <path className="handoff-line handoff-line-soft" d="M116 266H258c34 0 42-48 76-48h112c28 0 39 38 70 38h126c32 0 38-62 72-62h88c35 0 44 54 80 54h204" />
-        <path className="handoff-line handoff-line-hot" d="M184 253c86-2 106-47 184-47h178c70 0 80 53 151 53h330" />
-        <rect className="handoff-device" x="146" y="160" width="116" height="146" rx="18" />
-        <rect className="handoff-device" x="870" y="132" width="162" height="112" rx="18" />
-        <circle className="handoff-node" cx="333" cy="218" r="8" />
-        <circle className="handoff-node" cx="642" cy="256" r="8" />
-        <circle className="handoff-node handoff-node-hot" cx="804" cy="194" r="8" />
-        <path className="handoff-wave" d="M474 190l22 56 25-96 28 126 32-86 25 42 31-14" />
-        <text x="168" y="144">RESERVOIR / FLOW</text>
-        <text x="883" y="118">PRESSURE FEEDBACK</text>
-        <text x="520" y="330">SENSOR LOOP</text>
-      </svg>
-    )
-  }
-
-  if (artType === 'orbit') {
-    return (
-      <svg className="handoff-technical-art" viewBox="0 0 1200 420" aria-hidden="true">
-        <defs>
-          <linearGradient id={gradientId} x1="404" x2="792" y1="248" y2="120" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#2d62ff" />
-            <stop offset="0.48" stopColor="#7ce5d5" />
-            <stop offset="0.76" stopColor="#ffd84d" />
-            <stop offset="1" stopColor="#ff654b" />
-          </linearGradient>
-        </defs>
-        <ellipse className="handoff-orbit" cx="606" cy="214" rx="426" ry="124" />
-        <ellipse className="handoff-orbit handoff-orbit-offset" cx="606" cy="214" rx="308" ry="90" />
-        <circle className="handoff-sun" cx="1010" cy="124" r="20" />
-        <g className="handoff-cube">
-          <polygon points="458,150 664,92 808,172 602,230" />
-          <polygon points="602,230 808,172 808,304 602,364" />
-          <polygon points="458,150 602,230 602,364 458,284" />
-          <path d="M488 168l144 80M528 156l144 80M568 144l144 80M608 132l144 80M646 120l144 80" />
-          <path d="M642 220v132M684 208v132M726 196v132M768 184v132" />
-        </g>
-        <rect className="handoff-thermal-ramp" x="164" y="296" width="226" height="12" rx="6" fill={`url(#${gradientId})`} />
-        <path className="handoff-line handoff-line-soft" d="M800 172h148l56-48" />
-        <path className="handoff-line handoff-line-soft" d="M604 362H392l-56-54" />
-        <circle className="handoff-node" cx="808" cy="172" r="8" />
-        <circle className="handoff-node" cx="602" cy="362" r="8" />
-        <text x="164" y="278">THERMAL RANGE</text>
-        <text x="906" y="108">SUNLIGHT VECTOR</text>
-        <text x="230" y="338">ORBIT CYCLE</text>
-      </svg>
-    )
-  }
-
+function BoltBlueprint() {
   return (
     <svg className="handoff-technical-art" viewBox="0 0 1200 420" aria-hidden="true">
       <path className="handoff-line handoff-line-soft" d="M148 320H394M806 320h246M600 64v94M600 270v86" />
@@ -614,9 +508,11 @@ function Sparkline({
 function App() {
   useEffect(() => {
     let scrollFrame = 0
+    let stopTrackingLayout = () => {}
 
     function scrollToCurrentHash(behavior: ScrollBehavior) {
       window.cancelAnimationFrame(scrollFrame)
+      stopTrackingLayout()
       const fragment = window.location.hash.slice(1)
       if (!fragment) return
 
@@ -630,9 +526,34 @@ function App() {
       scrollFrame = window.requestAnimationFrame(() => {
         const target = document.getElementById(id)
         if (!target) return
-        const headerOffset = document.querySelector('.site-header')?.getBoundingClientRect().height ?? 0
-        const top = target.getBoundingClientRect().top + window.scrollY - headerOffset - 10
-        window.scrollTo({ top: Math.max(0, top), behavior })
+        const documentTop = () => target.getBoundingClientRect().top + window.scrollY
+        function alignTarget(scrollBehavior: ScrollBehavior) {
+          const headerOffset = document.querySelector('.site-header')?.getBoundingClientRect().height ?? 0
+          window.scrollTo({ top: Math.max(0, documentTop() - headerOffset - 10), behavior: scrollBehavior })
+        }
+
+        let anchorTop = documentTop()
+        alignTarget(behavior)
+        const main = target.closest('main')
+        if (behavior !== 'instant' || !main || typeof ResizeObserver === 'undefined') return
+
+        // Offscreen sections can expand as the browser renders the area around a deep link.
+        const observer = new ResizeObserver(() => {
+          const nextTop = documentTop()
+          if (Math.abs(nextTop - anchorTop) < 1) return
+          anchorTop = nextTop
+          alignTarget('instant')
+        })
+        const inputEvents = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
+        const timeout = window.setTimeout(stopTracking, 1800)
+        function stopTracking() {
+          observer.disconnect()
+          window.clearTimeout(timeout)
+          for (const event of inputEvents) window.removeEventListener(event, stopTracking)
+        }
+        for (const event of inputEvents) window.addEventListener(event, stopTracking, { passive: true })
+        stopTrackingLayout = stopTracking
+        observer.observe(main)
       })
     }
 
@@ -641,6 +562,7 @@ function App() {
     window.addEventListener('hashchange', handleHashChange)
     return () => {
       window.cancelAnimationFrame(scrollFrame)
+      stopTrackingLayout()
       window.removeEventListener('hashchange', handleHashChange)
     }
   }, [])
@@ -1473,8 +1395,8 @@ function SplineRobotViewer() {
     if (!shouldLoad || !viewer) return
     let disposed = false
 
-    const markReady = () => { setStatus('ready'); notifySplineSceneLoaded() }
-    const markError = () => { setStatus('error'); notifySplineSceneLoaded() }
+    const markReady = () => setStatus('ready')
+    const markError = () => setStatus('error')
 
     viewer.addEventListener('load', markReady)
     viewer.addEventListener('error', markError)
@@ -1496,7 +1418,6 @@ function SplineRobotViewer() {
         url: splineRobotSceneUrl,
         loading: 'eager',
       })}
-      <span className="spline-watermark-fog" aria-hidden="true" />
     </div>
   )
 }
@@ -3972,18 +3893,11 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   const [coachReady, setCoachReady] = useState(false)
   const [renderMode, setRenderMode] = useState<EngineRenderMode>('standard')
   const [renderStatus, setRenderStatus] = useState<EngineRenderStatus>('loading')
-  const readyNotifiedRef = useRef(false)
   const engineCoach = useModelInteractionCoach({ containerRef: mountRef, ready: coachReady })
 
   useEffect(() => {
     scenarioRef.current = scenarioId
   }, [scenarioId])
-
-  const notifyReadyOnce = () => {
-    if (readyNotifiedRef.current) return
-    readyNotifiedRef.current = true
-    notifyEngineReady()
-  }
 
   useEffect(() => {
     const mount = mountRef.current
@@ -4002,8 +3916,15 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
     setCoachReady(false)
 
     async function setupScene() {
-      const THREE = await import('three')
+      const [THREE, gltf] = await Promise.all([
+        import('three'),
+        import('./enginePreloader').then(({ loadEngineModel }) => loadEngineModel()),
+      ])
       if (cancelled) return
+      if (!gltf) {
+        setRenderStatus('fallback')
+        return
+      }
 
       const renderer = new THREE.WebGLRenderer({
         antialias: renderMode === 'standard',
@@ -4101,56 +4022,37 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         side: THREE.DoubleSide,
       })
 
-      // Use the pre-loaded GLTF from the loading screen, or fall back to loading from scratch
-      const { getPreloadedGLTF, getPreloadPromise, startModelPreload } = await import('./enginePreloader')
-
-      let gltf = getPreloadedGLTF()
-      if (!gltf) {
-        // Preload may still be in progress — await it
-        const preloadResult = await (getPreloadPromise() ?? startModelPreload())
-        if (preloadResult.status === 'loaded') {
-          gltf = preloadResult.gltf ?? getPreloadedGLTF()
-        }
-      }
-
-      let modelAvailable = false
-      if (gltf && !cancelled) {
-        modelAvailable = true
-        // Clone the preloaded scene so we can apply our own materials
-        const object = gltf.scene.clone(true)
-        object.traverse((child) => {
-          if ('isMesh' in child && child.isMesh) {
-            const mesh = child as import('three').Mesh
-            if (mesh.geometry && !mesh.geometry.getAttribute('normal')) {
-              mesh.geometry.computeVertexNormals()
-            }
-            mesh.material = mesh.name.toLowerCase().includes('rubber') ? darkMaterial : material
-            mesh.castShadow = false
-            mesh.receiveShadow = false
+      // Clone the shared geometry so recovery can reuse the loaded asset.
+      const object = gltf.scene.clone(true)
+      object.traverse((child) => {
+        if ('isMesh' in child && child.isMesh) {
+          const mesh = child as import('three').Mesh
+          if (mesh.geometry && !mesh.geometry.getAttribute('normal')) {
+            mesh.geometry.computeVertexNormals()
           }
-        })
+          mesh.material = mesh.name.toLowerCase().includes('rubber') ? darkMaterial : material
+          mesh.castShadow = false
+          mesh.receiveShadow = false
+        }
+      })
 
-        const assetPivot = new THREE.Group()
-        assetPivot.add(object)
-        assetPivot.rotation.set(0, 0, 0)
-        assetPivot.updateMatrixWorld(true)
+      const assetPivot = new THREE.Group()
+      assetPivot.add(object)
+      assetPivot.rotation.set(0, 0, 0)
+      assetPivot.updateMatrixWorld(true)
 
-        const orientedBox = new THREE.Box3().setFromObject(assetPivot)
-        const orientedSize = new THREE.Vector3()
-        const orientedCenter = new THREE.Vector3()
-        orientedBox.getSize(orientedSize)
-        orientedBox.getCenter(orientedCenter)
-        assetPivot.position.sub(orientedCenter)
+      const orientedBox = new THREE.Box3().setFromObject(assetPivot)
+      const orientedSize = new THREE.Vector3()
+      const orientedCenter = new THREE.Vector3()
+      orientedBox.getSize(orientedSize)
+      orientedBox.getCenter(orientedCenter)
+      assetPivot.position.sub(orientedCenter)
 
-        const maxAxis = Math.max(orientedSize.x, orientedSize.y, orientedSize.z, 1)
-        const modelShell = new THREE.Group()
-        modelShell.scale.setScalar(2.64 / maxAxis)
-        modelShell.add(assetPivot)
-        modelRoot.add(modelShell)
-      } else if (!cancelled) {
-        setRenderStatus('fallback')
-        notifyReadyOnce()
-      }
+      const maxAxis = Math.max(orientedSize.x, orientedSize.y, orientedSize.z, 1)
+      const modelShell = new THREE.Group()
+      modelShell.scale.setScalar(2.64 / maxAxis)
+      modelShell.add(assetPivot)
+      modelRoot.add(modelShell)
 
       const requestRecoveryOrFallback = () => {
         if (cancelled || recoveryRequested || renderVerified) return
@@ -4161,11 +4063,9 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
           return
         }
         setRenderStatus('fallback')
-        notifyReadyOnce()
       }
 
       const verifyRenderedFrame = () => {
-        if (!modelAvailable) return
         if (renderVerified) return
         renderProbeFrames += 1
         if (renderProbeFrames < 4) return
@@ -4173,7 +4073,6 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
           renderVerified = true
           setRenderStatus('loaded')
           setCoachReady(true)
-          notifyReadyOnce()
           return
         }
         if (renderProbeFrames >= 140) {
@@ -4205,10 +4104,10 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
 
       const visibilityObserver = new IntersectionObserver(
         ([entry]) => {
+          if (cancelled || visible === entry.isIntersecting) return
           visible = entry.isIntersecting
-          if (visible && !cancelled) {
-            rafId = window.requestAnimationFrame(animate)
-          }
+          if (visible) rafId = window.requestAnimationFrame(animate)
+          else window.cancelAnimationFrame(rafId)
         },
         { rootMargin: '200px' },
       )
@@ -4248,7 +4147,6 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         return
       }
       setRenderStatus('fallback')
-      notifyReadyOnce()
     })
 
     return () => {
@@ -4366,8 +4264,10 @@ function CouplingBoltSection() {
   const [activeReviewTabId, setActiveReviewTabId] = useState(reviewTabs[0].id)
   const [artifactReady, setArtifactReady] = useState(false)
   const artifactFrameRef = useRef<HTMLIFrameElement>(null)
+  const artifactStageRef = useRef<HTMLDivElement>(null)
+  const shouldLoadArtifact = useNearViewport(artifactStageRef)
   const activeReviewTab = reviewTabs.find((tab) => tab.id === activeReviewTabId) ?? reviewTabs[0]
-  const couplingBoltViewerSrc = `/coupling-bolt/coupling-bolt.html?embed=portfolio&v=${COUPLING_BOLT_VIEWER_VERSION}`
+  const couplingBoltViewerSrc = '/coupling-bolt/coupling-bolt.html?embed=portfolio&v=2026-06-08-render-check'
 
   useEffect(() => {
     const handleViewerReady = (event: MessageEvent) => {
@@ -4440,18 +4340,19 @@ function CouplingBoltSection() {
         </div>
 
         <div className="bolt-artifact-column">
-          <div className="artifact-viewer bolt-embedded-viewer">
+          <div className="artifact-viewer bolt-embedded-viewer" ref={artifactStageRef}>
             <AnimatePresence>
               {!artifactReady && (
-                <EngineeringHandoff key="coupling-bolt-handoff" handoff={engineeringHandoffs.dieselToBolt} />
+                <CouplingBoltLoading />
               )}
             </AnimatePresence>
-            <iframe
-              ref={artifactFrameRef}
-              src={couplingBoltViewerSrc}
-              title="Interactive Coupling Bolt 3D viewer"
-              loading="lazy"
-            />
+            {shouldLoadArtifact && (
+              <iframe
+                ref={artifactFrameRef}
+                src={couplingBoltViewerSrc}
+                title="Interactive Coupling Bolt 3D viewer"
+              />
+            )}
           </div>
         </div>
       </div>
@@ -4586,8 +4487,11 @@ const bleedingWhyCards = [
 ]
 
 function BleedingSimulatorSection() {
-  const simulatorStartedAt = useMemo(() => Date.now(), [])
-  const [simulatorReady, setSimulatorReady] = useState(false)
+  const simulatorStage = useRef<HTMLDivElement>(null)
+  const simulatorResize = useRef<ResizeObserver | null>(null)
+  const shouldLoadSimulator = useNearViewport(simulatorStage)
+
+  useEffect(() => () => simulatorResize.current?.disconnect(), [])
   const capabilityCards = [
     {
       icon: Droplets,
@@ -4720,37 +4624,28 @@ function BleedingSimulatorSection() {
             <span>Training feedback</span>
           </div>
         </div>
-        <div className="bleeding-iframe-stage">
-          <AnimatePresence>
-            {!simulatorReady && (
-              <EngineeringHandoff key="bleeding-simulator-handoff" handoff={engineeringHandoffs.boltToBleeding} />
-            )}
-          </AnimatePresence>
-          <iframe
-            title="Bleeding Control Simulator interactive demo"
-            src={`/bleeding-control-simulator/index.html?embed=portfolio&startedAt=${simulatorStartedAt}`}
-            loading="lazy"
-            onLoad={(event) => {
-              const frame = event.currentTarget
-              const syncHeight = () => {
-                const doc = frame.contentDocument
-                if (!doc) {
-                  return
+        <div className="bleeding-iframe-stage" ref={simulatorStage}>
+          {shouldLoadSimulator && (
+            <iframe
+              title="Bleeding Control Simulator interactive demo"
+              src="/bleeding-control-simulator/index.html?embed=portfolio"
+              onLoad={(event) => {
+                const frame = event.currentTarget
+                simulatorResize.current?.disconnect()
+                const content = frame.contentDocument?.getElementById('root')
+                if (!content) return
+
+                const resize = () => {
+                  const height = Math.ceil(content.getBoundingClientRect().height)
+                  if (height > 0) frame.style.height = `${height}px`
                 }
 
-                frame.style.height = '0px'
-                const nextHeight = Math.max(doc.body.scrollHeight, 980)
-                if (nextHeight) {
-                  frame.style.height = `${nextHeight}px`
-                }
-              }
-
-              syncHeight()
-              window.setTimeout(syncHeight, 500)
-              window.setTimeout(syncHeight, 1200)
-              setSimulatorReady(true)
-            }}
-          />
+                resize()
+                simulatorResize.current = new ResizeObserver(resize)
+                simulatorResize.current.observe(content)
+              }}
+            />
+          )}
         </div>
       </div>
 
@@ -5078,7 +4973,6 @@ function CubeSatSection() {
   const [orbitCycle, setOrbitCycle] = useState(45)
   const [thermalAnchors, setThermalAnchors] = useState<ThermalAnchorMap>(thermalAnchorFallbacks)
   const [compactThermalAnnotations, setCompactThermalAnnotations] = useState(false)
-  const [thermalViewerReady, setThermalViewerReady] = useState(false)
 
   useEffect(() => {
     const query = window.matchMedia('(max-width: 700px)')
@@ -5104,7 +4998,6 @@ function CubeSatSection() {
   const updateThermalAnchors = (anchors: ThermalAnchorMap) => {
     setThermalAnchors(anchors)
   }
-  const markThermalViewerReady = useCallback(() => setThermalViewerReady(true), [])
   const thermalCallouts = useMemo(
     () => createThermalCalloutPositions(thermalAnchors, compactThermalAnnotations),
     [compactThermalAnnotations, thermalAnchors],
@@ -5146,18 +5039,12 @@ function CubeSatSection() {
         </div>
 
         <div className={`cubesat-scene ${sunlight ? 'is-sunlit' : 'is-eclipse'}`}>
-          <AnimatePresence>
-            {!thermalViewerReady && (
-              <EngineeringHandoff key="cubesat-thermal-handoff" handoff={engineeringHandoffs.hvacToCubesat} />
-            )}
-          </AnimatePresence>
           <div className="orbit-lines" />
           <CubeSatThermalViewer
             sunlight={sunlight}
             orbitMinutes={orbitCycle}
             thermal={thermal}
             onAnchorUpdate={updateThermalAnchors}
-            onReady={markThermalViewerReady}
           />
           <ThermalLeaderLines anchors={thermalAnchors} callouts={thermalCallouts} />
           <ThermalCallout className="temp-x" label="+X face" value={thermal.xFace} position={thermalCallouts.xFace} />

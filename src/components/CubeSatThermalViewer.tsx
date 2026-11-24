@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { notifyCubesatReady } from '../sceneReadiness'
 import { useNearViewport } from '../useNearViewport'
 import ModelInteractionCoach, { useModelInteractionCoach } from './ModelInteractionCoach'
 
@@ -22,7 +21,6 @@ type CubeSatThermalViewerProps = {
   orbitMinutes: number
   thermal: ThermalTelemetry
   onAnchorUpdate: (anchors: ThermalAnchorMap) => void
-  onReady?: () => void
 }
 
 type CubeSatSceneStatus = 'waiting' | 'preparing' | 'loaded' | 'recovering' | 'fallback' | 'model-error'
@@ -1037,7 +1035,6 @@ export default function CubeSatThermalViewer({
   orbitMinutes,
   thermal,
   onAnchorUpdate,
-  onReady,
 }: CubeSatThermalViewerProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
   const shouldMountScene = useNearViewport(mountRef)
@@ -1049,8 +1046,6 @@ export default function CubeSatThermalViewer({
   const orbitMinutesRef = useRef(orbitMinutes)
   const thermalRef = useRef(thermal)
   const onAnchorUpdateRef = useRef(onAnchorUpdate)
-  const onReadyRef = useRef(onReady)
-  const readyNotifiedRef = useRef(false)
   const runtimeRef = useRef<{
     primaryLight?: import('three').DirectionalLight
     fillLight?: import('three').HemisphereLight
@@ -1072,17 +1067,6 @@ export default function CubeSatThermalViewer({
   useEffect(() => {
     onAnchorUpdateRef.current = onAnchorUpdate
   }, [onAnchorUpdate])
-
-  useEffect(() => {
-    onReadyRef.current = onReady
-  }, [onReady])
-
-  const notifyReadyOnce = () => {
-    if (readyNotifiedRef.current) return
-    readyNotifiedRef.current = true
-    onReadyRef.current?.()
-    notifyCubesatReady()
-  }
 
   useEffect(() => {
     if (!shouldMountScene) return
@@ -1310,7 +1294,6 @@ export default function CubeSatThermalViewer({
           return
         }
         setSceneStatus('fallback')
-        notifyReadyOnce()
       }
 
       const verifyRenderedFrame = () => {
@@ -1320,7 +1303,6 @@ export default function CubeSatThermalViewer({
         if (hasVisibleCanvasPixels(renderer.domElement, renderer.getContext())) {
           renderVerified = true
           setSceneStatus('loaded')
-          notifyReadyOnce()
           return
         }
         if (renderProbeFrames >= 150) {
@@ -1408,7 +1390,6 @@ export default function CubeSatThermalViewer({
         return
       }
       setSceneStatus('fallback')
-      notifyReadyOnce()
     })
 
     return () => {
