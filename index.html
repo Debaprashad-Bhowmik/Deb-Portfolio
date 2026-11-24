@@ -5,9 +5,185 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Debaprashad Bhowmik | Mechanical Systems, AI Tools, and Useful Things</title>
+    <style>
+      .portfolio-opening {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        overflow: auto;
+        padding: 16px;
+        color: #111c33;
+        background:
+          linear-gradient(#171c3210 1px, transparent 1px) 0 0 / 40px 40px,
+          linear-gradient(90deg, #171c320c 1px, transparent 1px) 0 0 / 40px 40px,
+          #f5f0e8;
+        transition: opacity 170ms ease-out, visibility 170ms;
+      }
+
+      #root:not(:empty) + .portfolio-opening {
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .portfolio-opening-content {
+        width: min(100%, 560px);
+        padding-block: 8px;
+        text-align: center;
+      }
+
+      .portfolio-opening-name {
+        margin: 0;
+        color: #111c33;
+        font: 600 clamp(21px, 3.6vw, 42px)/1.2 Georgia, serif;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+
+      .portfolio-opening-tagline,
+      .portfolio-opening-status {
+        margin: 10px 0 0;
+        color: #3a4f6a;
+        font: 650 clamp(8px, 1.25vw, 11px)/1.6 system-ui, sans-serif;
+        letter-spacing: .19em;
+        text-transform: uppercase;
+      }
+
+      .portfolio-opening-orbit {
+        position: relative;
+        width: min(86%, 420px);
+        height: clamp(195px, 37vh, 350px);
+        margin: 12px auto;
+      }
+
+      .portfolio-opening-orbit::before,
+      .portfolio-opening-orbit::after {
+        position: absolute;
+        inset: 6% 14%;
+        border: 1px dashed #4b64b440;
+        border-radius: 50%;
+        content: '';
+      }
+
+      .portfolio-opening-orbit::after {
+        inset: 0 9%;
+        border-style: dotted;
+        border-color: #4b64b42a;
+      }
+
+      .portfolio-opening-core,
+      .portfolio-opening-pill {
+        position: absolute;
+        z-index: 1;
+        transform: translate(-50%, -50%);
+      }
+
+      .portfolio-opening-core {
+        top: 50%;
+        left: 50%;
+        width: clamp(86px, 14vw, 132px);
+        height: auto;
+      }
+
+      .portfolio-opening-pill {
+        top: var(--pill-top);
+        left: var(--pill-left);
+        padding: 6px 10px;
+        border: 1px solid #171c3226;
+        border-radius: 20px;
+        color: #111c33;
+        background: #fffaf2;
+        box-shadow: 0 3px 10px #1e1a1214;
+        font: 700 clamp(8px, 1.17vw, 11px)/1.2 system-ui, sans-serif;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .portfolio-opening-quote {
+        margin: 4px auto 16px;
+        color: #1a2640;
+        font: italic clamp(14px, 1.65vw, 18px)/1.5 Georgia, serif;
+      }
+
+      .portfolio-opening-bar {
+        width: min(62%, 320px);
+        height: 3px;
+        margin: 0 auto;
+        overflow: hidden;
+        border-radius: 3px;
+        background: #171c3214;
+      }
+
+      .portfolio-opening-bar::before {
+        display: block;
+        width: 33%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #3366e6, #5eb8ff);
+        content: '';
+        animation: portfolio-opening-slide 1.15s ease-in-out infinite;
+      }
+
+      #root:not(:empty) + .portfolio-opening .portfolio-opening-bar::before {
+        animation-play-state: paused;
+      }
+
+      @keyframes portfolio-opening-slide {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(305%); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .portfolio-opening { transition: none !important; }
+        .portfolio-opening-bar::before { animation: none; }
+      }
+    </style>
+    <noscript><style>.portfolio-opening-status, .portfolio-opening-bar { display: none; }</style></noscript>
   </head>
   <body>
     <div id="root"></div>
+    <div class="portfolio-opening">
+      <div class="portfolio-opening-content">
+        <p class="portfolio-opening-name">Debaprashad Bhowmik</p>
+        <p class="portfolio-opening-tagline">Mechanical systems · AI tools · Weird useful things</p>
+        <div class="portfolio-opening-orbit" aria-hidden="true">
+          <svg class="portfolio-opening-core" viewBox="0 0 200 200" focusable="false">
+            <defs>
+              <linearGradient id="opening-metal" x2="100%" y2="100%">
+                <stop stop-color="#c0c8d0" />
+                <stop offset=".3" stop-color="#e8ecf0" />
+                <stop offset=".5" stop-color="#9aa4b0" />
+                <stop offset=".75" stop-color="#dde2e8" />
+                <stop offset="1" stop-color="#a8b0b8" />
+              </linearGradient>
+              <radialGradient id="opening-face" cy="45%">
+                <stop stop-color="#1a2640" />
+                <stop offset="1" stop-color="#0d1520" />
+              </radialGradient>
+            </defs>
+            <circle cx="100" cy="100" r="92" fill="none" stroke="url(#opening-metal)" stroke-width="6" />
+            <circle cx="100" cy="100" r="80" fill="none" stroke="url(#opening-metal)" stroke-width="5" />
+            <circle cx="100" cy="100" r="75" fill="none" stroke="#8890a0" stroke-width="2" stroke-dasharray="1 6.8" />
+            <circle cx="100" cy="100" r="68" fill="url(#opening-face)" stroke="#4b8bff" stroke-width="1" />
+            <circle cx="100" cy="100" r="58" fill="none" stroke="#4b7cff" stroke-width=".5" />
+            <text x="100" y="112" text-anchor="middle" fill="#e8ecf4" font-family="Georgia, serif" font-size="36" font-weight="600" letter-spacing="3">DB</text>
+          </svg>
+          <span class="portfolio-opening-pill" style="--pill-top: 7%; --pill-left: 50%">CAD</span>
+          <span class="portfolio-opening-pill" style="--pill-top: 27%; --pill-left: 82%">AI tools</span>
+          <span class="portfolio-opening-pill" style="--pill-top: 73%; --pill-left: 82%">Simulation</span>
+          <span class="portfolio-opening-pill" style="--pill-top: 93%; --pill-left: 50%">Digital twin</span>
+          <span class="portfolio-opening-pill" style="--pill-top: 73%; --pill-left: 18%">Thermal</span>
+          <span class="portfolio-opening-pill" style="--pill-top: 27%; --pill-left: 18%">Biomedical</span>
+        </div>
+        <p class="portfolio-opening-quote">“I’m obsessed with building things right<br />because details decide everything.”</p>
+        <div class="portfolio-opening-bar" aria-hidden="true"></div>
+        <p class="portfolio-opening-status" role="status">Loading portfolio…</p>
+        <noscript><p>Enable JavaScript to browse the portfolio.</p></noscript>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
