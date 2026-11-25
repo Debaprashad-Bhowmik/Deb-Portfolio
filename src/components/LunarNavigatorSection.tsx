@@ -128,7 +128,7 @@ export default function LunarNavigatorSection() {
       <LunarScene />
 
       <div className="lunar-case-footer">
-        <p>The estimates use NASA terrain maps and NASA/JPL data on where the Sun and Earth will be. The results help find places worth a closer look.</p>
+        <p>The estimates use NASA terrain maps and NASA/JPL data on where the Sun and Earth will be. The star field comes from NASA Goddard and fades when the view is exposed for sunlit terrain.</p>
         <nav aria-label="Lunar Landing Site Navigator links">
           <a href={`${liveApp}#mission`} target="_blank" rel="noreferrer">Open full app <ArrowUpRight size={15} aria-hidden="true" /></a>
           <a href="https://github.com/Debaprashad-Bhowmik/project-astralis" target="_blank" rel="noreferrer">Source code <ArrowUpRight size={15} aria-hidden="true" /></a>

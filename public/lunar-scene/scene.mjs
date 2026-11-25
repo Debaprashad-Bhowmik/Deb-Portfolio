@@ -1,8 +1,9 @@
 import { createGlobe, globeOrientation } from './globe.mjs'
 import { binaryFrames, frameAt, siteSkyModel, siteSolarPower } from './planner.mjs'
 import { createSpaceView, readSpaceSamples, spaceStep } from './space-view.mjs'
-import { createSurfaceView, loadSurfaceMesh } from './surface-view.mjs'
+import { createSurfaceView, loadSurfaceMesh, surfaceHorizon, surfacePaths } from './surface-view.mjs'
 import { siteFlightCenter, surfaceFlightFrame } from './viewer-flight.mjs'
+import { createStarSky } from './star-sky.mjs'
 
 const stage = document.getElementById('scene')
 const layers = Object.fromEntries(['orbit', 'map', 'surface'].map(mode => [mode, document.getElementById(mode)]))
@@ -21,11 +22,20 @@ let phase = 'loading'
 let message = ''
 let distance = 0
 let mission, orbit, globe, surface, ephemeris, start, end, site, terrainSite, worker
+let drawStarSky
 let clock = 0
 let sky = []
 let request = 0
-let searchEpoch
+let pendingWindow, activeWindow
+let showMissionPaths = false
+let guideFrames, localGuides
 const candidates = new Map()
+const catalogSites = new Map()
+const catalogNames = {
+  odysseus: 'Odysseus · Malapert A',
+  athena: 'Athena · Mons Mouton',
+  mouton: 'Mons Mouton Plateau',
+}
 let recommendations = []
 const post = data => parent.postMessage(data, origin)
 const sendState = () => post({ type: 'lunar-scene-state', mode, phase, message, distance, sky, siteName: site?.displayName ?? '' })
@@ -33,9 +43,30 @@ const hour = 3_600_000
 const orbitIndex = () => (clock - start) / (spaceStep * 1000)
 const skyVectors = () => frameAt(ephemeris, (clock - start) / (mission.step * 1000))
 
+function refreshMissionPaths() {
+  guideFrames = null
+  localGuides = null
+  if (showMissionPaths && activeWindow) {
+    const { epoch, duration } = activeWindow
+    const first = (epoch - start) / (mission.step * 1000)
+    const span = duration * 3600 / mission.step
+    const intervals = Math.min(720, Math.ceil(span))
+    guideFrames = Array.from({ length: intervals + 1 }, (_, i) => frameAt(ephemeris, first + i / intervals * span))
+  }
+  orbit.setMissionPaths(guideFrames)
+}
+
+function surfaceMissionPaths() {
+  if (!guideFrames) return null
+  if (localGuides?.site !== site) {
+    localGuides = { site, paths: surfacePaths(guideFrames.map(siteSkyModel(site, true)), 1) }
+  }
+  return localGuides.paths
+}
+
 function sendComparison(vectors = skyVectors()) {
-  const samples = Object.fromEntries([...candidates].map(([id, candidate]) => {
-    const sample = siteSkyModel(candidate, true)(vectors)
+  const samples = Object.fromEntries([...catalogSites, ...candidates].map(([id, location]) => {
+    const sample = siteSkyModel(location, true)(vectors)
     return [id, {
       sun: sample.sunEl,
       sunStatus: sample.eclipse ? 'Eclipsed' : sample.sunEl > sample.sunHorizon ? 'In view' : 'Blocked',
@@ -44,7 +75,9 @@ function sendComparison(vectors = skyVectors()) {
       power: siteSolarPower(sample),
     }]
   }))
-  post({ type: 'lunar-scene-comparison', snapshot: { epoch: clock, vectors, samples } })
+  post({ type: 'lunar-scene-comparison', snapshot: {
+    epoch: clock, vectors, samples, rotation: orbit.lunarRotation(orbitIndex()),
+  } })
 }
 
 function syncMapCamera(camera = globe.camera()) {
@@ -68,13 +101,14 @@ function updateSky() {
   orbit(orbitIndex(), site, null, clock, mode === 'orbit')
   if (mode === 'map') globe.draw()
   if (terrainSite === site.id) {
-    surface.update(siteSkyModel(site, true)(vectors), null, clock, orbit.lunarRotation(orbitIndex()))
+    surface.update(siteSkyModel(site, true)(vectors), surfaceMissionPaths(), clock, orbit.lunarRotation(orbitIndex()))
   }
   sendComparison(vectors)
 }
 
 function updateMarkers() {
-  const markers = new Map(recommendations.map(({ id }) => [id, candidates.get(id)]))
+  const markers = new Map(catalogSites)
+  for (const { id } of recommendations) markers.set(id, candidates.get(id))
   markers.set(site.id, site)
   globe.setSites([...markers.values()], site.id)
 }
@@ -122,7 +156,7 @@ async function prepareSurface() {
       if (rounded === distance) return
       distance = rounded
       if (phase === 'ready') sendState()
-    })
+    }, drawSurfaceSky)
   surface.setTerrain(terrain.mesh, terrain.site, 0)
   terrainSite = site.id
   updateSky()
@@ -138,26 +172,24 @@ async function flySurface(reverse) {
   const layer = layers.surface
   if (!reverse) surface.returnToLanding()
   setView('map')
-  stage.dataset.descent = ''
   layer.inert = false
-  try {
-    await animate(reverse ? 2500 : 3100, progress => {
-      const t = reverse ? 1 - progress : progress
-      const frame = surfaceFlightFrame(t, options)
+  function renderFlight(t) {
+    const frame = surfaceFlightFrame(t, options)
+    const terrainCoversMap = frame.surfaceOpacity >= 1
+    stage.dataset.descent = terrainCoversMap ? 'terrain' : 'approach'
+    layer.style.opacity = String(frame.surfaceOpacity)
+    if (!terrainCoversMap) {
       const center = siteFlightCenter(frame.alignment, mapCenter, site)
-      layer.style.opacity = String(frame.surfaceOpacity)
-      layer.style.filter = `blur(${frame.blur.toFixed(2)}px) saturate(${.25 + .75 * frame.detailReveal})`
-      layers.map.style.filter = `blur(${frame.blur.toFixed(2)}px)`
-      if (frame.surfaceOpacity < 1) {
-        globe.flight({ moving: true, radius: frame.mapRadius, orientation: globeOrientation(center.lat, center.lon) })
-      }
-      if (frame.surfaceOpacity > 0) surface.flight({ ...frame, moving: true })
-    })
+      globe.flight({ moving: true, radius: frame.mapRadius, orientation: globeOrientation(center.lat, center.lon) })
+    }
+    if (frame.surfaceOpacity > 0) surface.flight({ ...frame, moving: true })
+  }
+  try {
+    if (!reducedMotion.matches) renderFlight(reverse ? 1 : 0)
+    await animate(reverse ? 2500 : 3100, progress => renderFlight(reverse ? 1 - progress : progress))
   } finally {
     delete stage.dataset.descent
     layer.style.removeProperty('opacity')
-    layer.style.removeProperty('filter')
-    layers.map.style.removeProperty('filter')
     surface.flight(eye)
   }
   globe.landCamera(site)
@@ -172,6 +204,9 @@ async function changeView(next, target = site) {
   setView(mode)
   sendState()
   try {
+    if (next === 'surface' && !target.horizon) {
+      target = { ...target, ...await surfaceHorizon(target.lat, target.lon) }
+    }
     if (mode === 'orbit') await flyOrbit(false)
     if (mode === 'surface') await flySurface(true)
     if (site.id !== target.id) {
@@ -198,6 +233,9 @@ const makeControl = (tag, state = {}) => Object.assign(document.createElement(ta
 const makeButton = (value = '') => makeControl('button', { value })
 const orbitControls = {
   labels: document.getElementById('orbit-labels'),
+  starSky(view) {
+    if (mode !== 'surface' && stage.dataset.descent !== 'terrain') drawStarSky?.(view)
+  },
   moonCamera(camera) { if (mode === 'orbit') globe.flight(camera) },
   mapBodies(bodies) {
     if (sky.join('|') === bodies.join('|')) return
@@ -211,11 +249,23 @@ const orbitControls = {
   links: makeControl('input'), yearLabel: document.createElement('span'),
 }
 
+function drawSurfaceSky(view) {
+  // By the handoff the camera is pointing down and the terrain fills the view.
+  if (mode === 'surface' || stage.dataset.descent === 'terrain') drawStarSky?.(view)
+}
+
 const activeCanvas = () => ({ orbit: orbitCanvas, map: moonCanvas, surface: surfaceCanvas })[mode]
 
-function selectCandidate(id) {
-  const candidate = candidates.get(id) ?? (site.id === id ? site : null)
-  if (candidate) void changeView('surface', candidate)
+function visitSite(id) {
+  const location = catalogSites.get(id) ?? candidates.get(id) ?? (site.id === id ? site : null)
+  if (location) void changeView('surface', location)
+}
+
+function visitMapPoint({ lat, lon }) {
+  const id = `point-${lat.toFixed(6)}/${lon.toFixed(6)}`
+  const coordinate = (value, positive, negative) => `${Math.abs(value).toFixed(3)}°${value < 0 ? negative : positive}`
+  const displayName = `${coordinate(lat, 'N', 'S')}, ${coordinate(lon, 'E', 'W')}`
+  void changeView('surface', site.id === id ? site : { id, displayName, kind: 'Map point', lat, lon })
 }
 
 function findCandidates({ epoch, duration, maxSlope } = {}) {
@@ -225,7 +275,7 @@ function findCandidates({ epoch, duration, maxSlope } = {}) {
     post({ type: 'lunar-scene-search-error', message: 'Choose a mission within 2024–2030 and a slope limit from 0.1° to 45°.' })
     return
   }
-  searchEpoch = epoch
+  pendingWindow = { epoch, duration }
   try {
     if (!worker) {
       worker = new Worker(new URL('./landing-suggestions-worker.mjs', import.meta.url), { type: 'module' })
@@ -235,21 +285,25 @@ function findCandidates({ epoch, duration, maxSlope } = {}) {
           post({ type: 'lunar-scene-search-error', message: data.error })
         } else if (data.result) {
           const { winners, rows, flattest, summaries, evaluated } = data.result
-          clock = searchEpoch
+          activeWindow = pendingWindow
+          clock = activeWindow.epoch
           candidates.clear()
           for (const patch of [...Object.values(winners), ...rows, flattest].filter(Boolean)) {
             candidates.set(patch.id, { ...patch, kind: 'Landing suggestion', displayName: 'Patch ' + patch.id.split('-').at(-1) })
           }
           recommendations = Object.entries(winners).flatMap(([priority, patch]) =>
             patch ? [{ priority, id: patch.id, qualifies: summaries[priority].qualified > 0 }] : [])
-          const patches = [...candidates.values()].map(patch => {
-            const { id, displayName: name, slope, lat, lon, energyKwh: energy, longestEarthHours: earthHours,
-              earthHours: earthTotal, sunHours, sunWindows, earthWindows, averageWatts, longestEarthGap } = patch
-            return { id, name, slope, lat, lon, energy, earthHours, earthTotal, sunHours,
-              sunWindows, earthWindows, averageWatts, longestEarthGap }
+          const sites = [...candidates.values(), ...data.catalog].map(location => {
+            const { id, displayName: name, kind, slope = null, lat, lon, energyKwh: energy, longestEarthHours: earthHours,
+              earthHours: earthTotal, sunHours, sunWindows, earthWindows, averageWatts, longestEarthGap } = location
+            const { height, horizon, terrain } = catalogSites.get(id) ?? location
+            return { id, name, kind, slope, lat, lon, energy, earthHours, earthTotal, sunHours,
+              sunWindows, earthWindows, averageWatts, longestEarthGap, surface: { height, horizon, terrain } }
           })
           updateMarkers()
-          post({ type: 'lunar-scene-search-result', recommendations, patches, evaluated, sampled: data.sampled, step: data.step })
+          post({ type: 'lunar-scene-search-result', recommendations, sites, patches: sites.slice(0, candidates.size),
+            evaluated, sampled: data.sampled, step: data.step })
+          refreshMissionPaths()
           updateSky()
           sendState()
         } else {
@@ -262,7 +316,7 @@ function findCandidates({ epoch, duration, maxSlope } = {}) {
         post({ type: 'lunar-scene-search-error', message: 'The search stopped. Run Landing Suggestions to retry.' })
       })
     }
-    worker.postMessage({ request: ++request, ephemeris, duration, maxSlope,
+    worker.postMessage({ request: ++request, ephemeris, duration, maxSlope, catalog: [...catalogSites.values()],
       first: (epoch - start) / (mission.step * 1000), frameHours: mission.step / 3600,
       preference: { mode: 'balanced', minimumShare: 0, body: 'earth' } })
   } catch {
@@ -277,7 +331,12 @@ window.addEventListener('message', event => {
   if (phase !== 'ready') return
   if (action === 'view') void changeView(value)
   if (action === 'search') findCandidates(value)
-  if (action === 'visit') selectCandidate(value)
+  if (action === 'visit') visitSite(value)
+  if (action === 'paths' && typeof value === 'boolean') {
+    showMissionPaths = value
+    refreshMissionPaths()
+    updateSky()
+  }
   if (action === 'clock' && Number.isFinite(value) && value >= start && value <= end) {
     clock = value
     updateSky()
@@ -303,8 +362,9 @@ async function asset(path, format) {
 
 async function startScene() {
   try {
-    const [config, positions, surfacePositions] = await Promise.all([
+    const [config, positions, surfacePositions, locations] = await Promise.all([
       asset('./data/mission.json', 'json'), asset('./data/space-positions.bin', 'arrayBuffer'), asset('./data/ephemeris.bin', 'arrayBuffer'),
+      asset('./data/sites.json', 'json'),
     ])
     mission = config
     start = Date.parse(mission.start)
@@ -312,11 +372,15 @@ async function startScene() {
     site = mission.site
     clock = mission.epoch
     ephemeris = binaryFrames(surfacePositions)
+    for (const location of locations) {
+      catalogSites.set(location.id, { ...location, displayName: catalogNames[location.id] ?? location.name })
+    }
     globe = createGlobe(moonCanvas, document.getElementById('markers'), null, null,
-      mission.mapExtent, selectCandidate, null, null, { detail: false, onCameraChange: syncMapCamera })
+      mission.mapExtent, visitSite, visitMapPoint, null, { detail: false, onCameraChange: syncMapCamera })
     updateMarkers()
     globe.landCamera(mapStart)
     orbit = createSpaceView(orbitCanvas, readSpaceSamples(positions, start, end), orbitControls)
+    drawStarSky = createStarSky(document.getElementById('star-sky'))
     updateSky()
     phase = 'ready'
     setView('map')

@@ -44,7 +44,7 @@ export function createOrbitalBodies(canvas) {
         // fully occulted Sun has no glare. Its physical disk is never enlarged.
         float sr=length(cross(ray,normalize(sun.xyz)))*length(sun.xyz)/sun.w;
         if(dot(ray,sun.xyz)>0. && sr>1. && sr<4.) {
-          float glow=exp(-(sr-1.)*3.)*.28;
+          float glow=exp(-(sr-1.)*3.)*.28*sunGlow;
           color=vec4(vec3(1.,.84,.55)*glow,glow);
         }
       }

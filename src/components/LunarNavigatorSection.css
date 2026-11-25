@@ -527,6 +527,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+.lunar-path-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding-inline: 4px 10px;
+  color: #e3ebf4;
+}
+
+.lunar-path-toggle input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #91b6ff;
+  color-scheme: dark;
+}
+
 .lunar-comparison {
   padding: 0 22px;
   border-top: 1px solid #354555;
@@ -655,6 +672,14 @@
   align-items: center;
   gap: 4px;
   min-height: 26px;
+}
+
+.lunar-comparison-surface-help {
+  min-height: 26px;
+  margin: 0;
+  padding-block: 5px;
+  color: #bbc9d4;
+  font-size: 11px;
 }
 
 .lunar-comparison-layers input {

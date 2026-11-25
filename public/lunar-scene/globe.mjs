@@ -1,4 +1,5 @@
 import { sphereIntersectionGLSL } from './orbital-geometry.mjs'
+import { earthshine } from './lunar-light.mjs'
 import { astronomicalUnit, earthRadius, radius, referencePanelPower, sunRadius } from './planner.mjs'
 import { coveragePalette, solarPowerPalette, solarPowerScaleMax, totalityPossible, visibilityRequirements } from './coverage-map.mjs'
 import { artemisSouthLatitude, overlapColors } from './mission-heat.mjs'
@@ -72,6 +73,7 @@ uniform vec3 east;
 uniform vec3 north;
 uniform vec3 front;
 uniform vec3 sun, earth;
+uniform float earthshine;
 uniform bool dayNight;
 uniform vec2 visibility;
 uniform bool showPower, showHeat, colorByPower;
@@ -217,7 +219,8 @@ void main() {
       if(separation+asin(${(sunRadius/radius).toFixed(8)}/length(sun-normal))<=asin(${(earthRadius/radius).toFixed(8)}/length(earth-normal))) illuminated=false;
     }
     float diffuse=illuminated?sqrt(max(0.0,incidence)):0.0;
-    surface=reflectance*(vec3(.025,.028,.035)+vec3(1.12)*diffuse);
+    float reflected=sqrt(earthshine*max(0.0,dot(slope,normalize(earth-normal))));
+    surface=reflectance*(vec3(.025,.028,.035)+vec3(1.12)*diffuse+vec3(.80,.91,1.0)*reflected);
   }
   if (analysis && latitude <= northLatitude) {
     vec4 heat = vec4(0.0);
@@ -302,7 +305,7 @@ export function createGlobe(canvas, markerLayer, featureCanvas, poleMarker, pola
   gl.enableVertexAttribArray(point)
   gl.vertexAttribPointer(point, 2, gl.FLOAT, false, 0, 0)
   const uniforms = Object.fromEntries(['viewport', 'sphereRadius', 'sphereCenter', 'foregroundBody', 'orbitMoon', 'orbitEarth', 'orbitSun', 'orbitLens', 'orbitMapBlend', 'annotations', 'analysis', 'terrainAnalysis', 'east', 'north', 'front',
-    'sun', 'earth', 'dayNight', 'visibility', 'showPower', 'showHeat', 'colorByPower', 'possibleEclipse', 'lunarMap', 'polarRelief', 'missionHeat', 'northLatitude', 'heatHeight', 'powerMax',
+    'sun', 'earth', 'earthshine', 'dayNight', 'visibility', 'showPower', 'showHeat', 'colorByPower', 'possibleEclipse', 'lunarMap', 'polarRelief', 'missionHeat', 'northLatitude', 'heatHeight', 'powerMax',
     'globalElevation','elevationReady','tileReady','imageBounds','polarExtent', 'detailHeat', 'detailEast', 'detailNorth', 'detailFront', 'detailSize', 'showDetail', 'heatContrast', 'regionNorthLatitude', ...polarUniforms].map(name => [name, gl.getUniformLocation(program, name)]))
   gl.uniform1f(uniforms.regionNorthLatitude, regionNorthLatitude * rad)
   const texture = gl.createTexture()
@@ -543,7 +546,7 @@ export function createGlobe(canvas, markerLayer, featureCanvas, poleMarker, pola
       label.textContent = `${direction} ${title} ${front ? '· near side' : '· far side'}`
       label.style.setProperty('--direction-x', clamp(x * size, 64 - width / 2, width / 2 - 64) + 'px')
       const top = height / 2 + y * size
-      label.style.top = clamp(top, 18, height - 45) + (index * 24) + 'px'
+      label.style.top = clamp(top, 18, height - 52) + (index * 24) + 'px'
     }
   }
 
@@ -656,8 +659,13 @@ export function createGlobe(canvas, markerLayer, featureCanvas, poleMarker, pola
     setLighting(frame) {
       gl.uniform1i(uniforms.dayNight,Number(Boolean(frame)))
       if(frame) {
-        gl.uniform3fv(uniforms.sun,frame[0].map(value=>value/radius))
-        gl.uniform3fv(uniforms.earth,frame[1].map(value=>value/radius))
+        const [sun, earth] = frame
+        const earthToSun = sun.map((value, i) => value - earth[i])
+        const distance = Math.hypot(...earth)
+        const phase = -dot(earthToSun, earth) / (Math.hypot(...earthToSun) * distance)
+        gl.uniform1f(uniforms.earthshine, earthshine(phase, Math.asin(earthRadius / distance)))
+        gl.uniform3fv(uniforms.sun,sun.map(value=>value/radius))
+        gl.uniform3fv(uniforms.earth,earth.map(value=>value/radius))
         gl.uniform1i(uniforms.possibleEclipse,Number(totalityPossible(frame[0],frame[1])))
       }
     },

@@ -1,5 +1,5 @@
 import { evaluate, frameAt } from './planner.mjs'
-import { evaluateLandingPatches, rankLandingScenarios } from './landing-suggestions.mjs?v=1.3.0'
+import { evaluateLandingPatches, landingPower, rankLandingScenarios } from './landing-suggestions.mjs?v=1.3.0'
 
 let patchesPromise
 let currentRequest
@@ -7,7 +7,7 @@ let preference
 let evaluatedMission
 
 function postRanking() {
-  const { rows, frames, duration, step, sampled } = evaluatedMission
+  const { rows, frames, duration, step, sampled, catalog } = evaluatedMission
   const result = rankLandingScenarios(rows, { duration, ...preference })
   // Only send timelines for the handful of displayed patches, not the entire
   // polar inventory. Use exactly the same terrain and sampling as the ranking.
@@ -19,7 +19,7 @@ function postRanking() {
     }
     Object.assign(site, windows.get(site.id))
   }
-  self.postMessage({ request: currentRequest, result, preference, step, sampled })
+  self.postMessage({ request: currentRequest, result, preference, step, sampled, catalog })
 }
 
 function loadPatches() {
@@ -40,7 +40,7 @@ function loadPatches() {
 }
 
 self.addEventListener('message', async ({ data }) => {
-  const { request, ephemeris, first, frameHours, duration, maxSlope } = data
+  const { request, ephemeris, first, frameHours, duration, maxSlope, catalog } = data
   if (data.rankOnly) {
     if (request !== currentRequest) return
     preference = data.preference
@@ -64,7 +64,11 @@ self.addEventListener('message', async ({ data }) => {
       return currentRequest === request
     })
     if (rows && currentRequest === request) {
-      evaluatedMission = { rows, frames, duration, step, sampled: patches.length }
+      const catalogMetrics = (catalog ?? []).map(({ id, displayName, kind, lat, lon, height, horizon }) => ({
+        id, displayName, kind, lat, lon,
+        ...landingPower({ lat, lon, height, horizon }, frames, duration, { includeWindows: true }),
+      }))
+      evaluatedMission = { rows, frames, duration, step, sampled: patches.length, catalog: catalogMetrics }
       postRanking()
     }
   } catch (error) {

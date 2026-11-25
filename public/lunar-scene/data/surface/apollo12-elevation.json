@@ -1,0 +1,17 @@
+{
+  "product": "NAC_DTM_APOLLO12",
+  "file": "apollo12-elevation.bin.gz",
+  "spacing": 2.0000000000006,
+  "left": 4740440.000001401,
+  "top": -90334.00000002715,
+  "width": 1024,
+  "height": 1024,
+  "scale": 0.05,
+  "offset": -1448.0,
+  "centralMeridian": 180,
+  "standardParallel": -3,
+  "latitudeOfOrigin": 0,
+  "falseEasting": 0,
+  "falseNorthing": 0,
+  "radius": 1737400
+}

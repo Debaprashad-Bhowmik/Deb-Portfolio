@@ -1,7 +1,8 @@
-export type Patch = {
+export type MissionSite = {
   id: string
   name: string
-  slope: number
+  kind: string
+  slope: number | null
   lat: number
   lon: number
   energy: number
@@ -12,15 +13,17 @@ export type Patch = {
   earthWindows: [number, number][]
   averageWatts: number
   longestEarthGap: number
+  surface?: { height: number; horizon: number[]; terrain?: string }
 }
 
 export const priorityLabels = { earth: 'Best communications', solar: 'Best solar power', balanced: 'Best balance' }
 export type Priority = keyof typeof priorityLabels
 export type Recommendation = { priority: Priority; id: string; qualifies: boolean }
-export type Rankings = { patches: Patch[]; recommendations: Recommendation[] }
+export type Rankings = { sites: MissionSite[]; recommendations: Recommendation[] }
 export type ComparisonSnapshot = {
   epoch: number
   vectors: [number[], number[]]
+  rotation?: [number, number, number, number]
   samples: Record<string, {
     sun: number
     sunStatus: string

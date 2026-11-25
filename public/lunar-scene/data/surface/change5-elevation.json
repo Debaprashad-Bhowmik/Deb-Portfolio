@@ -1,0 +1,17 @@
+{
+  "product": "NAC_DTM_CHANGE501",
+  "file": "change5-elevation.bin.gz",
+  "spacing": 2.999999999999,
+  "left": 2838989.9999990994,
+  "top": 1307186.9999996007,
+  "width": 1024,
+  "height": 1024,
+  "scale": 0.05,
+  "offset": -2600.0,
+  "centralMeridian": 180,
+  "standardParallel": 43,
+  "latitudeOfOrigin": 0,
+  "falseEasting": 0,
+  "falseNorthing": 0,
+  "radius": 1737400
+}

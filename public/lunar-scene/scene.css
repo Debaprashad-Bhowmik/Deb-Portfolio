@@ -1,6 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #scene { width: 100%; height: 100%; margin: 0; overflow: hidden; }
-body { color: #edf2f7; background: #07090e; }
+body { color: #edf2f7; background: #000; }
 #scene { position: relative; isolation: isolate; }
 .viewer-layer, canvas, #markers { position: absolute; inset: 0; width: 100%; height: 100%; }
 .viewer-layer[inert] { pointer-events: none; }
@@ -9,13 +9,15 @@ canvas[tabindex]:active { cursor: grabbing; }
 canvas:focus-visible { outline: 2px solid #a3c5ff; outline-offset: -4px; }
 #orbit { z-index: 1; }
 #map { z-index: 2; }
-#surface { z-index: 3; background: #050507; }
+#surface { z-index: 3; }
 #scene[data-view="surface"] #orbit,
 #scene[data-view="surface"] #map,
+#scene[data-descent="terrain"] #orbit,
+#scene[data-descent="terrain"] #map,
 #scene:not([data-view="surface"]):not([data-descent]) #surface { visibility: hidden; }
 #scene[data-descent] #surface { pointer-events: none; }
 #scene[data-moving] { pointer-events: none; }
-#orbit-labels, #surface-sky, #surface-labels, #markers { pointer-events: none; }
+#star-sky, #orbit-labels, #surface-sky, #surface-labels, #markers { pointer-events: none; }
 #orbit-labels { z-index: 1; }
 #texture-credit {
   position: absolute;

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lunar site comparison surface</title>
+  <link rel="stylesheet" href="./scene.css">
+  <script type="module" src="./compare-surface.mjs"></script>
+</head>
+<body>
+  <main id="scene" data-view="surface">
+    <canvas id="star-sky" aria-hidden="true"></canvas>
+    <div class="viewer-layer" id="surface">
+      <canvas id="surface-sky" aria-hidden="true"></canvas>
+      <canvas id="surface-canvas" tabindex="0" aria-label="Lunar terrain. Drag to look. Use W, A, S and D to walk."></canvas>
+      <canvas id="surface-labels" aria-hidden="true"></canvas>
+    </div>
+  </main>
+</body>
+</html>

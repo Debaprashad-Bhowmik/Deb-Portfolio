@@ -12,6 +12,10 @@ export function rotateBodyVector(vector, [scalar, x, y, z], inverse = false) {
   return vector.map((value, i) => value + scalar * t[i] + term[i])
 }
 
+export function eclipticToEquatorial([x, y, z]) {
+  return [x, y * cosObliquity - z * sinObliquity, y * sinObliquity + z * cosObliquity]
+}
+
 export function earthOrientation(epoch) {
   // Greenwich mean sidereal angle. UTC approximates UT1 and the equator is fixed at J2000.
   const days = (epoch - Date.UTC(2000, 0, 1, 12)) / day
@@ -20,9 +24,9 @@ export function earthOrientation(epoch) {
   const angle = (degrees % 360) * Math.PI / 180
   const cosAngle = Math.cos(angle)
   const sinAngle = Math.sin(angle)
-  return ([x, y, z]) => {
-    const yEquator = y * cosObliquity - z * sinObliquity
-    return [cosAngle * x + sinAngle * yEquator, -sinAngle * x + cosAngle * yEquator, y * sinObliquity + z * cosObliquity]
+  return vector => {
+    const [x, y, z] = eclipticToEquatorial(vector)
+    return [cosAngle * x + sinAngle * y, -sinAngle * x + cosAngle * y, z]
   }
 }
 

@@ -3,7 +3,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Minus, Plus, RotateCcw } fro
 import { useNearViewport } from '../useNearViewport'
 import LunarComparison from './LunarComparison'
 import LunarMissionTimeline, { type MissionTimeline } from './LunarMissionTimeline'
-import { coordinate, hour, metric, missionTimeStep, priorityLabels, utc, type ComparisonSnapshot, type Priority, type Rankings } from './lunarMission'
+import { coordinate, hour, metric, missionTimeStep, priorityLabels, utc, type ComparisonSnapshot, type MissionSite, type Priority, type Rankings } from './lunarMission'
 
 const views = [
   { id: 'orbit', name: 'Orbit' },
@@ -56,6 +56,7 @@ export default function LunarScene() {
   const [mission, setMission] = useState(defaultMission)
   const [elapsed, setElapsed] = useState(0)
   const [playing, setPlaying] = useState(false)
+  const [showMissionPaths, setShowMissionPaths] = useState(false)
   const [searching, setSearching] = useState(false)
   const [searchStatus, setSearchStatus] = useState('')
   const [rankings, setRankings] = useState<Rankings | null>(null)
@@ -65,8 +66,8 @@ export default function LunarScene() {
   const onSurface = scene.mode === 'surface'
   const sceneTime = mission.epoch + elapsed * hour
 
-  const command = useCallback((action: 'status' | 'view' | 'reset' | 'focus' | 'walk' | 'zoom' | 'search' | 'visit' | 'clock',
-    value?: string | number | typeof defaultMission) => {
+  const command = useCallback((action: 'status' | 'view' | 'reset' | 'focus' | 'walk' | 'zoom' | 'search' | 'visit' | 'clock' | 'paths',
+    value?: string | number | boolean | typeof defaultMission) => {
     frame.current?.contentWindow?.postMessage({ type: 'lunar-scene-command', action, value }, window.location.origin)
   }, [])
 
@@ -96,7 +97,8 @@ export default function LunarScene() {
         setMission(pendingMission.current)
         setElapsed(0)
         setSnapshot(null)
-        setRankings(data.recommendations.length > 0 ? { recommendations: data.recommendations, patches: data.patches } : null)
+        const sites = data.sites ?? data.patches.map((patch: MissionSite) => ({ ...patch, kind: 'Landing suggestion' }))
+        setRankings({ recommendations: data.recommendations, sites })
         setSearchStatus(data.evaluated
           ? `${metric(data.evaluated, 0)} of ${metric(data.sampled, 0)} patches passed the slope screen. ${data.step < 1 ? `${Math.round(data.step * 60)} min` : `${metric(data.step, 1)} h`} samples.`
           : 'No patch passes this slope screen. Try a higher limit.')
@@ -156,11 +158,6 @@ export default function LunarScene() {
     },
   }
 
-  function visitFromComparison(id: string) {
-    stage.current?.scrollIntoView({ block: 'center' })
-    command('visit', id)
-  }
-
   function search(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!ready || searching) return
@@ -212,15 +209,15 @@ export default function LunarScene() {
             {searching ? 'Finding patches…' : 'Landing Suggestions'}
           </button>
         </div>
-        <p id="lunar-mission-help">Set a date and mission window, then run Landing Suggestions. Select a patch to fly down. On Surface, drag to look and use <strong>WASD</strong> or the on-screen arrows to walk.</p>
+        <p id="lunar-mission-help">Set a date and mission window, then run Landing Suggestions. On Surface, drag to look and use <strong>WASD</strong> or the on-screen arrows to walk.</p>
         {searchStatus && <p role="status" className="lunar-search-status">{searchStatus}</p>}
       </form>
       {rankings && (
         <div className="lunar-suggestions" aria-label="Recommended landing patches">
           {priorityOrder.map(priority => {
             const recommendation = rankings.recommendations.find(option => option.priority === priority)
-            const patch = rankings.patches.find(option => option.id === recommendation?.id)
-            if (!patch || !recommendation) return null
+            const patch = rankings.sites.find(option => option.id === recommendation?.id)
+            if (!patch || !recommendation || patch.slope === null) return null
             return (
               <button type="button" className="lunar-suggestion" key={priority} disabled={!ready || searching}
                 onClick={() => command('visit', patch.id)} aria-label={`${priorityLabels[priority]} · Fly to ${patch.name}`}>
@@ -261,6 +258,7 @@ export default function LunarScene() {
               setSlope(String(defaultMission.maxSlope))
               setMission(defaultMission)
               setElapsed(0)
+              setShowMissionPaths(false)
               setRankings(null)
               setSnapshot(null)
               setSearchStatus('')
@@ -279,10 +277,20 @@ export default function LunarScene() {
       <LunarMissionTimeline context="main" {...timeline} />
       <div className="lunar-scene-toolbar">
         <p id="lunar-viewer-controls-help">
-          {onSurface ? 'Drag or use the arrow keys to look around.' : 'Drag to rotate the view.'}
+          {onSurface ? 'Drag or use the arrow keys to look around.' : scene.mode === 'map'
+            ? 'Drag to rotate. Click a pin or any spot on the Moon to land.'
+            : 'Drag to rotate the view.'}
           {onSurface && <span className="lunar-distance">{scene.distance} m from landing point</span>}
         </p>
         <div className="lunar-scene-actions" role="group" aria-label="Scene controls">
+          <label className="lunar-path-toggle" title="Show how the Sun and Earth move over the selected mission">
+            <input type="checkbox" checked={showMissionPaths} disabled={!clockReady || !rankings}
+              onChange={event => {
+                setShowMissionPaths(event.target.checked)
+                command('paths', event.target.checked)
+              }} />
+            Sun &amp; Earth paths
+          </label>
           <button type="button" className="lunar-scene-button" disabled={!ready} aria-controls="lunar-explorer-stage"
             aria-describedby="lunar-viewer-controls-help" onClick={() => command('focus')}>
             {onSurface ? 'Walk with WASD' : 'Rotate with arrow keys'}
@@ -309,8 +317,8 @@ export default function LunarScene() {
         <h3 id="lunar-comparison-title" tabIndex={-1}>Compare landing sites</h3>
         {searching && rankings && <p className="lunar-comparison-message">Finding sites for the new mission…</p>}
         {rankings ? (
-          <LunarComparison key={`${mission.epoch}/${mission.duration}/${mission.maxSlope}`} {...rankings}
-            epoch={mission.epoch} timeline={timeline} snapshot={snapshot} onVisit={visitFromComparison} />
+          <LunarComparison {...rankings}
+            epoch={mission.epoch} timeline={timeline} snapshot={snapshot} />
         ) : (
           <p className="lunar-comparison-message">
             {scene.phase === 'error' ? 'Reload the viewer to compare landing sites.' :

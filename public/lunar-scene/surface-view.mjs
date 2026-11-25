@@ -5,6 +5,7 @@ import { loadPolarGrids, polarProjection, samplePolarGrid } from './polar-shadow
 import { buildSurfaceDetail, surfaceDetailStride } from './surface-detail.mjs?v=3'
 import { surfaceFocalLength } from './viewer-flight.mjs'
 import { createDistantFocus, distantFocusRange } from './surface-focus.mjs?v=1.2.1'
+import { earthshine } from './lunar-light.mjs'
 
 const radians = Math.PI / 180
 const spokes = 180
@@ -357,8 +358,8 @@ bool fadedDetail() {
 const fragment = `
 #extension GL_OES_standard_derivatives : enable
 precision highp float;
-uniform vec3 sunDirection;
-uniform float daylight, inkStyle;
+uniform vec3 sunDirection, earthDirection;
+uniform float daylight, inkStyle, earthLight;
 uniform float outputDepth;
 uniform vec3 cameraForward;
 uniform vec3 siteEast, siteNorth, siteUp;
@@ -540,16 +541,18 @@ void main() {
     detail = ((chips.r - .51) * .8 + (mottling - .36) * .9) * fine;
 
   }
+  vec3 textured = normalize(n + relief * .25);
+  vec3 reflected = vec3(.80,.91,1.0) * sqrt(earthLight * max(0.0, dot(textured, earthDirection)));
   if (inkStyle > .5) {
-    gl_FragColor = terrainColor(celColor(n, relief, direct, reflectance, detail + patches * .16) * material);
+    vec3 color = celColor(n, relief, direct, reflectance, detail + patches * .16);
+    gl_FragColor = terrainColor((color + reflected * (1.0 - direct)) * material);
     return;
   }
-  vec3 textured = normalize(n + relief * .25);
   float lit = max(0.0, dot(textured, sunDirection)) * direct;
   float albedo = (.20 + reflectance*.83) * clamp(1.0 + detail*.38, .8, 1.18) * material;
   // Display exposure and a faint fill preserve shape in modeled shadow.
   float exposure = mix(1.88, 1.48, smoothstep(.02,.6,sunDirection.y));
-  vec3 shade = vec3(.031,.034,.041) + vec3(1.03,1.0,.97) * (exposure * pow(lit,.55));
+  vec3 shade = vec3(.016,.018,.023) + vec3(1.03,1.0,.97) * (exposure * pow(lit,.55)) + reflected;
   vec3 exposed = albedo * shade;
   gl_FragColor = terrainColor(exposed / (1.0 + exposed * .38));
 }`
@@ -595,17 +598,17 @@ function terrainProgram(gl, vertexSource, fragmentSource) {
   return program
 }
 
-export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
+export function createSurfaceView(canvas, skyCanvas, overlay, showHeading, drawStars, { compact = false } = {}) {
   const gl = canvas.getContext('webgl', { alpha: true, antialias: true })
   const sky = skyCanvas.getContext('2d')
   const ctx = overlay.getContext('2d')
   if (!gl || !sky || !ctx || !gl.getExtension('OES_standard_derivatives')) throw new Error('3D terrain is unavailable in this browser. Use the skyline plot.')
   const program = terrainProgram(gl, vertex, fragment)
   const shadowProgram = terrainProgram(gl, shadowVertex, shadowFragment)
-  const distantFocus = createDistantFocus(gl)
+  const distantFocus = compact ? null : createDistantFocus(gl)
   const shadowNames = ['shadowRight', 'shadowUp', 'shadowDepth', 'shadowExtent']
   const locations = (owner, names) => Object.fromEntries(names.map(name => [name, gl.getUniformLocation(owner, name)]))
-  const uniforms = locations(program, ['cameraRight', 'cameraUp', 'cameraForward', 'cameraPosition', 'lens', 'sunDirection', 'daylight', 'inkStyle',
+  const uniforms = locations(program, ['cameraRight', 'cameraUp', 'cameraForward', 'cameraPosition', 'lens', 'sunDirection', 'daylight', 'inkStyle', 'earthDirection', 'earthLight',
     'siteEast', 'siteNorth', 'siteUp', 'siteRadius', 'albedoMap', 'shadowMap', 'localShadowMap', 'regolithMap', 'dustMap',
     'shadowPixel', 'localShadowPixel', 'localShadowExtent', 'detailShadowMap', 'detailShadowPixel', 'detailShadowExtent',
     'detailShadowCenter', 'outputDepth', ...shadowNames])
@@ -648,8 +651,9 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-  const shadowSize = Math.min(2048, gl.getParameter(gl.MAX_TEXTURE_SIZE), gl.getParameter(gl.MAX_RENDERBUFFER_SIZE))
-  const detailShadowSize = Math.min(3072, gl.getParameter(gl.MAX_TEXTURE_SIZE), gl.getParameter(gl.MAX_RENDERBUFFER_SIZE))
+  const renderLimit = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), gl.getParameter(gl.MAX_RENDERBUFFER_SIZE))
+  const shadowSize = Math.min(compact ? 768 : 2048, renderLimit)
+  const detailShadowSize = Math.min(compact ? 1024 : 3072, renderLimit)
   function createShadowTarget(unit, size = shadowSize) {
     const target = gl.createFramebuffer()
     gl.bindFramebuffer(gl.FRAMEBUFFER, target)
@@ -724,6 +728,7 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
   const earthPixels = earthContext.createImageData(earthDiskSize, earthDiskSize)
   let earthTexture
   let earthFrame
+  let toInertial
   void loadBodyTexture('./assets/earth-clouds.webp').then(texture => {
     earthTexture = texture
     draw()
@@ -745,7 +750,7 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
     }
     draw()
   })
-  moonPhoto.src = new URL(gl.getParameter(gl.MAX_TEXTURE_SIZE) >= 4096 ? './assets/moon-color-4k.webp' : './assets/moon-color.jpg', import.meta.url).href
+  moonPhoto.src = new URL(!compact && gl.getParameter(gl.MAX_TEXTURE_SIZE) >= 4096 ? './assets/moon-color-4k.webp' : './assets/moon-color.jpg', import.meta.url).href
 
   function drawEarth(limb, camera, scale, width, height) {
     const xs = limb.map(([x]) => x)
@@ -851,7 +856,7 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
   function draw() {
     const { clientWidth: width, clientHeight: height } = canvas
     if (!sample || !count || !width || !height || canvas.closest('.viewer-layer')?.inert) return
-    const pixel = flying ? Math.min(1,1280/Math.max(width,height)) : Math.min(devicePixelRatio || 1, 2)
+    const pixel = flying ? Math.min(1,1280/Math.max(width,height)) : Math.min(devicePixelRatio || 1, compact ? 1.25 : 2)
     const pixelWidth = Math.round(width * pixel)
     const pixelHeight = Math.round(height * pixel)
     if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
@@ -860,6 +865,22 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
     }
     const camera = surfaceCamera(azimuth, elevation)
     const scale = surfaceFocalLength(width, height, zoom)
+    const sun = direction(sample.sunAz, sample.sunEl)
+    const earth = direction(sample.earthAz, sample.earthEl)
+    const clearance = sample.sunEl - sample.sunHorizon
+    const solarDiameter = 2 * sample.sunRadius / radians
+    const uneclipsed = clamp(sample.eclipseMargin / solarDiameter, 0, 1)
+    const sunVisibility = uneclipsed * clamp(.5 + clearance / solarDiameter, 0, 1)
+    if (drawStars && toInertial) {
+      const daylight = uneclipsed * clamp((clearance + 1.5) / 3, 0, 1)
+      const groundInView = clamp((35 - elevation) / 25, 0, 1)
+      const axes = [camera.right, camera.up, camera.forward].map(toInertial)
+      drawStars({
+        axes, lens: scale,
+        exposure: .72 - daylight * (.38 + .30 * groundInView),
+        sun: camera.projectVector(sun), sunVisibility,
+      })
+    }
     updateDetail()
     drawShadows()
     const focused = !flying && distantFocus?.begin(pixelWidth,pixelHeight)
@@ -872,7 +893,11 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
     gl.uniform3fv(uniforms.cameraForward, camera.forward)
     gl.uniform3f(uniforms.cameraPosition, walkEast, groundHeight + cameraHeight, walkNorth)
     gl.uniform2f(uniforms.lens, 2 * scale / width, 2 * scale / height)
-    gl.uniform3fv(uniforms.sunDirection, direction(sample.sunAz, sample.sunEl))
+    gl.uniform3fv(uniforms.sunDirection, sun)
+    gl.uniform3fv(uniforms.earthDirection, earth)
+    const earthDiskFraction = clamp(.5 + (sample.earthEl - sample.earthHorizon) * radians / (2 * sample.earthRadius), 0, 1)
+    const phase = earthIllumination(sample).fraction * 2 - 1
+    gl.uniform1f(uniforms.earthLight, earthDiskFraction * earthshine(phase, sample.earthRadius))
     gl.uniform1f(uniforms.daylight, sample.eclipse ? 0 : 1)
     gl.uniform1f(uniforms.inkStyle, Number(illustrated))
     gl.uniform1f(uniforms.outputDepth, Number(!!focused))
@@ -964,7 +989,7 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
       }
       if (!eclipsed && exposed.length && el + angle / radians > visualHorizon) {
         if (body === 'sun') {
-          if (visible) {
+          if (sunVisibility > 0) {
             const reach = clamp(target.radius * 16, 22, 76)
             const bloom = sky.createRadialGradient(cx, cy, target.radius * .5, cx, cy, reach)
             bloom.addColorStop(0, 'rgba(255,238,203,.66)')
@@ -972,7 +997,9 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
             bloom.addColorStop(.44, 'rgba(233,183,135,.068)')
             bloom.addColorStop(1, 'rgba(232,171,112,0)')
             sky.fillStyle = bloom
+            sky.globalAlpha = sunVisibility
             sky.fillRect(cx - reach, cy - reach, reach * 2, reach * 2)
+            sky.globalAlpha = 1
           }
           traceDisk(sky, exposed)
           sky.fillStyle = '#fff9e9'
@@ -1006,7 +1033,7 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
       ctx.strokeText(text, labelX, labelY)
       ctx.fillText(text, labelX, labelY)
     }
-    showHeading(bearing(Math.round(azimuth)), status, Math.hypot(walkEast, walkNorth))
+    showHeading?.(bearing(Math.round(azimuth)), status, Math.hypot(walkEast, walkNorth))
   }
 
   function aim(az, el) {
@@ -1115,10 +1142,13 @@ export function createSurfaceView(canvas, skyCanvas, overlay, showHeading) {
       paths = track
       if (rotation && siteFrame) {
         const toEarth = earthOrientation(epoch)
-        const axes = [siteFrame.east, siteFrame.up, siteFrame.north].map(axis => toEarth(rotateBodyVector(axis, rotation)))
+        const [east, up, north] = [siteFrame.east, siteFrame.up, siteFrame.north].map(axis => rotateBodyVector(axis, rotation))
+        toInertial = ([x, y, z]) => east.map((value, i) => x * value + y * up[i] + z * north[i])
+        const axes = [east, up, north].map(toEarth)
         earthFrame = axes[0].map((_, index) => axes.map(axis => axis[index]))
       } else {
         earthFrame = null
+        toInertial = null
       }
       draw()
     },

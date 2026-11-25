@@ -61,17 +61,26 @@ export function siteDirection(site, state) {
 }
 
 const distanceLabel = new Intl.NumberFormat('en', { maximumFractionDigits: 0 })
-export function fullyOcculted(body, others) {
+export function visibleDiscFraction(body, others) {
   const distance = magnitude(body.slice(0,3))
   const direction = unit(body.slice(0,3))
   const radius = Math.asin(clamp(body[3]/distance,0,1))
-  return others.some(other => {
+  let visible = 1
+  for (const other of others) {
     const separation = magnitude(other.slice(0,3))
-    if(separation >= distance) return false
+    if (separation >= distance) continue
     const axis = unit(other.slice(0,3))
     const angle = Math.atan2(magnitude(cross(direction,axis)),dot(direction,axis))
-    return angle + radius < Math.asin(clamp(other[3]/separation,0,1))
-  })
+    const blocker = Math.asin(clamp(other[3]/separation,0,1))
+    const inner = Math.abs(blocker - radius)
+    const outer = blocker + radius
+    // A disc dims through partial occultation. A smaller foreground body
+    // can only cover its own share of the target's apparent area.
+    const clearance = clamp((angle - inner) / (outer - inner), 0, 1)
+    const covered = (1 - clearance ** 2 * (3 - 2 * clearance)) * Math.min(1, (blocker / radius) ** 2)
+    visible = Math.min(visible, 1 - covered)
+  }
+  return visible
 }
 
 export function createSpaceView(canvas, samples, controls) {
@@ -79,7 +88,7 @@ export function createSpaceView(canvas, samples, controls) {
   const labels = controls.labels
   const ctx = labels.getContext('2d')
   const paths = new Map()
-  let current, drag, approachRadius, approachSite, moonCamera, mapCamera
+  let current, drag, approachRadius, approachSite, moonCamera, mapCamera, missionFrames
   let latitude = 18, longitude = -70, scene = 'earth', focus = controls.focus?.value??'', zoom = 1, approach = 0
 
   function trail(index, kind) {
@@ -133,13 +142,14 @@ export function createSpaceView(canvas, samples, controls) {
     const transform=mapSystem?.transform??(point=>axes.map(axis=>dot(point.map((v,i)=>v-eye[i]),axis)))
     const view=Object.fromEntries(Object.entries(world).map(([name,body])=>[name,[...transform(body.slice(0,3)),body[3]]]))
     const projected=Object.fromEntries(Object.entries(view).map(([name,body])=>[name,projectBody(body,lens,width,height)]))
-    const hidden=Object.fromEntries(Object.entries(view).map(([name,body])=>[name,fullyOcculted(body,Object.entries(view).filter(([other])=>other!==name).map(([,value])=>value))]))
+    const visible=Object.fromEntries(Object.entries(view).map(([name,body])=>[name,visibleDiscFraction(body,Object.entries(view).filter(([other])=>other!==name).map(([,value])=>value))]))
+    const hidden=Object.fromEntries(Object.entries(visible).map(([name,fraction])=>[name,fraction===0]))
     function project(point) {
       const p=transform(point)
       return p[2]>0 ? [width/2+lens*p[0]/p[2],height/2-lens*p[1]/p[2]] : null
     }
     function line(points,color,dash=[]) {
-      ctx.beginPath();ctx.setLineDash(dash);ctx.strokeStyle=color;ctx.globalAlpha=1-approach
+      ctx.beginPath();ctx.setLineDash(dash);ctx.strokeStyle=color;ctx.globalAlpha=mapCamera?1:1-approach
       let previous=false
       for(const point of points) {
         const p=project(point)
@@ -155,8 +165,30 @@ export function createSpaceView(canvas, samples, controls) {
       line([world.earth.slice(0,3),world.sun.slice(0,3)],'#685335',[3,7])
       line([world.earth.slice(0,3),world.moon.slice(0,3)],'#53647e',[3,7])
     }
-    bodies.draw({...view,lens,sunGlow:hidden.sun?0:1,
+    if (missionFrames) {
+      // Keep each historical position relative to the Moon, then place the
+      // track in the current camera's frame. Both views share the same paths.
+      for (const [index, color] of ['#ffc975', '#acc4ff'].entries()) {
+        const points = missionFrames.map(frame => rotateBodyVector(frame[index], state.rotation)
+          .map((value, axis) => world.moon[axis] + value / (1000 * orbitUnitKm)))
+        line(points, color, [5, 4])
+      }
+    }
+    bodies.draw({...view,lens,sunGlow:visible.sun,
       light:axes.map(axis=>dot(unit(state.sun),axis)),basis:axes.map(earthOrientation(epoch))})
+    if (controls.starSky) {
+      const phase = (1 + dot(toward, unit(state.sun))) / 2
+      const moonInFrame = projected.moon.inFront && !hidden.moon &&
+        Math.abs(projected.moon.center[0] - width / 2) < width / 2 + projected.moon.radius &&
+        Math.abs(projected.moon.center[1] - height / 2) < height / 2 + projected.moon.radius
+      const foreground = moonInFrame ? Math.sqrt(clamp(phase, 0, 1)) * Math.min(1, 2 * projected.moon.radius / height) : 0
+      controls.starSky({
+        axes, lens,
+        exposure: .55 - .20 * foreground,
+        sun: unit(view.sun.slice(0, 3)),
+        sunVisibility: visible.sun,
+      })
+    }
     const lunar=projected.moon
     moonCamera={moving:approach>0&&approach<1,radius:lunar.radius,center:lunar.center,orientation,
       perspective:{...view,lens,mapBlend:approach*approach*approach}}
@@ -260,6 +292,7 @@ export function createSpaceView(canvas, samples, controls) {
   }
   update.approach=(amount,target,radius)=>{approach=amount;approachSite=target;approachRadius=radius;draw()}
   update.mapView=camera=>{mapCamera=camera;if(camera) draw()}
+  update.setMissionPaths=frames=>{missionFrames=frames}
   update.camera=()=>moonCamera
   update.viewCenter=()=>({lat:latitude,lon:longitude})
   update.centerOnLunarView=site=>{latitude=site.lat;longitude=site.lon;draw()}

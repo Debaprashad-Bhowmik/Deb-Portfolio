@@ -3,7 +3,7 @@ import { evaluate, siteSolarPower } from './planner.mjs'
 const artemisSlopeLimit = 10
 const longestWindow = windows => windows.reduce((longest, [start, end]) => Math.max(longest, end - start), 0)
 
-export function landingPower(site, frames, duration) {
+export function landingPower(site, frames, duration, { includeWindows = false } = {}) {
   const { metrics, timeline, sun, earth } = evaluate(site, frames, duration, true, { includeEnergy: true })
   return {
     averageWatts: metrics.energyKwh * 1000 / duration,
@@ -16,6 +16,7 @@ export function landingPower(site, frames, duration) {
     longestEarthHours: longestWindow(earth),
     longestEarthGap: metrics.blackout,
     touchdownWatts: siteSolarPower(timeline[0]),
+    ...(includeWindows ? { sunWindows: sun, earthWindows: earth } : {}),
   }
 }
 
