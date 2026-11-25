@@ -53,23 +53,24 @@
       }
 
       .portfolio-opening-orbit {
+        --orbit-duration: 25s;
         position: relative;
-        width: min(86%, 420px);
-        height: clamp(195px, 37vh, 350px);
+        width: min(86%, clamp(195px, 37vh, 350px));
+        aspect-ratio: 1;
         margin: 12px auto;
       }
 
       .portfolio-opening-orbit::before,
       .portfolio-opening-orbit::after {
         position: absolute;
-        inset: 6% 14%;
+        inset: 9%;
         border: 1px dashed #4b64b440;
         border-radius: 50%;
         content: '';
       }
 
       .portfolio-opening-orbit::after {
-        inset: 0 9%;
+        inset: 5%;
         border-style: dotted;
         border-color: #4b64b42a;
       }
@@ -88,6 +89,13 @@
         height: auto;
       }
 
+      .portfolio-opening-spinner {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        animation: portfolio-opening-spin var(--orbit-duration) linear infinite;
+      }
+
       .portfolio-opening-pill {
         top: var(--pill-top);
         left: var(--pill-left);
@@ -101,6 +109,7 @@
         letter-spacing: .07em;
         text-transform: uppercase;
         white-space: nowrap;
+        animation: portfolio-opening-counterspin var(--orbit-duration) linear infinite;
       }
 
       .portfolio-opening-quote {
@@ -128,8 +137,17 @@
         animation: portfolio-opening-slide 1.15s ease-in-out infinite;
       }
 
-      #root:has(.site-shell:not([inert])) + .portfolio-opening .portfolio-opening-bar::before {
+      #root:has(.site-shell:not([inert])) + .portfolio-opening .portfolio-opening-bar::before,
+      #root:has(.site-shell:not([inert])) + .portfolio-opening :is(.portfolio-opening-spinner, .portfolio-opening-pill) {
         animation-play-state: paused;
+      }
+
+      @keyframes portfolio-opening-spin {
+        to { transform: rotate(1turn); }
+      }
+
+      @keyframes portfolio-opening-counterspin {
+        to { transform: translate(-50%, -50%) rotate(-1turn); }
       }
 
       @keyframes portfolio-opening-slide {
@@ -139,6 +157,8 @@
 
       @media (prefers-reduced-motion: reduce) {
         .portfolio-opening { transition: none !important; }
+        .portfolio-opening-spinner,
+        .portfolio-opening-pill,
         .portfolio-opening-bar::before { animation: none; }
       }
     </style>
@@ -172,12 +192,14 @@
             <circle cx="100" cy="100" r="58" fill="none" stroke="#4b7cff" stroke-width=".5" />
             <text x="100" y="112" text-anchor="middle" fill="#e8ecf4" font-family="Georgia, serif" font-size="36" font-weight="600" letter-spacing="3">DB</text>
           </svg>
-          <span class="portfolio-opening-pill" style="--pill-top: 7%; --pill-left: 50%">CAD</span>
-          <span class="portfolio-opening-pill" style="--pill-top: 27%; --pill-left: 82%">AI tools</span>
-          <span class="portfolio-opening-pill" style="--pill-top: 73%; --pill-left: 82%">Simulation</span>
-          <span class="portfolio-opening-pill" style="--pill-top: 93%; --pill-left: 50%">Digital twin</span>
-          <span class="portfolio-opening-pill" style="--pill-top: 73%; --pill-left: 18%">Thermal</span>
-          <span class="portfolio-opening-pill" style="--pill-top: 27%; --pill-left: 18%">Biomedical</span>
+          <div class="portfolio-opening-spinner">
+            <span class="portfolio-opening-pill" style="--pill-top: 13%; --pill-left: 50%">CAD</span>
+            <span class="portfolio-opening-pill" style="--pill-top: 31.5%; --pill-left: 82.04%">AI tools</span>
+            <span class="portfolio-opening-pill" style="--pill-top: 68.5%; --pill-left: 82.04%">Simulation</span>
+            <span class="portfolio-opening-pill" style="--pill-top: 87%; --pill-left: 50%">Digital twin</span>
+            <span class="portfolio-opening-pill" style="--pill-top: 68.5%; --pill-left: 17.96%">Thermal</span>
+            <span class="portfolio-opening-pill" style="--pill-top: 31.5%; --pill-left: 17.96%">Biomedical</span>
+          </div>
         </div>
         <p class="portfolio-opening-quote">“I’m obsessed with building things right<br />because details decide everything.”</p>
         <div class="portfolio-opening-bar" aria-hidden="true"></div>
