@@ -25,7 +25,7 @@
   gap: 5px;
 }
 
-.bleeding-console button,
+.bleeding-console button:where(:not(.model-coach-replay)),
 .bleeding-dashboard-jump {
   min-height: 42px;
   border: 1px solid var(--console-line);
@@ -37,7 +37,7 @@
   font-weight: 650;
 }
 
-.bleeding-console button {
+.bleeding-console button:where(:not(.model-coach-replay)) {
   padding: 6px 12px;
   cursor: pointer;
 }
@@ -53,7 +53,7 @@
   color: #18447e;
 }
 
-.bleeding-console button:hover:not(:disabled),
+.bleeding-console button:hover:not(:disabled):where(:not(.model-coach-replay)),
 .bleeding-dashboard-jump:hover {
   border-color: #6990c2;
   color: var(--console-blue);
@@ -149,6 +149,12 @@
   gap: 7px;
   min-width: 42px;
   padding: 6px 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bleeding-camera-buttons .bleeding-auto-rotation {
+    display: none;
+  }
 }
 
 .bleeding-parts-panel {

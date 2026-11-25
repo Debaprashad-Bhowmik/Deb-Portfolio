@@ -4544,7 +4544,9 @@ const BleedingConsole = React.lazy(() => import('./components/BleedingConsole'))
 
 function BleedingSimulatorSection() {
   const simulatorStage = useRef<HTMLDivElement>(null)
-  const shouldLoadSimulator = useNearViewport(simulatorStage)
+  const nearSimulator = useNearViewport(simulatorStage)
+  const [simulatorRequested, setSimulatorRequested] = useState(() => window.location.hash === '#bleeding-console')
+  const shouldLoadSimulator = nearSimulator || simulatorRequested
   const capabilityCards = [
     {
       icon: Droplets,
@@ -4579,6 +4581,7 @@ function BleedingSimulatorSection() {
             <a
               className="bleeding-primary-action"
               href="#bleeding-console"
+              onClick={() => setSimulatorRequested(true)}
             >
               Explore 3D simulator
               <ArrowRight size={16} aria-hidden="true" />

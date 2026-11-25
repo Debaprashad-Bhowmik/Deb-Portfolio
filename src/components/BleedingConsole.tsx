@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type SyntheticEvent } from 'react'
-import { ArrowDown, ArrowUpRight, Minus, Plus, RotateCcw } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, Minus, Pause, Play, Plus, RotateCcw } from 'lucide-react'
+import ModelInteractionCoach, { useModelInteractionCoach } from './ModelInteractionCoach'
 import { parts, views, type PartId, type Telemetry, type ViewId } from './bleeding/parts'
 import { mountBleedingViewer } from './bleeding/viewer'
 import './BleedingConsole.css'
@@ -14,15 +15,22 @@ export default function BleedingConsole() {
   const [selection, setSelection] = useState<{ view: ViewId; part: PartId | null }>({ view: 'overview', part: null })
   const { view, part } = selection
   const [telemetry, setTelemetry] = useState<Telemetry | null>(null)
+  const [viewerReady, setViewerReady] = useState(false)
   const [unavailable, setUnavailable] = useState(false)
+  const [autoRotate, setAutoRotate] = useState(true)
+  const coach = useModelInteractionCoach({ containerRef: stageRef, ready: viewerReady && !unavailable })
+  const rotationAction = autoRotate ? 'Pause rotation' : 'Resume rotation'
 
   useEffect(() => {
     const host = stageRef.current
     if (!host) return
     try {
-      const viewer = mountBleedingViewer(host, part => {
-        setSelection(previous => ({ ...previous, part }))
-      }, () => setUnavailable(true))
+      const viewer = mountBleedingViewer(host, {
+        onPick: part => setSelection(previous => ({ ...previous, part })),
+        onReady: () => setViewerReady(true),
+        onUnavailable: () => setUnavailable(true),
+        onRotationPause: () => setAutoRotate(false),
+      })
       viewerRef.current = viewer
       return () => {
         viewer.dispose()
@@ -41,6 +49,10 @@ export default function BleedingConsole() {
   useEffect(() => {
     viewerRef.current?.setTelemetry(telemetry)
   }, [telemetry])
+
+  useEffect(() => {
+    viewerRef.current?.setAutoRotation(autoRotate)
+  }, [autoRotate])
 
   useEffect(() => () => disconnectDashboard.current?.(), [])
 
@@ -106,10 +118,23 @@ export default function BleedingConsole() {
                 The 3D view is unavailable in this browser. Explore the parts below or try the training controls.
               </p>
             )}
+            {!unavailable && <ModelInteractionCoach state={coach.state} theme="light" onReplay={coach.replay} />}
           </div>
           <div className="bleeding-viewer-controls">
-            <p>Drag or use the arrow keys to rotate. Select a part to zoom in.</p>
+            <p>Select a part to zoom in.</p>
             <div className="bleeding-camera-buttons" role="group" aria-label="Camera controls">
+              {view === 'overview' && part === null && !unavailable && (
+                <button
+                  className="bleeding-auto-rotation"
+                  type="button"
+                  aria-label={rotationAction}
+                  title={rotationAction}
+                  disabled={!viewerReady}
+                  onClick={() => setAutoRotate(enabled => !enabled)}
+                >
+                  {autoRotate ? <Pause size={17} aria-hidden="true" /> : <Play size={17} aria-hidden="true" />}
+                </button>
+              )}
               <button type="button" aria-label="Zoom out" disabled={unavailable} onClick={() => viewerRef.current?.zoom(1.2)}>
                 <Minus size={17} aria-hidden="true" />
               </button>

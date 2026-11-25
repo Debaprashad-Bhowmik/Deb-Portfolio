@@ -4,10 +4,19 @@ import { buildAssembly } from './assembly'
 import { parts, views, type PartId, type Telemetry, type ViewId } from './parts'
 
 type Selection = { view: ViewId; part: PartId | null }
+type ViewerCallbacks = {
+  onPick: (part: PartId) => void
+  onReady: () => void
+  onUnavailable: () => void
+  onRotationPause: () => void
+}
 
 const defaultCenter = new THREE.Vector3(0, 1.04, -0.07)
 const defaultDirection = new THREE.Vector3(2.8, 5.7, 12).normalize()
 const overviewSpan = 12.5
+const yawAxis = new THREE.Vector3(0, 1, 0)
+const idleYawRange = THREE.MathUtils.degToRad(12)
+const idleYawPeriod = 12_000
 const activeLedByStatus: Record<string, number> = {
   'Needs More Pressure': 0,
   'Bleeding Controlled': 1,
@@ -82,8 +91,7 @@ function makeDisplay() {
 
 export function mountBleedingViewer(
   host: HTMLDivElement,
-  onPick: (part: PartId) => void,
-  onUnavailable: () => void,
+  { onPick, onReady, onUnavailable, onRotationPause }: ViewerCallbacks,
 ) {
   const motion = window.matchMedia('(prefers-reduced-motion: reduce)')
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false })
@@ -184,6 +192,10 @@ export function mountBleedingViewer(
   let rotationFrame: number | null = null
   let isVisible = false
   let lostContext = false
+  let renderedOnce = false
+  let autoRotate = true
+  let idleElapsed = 0
+  let lastIdleFrame: number | null = null
   let transition: { center: THREE.Vector3; direction: THREE.Vector3; span: number } | null = null
   const cameraOffset = new THREE.Spherical()
   const clickRay = new THREE.Raycaster()
@@ -223,6 +235,16 @@ export function mountBleedingViewer(
       }
       frameCamera()
     }
+
+    const rotating = autoRotate && !motion.matches && current.view === 'overview' && current.part === null && !transition
+    if (rotating && lastIdleFrame !== null) {
+      const previousYaw = Math.sin(idleElapsed / idleYawPeriod * Math.PI * 2) * idleYawRange
+      idleElapsed = (idleElapsed + Math.min(50, time - lastIdleFrame)) % idleYawPeriod
+      const yaw = Math.sin(idleElapsed / idleYawPeriod * Math.PI * 2) * idleYawRange
+      // Turn the camera around the assembled prototype so its lighting and shadows stay in place.
+      camera.position.sub(controls.target).applyAxisAngle(yawAxis, yaw - previousYaw).add(controls.target)
+    }
+    lastIdleFrame = rotating ? time : null
     controls.update()
 
     const showFluid = current.view === 'fluid' && (telemetry?.flow ?? 0) > 0
@@ -240,7 +262,11 @@ export function mountBleedingViewer(
       })
     }
     renderer.render(scene, camera)
-    if (transition || (!motion.matches && (showFluid || showSignal))) schedule()
+    if (!renderedOnce) {
+      renderedOnce = true
+      onReady()
+    }
+    if (transition || rotating || (!motion.matches && (showFluid || showSignal))) schedule()
   }
 
   const resize = new ResizeObserver(([entry]) => {
@@ -255,12 +281,15 @@ export function mountBleedingViewer(
   resize.observe(host)
   const intersection = new IntersectionObserver(([entry]) => {
     isVisible = entry.isIntersecting
+    if (!isVisible) lastIdleFrame = null
     schedule()
   }, { rootMargin: '24px' })
   intersection.observe(host)
 
   function select(selection: Selection) {
     current = selection
+    idleElapsed = 0
+    lastIdleFrame = null
     const activeParts = selection.part ? [selection.part] : views[selection.view].parts
     if (selection.part === 'pads') activeParts.push('arm')
     for (const object of partMeshes) {
@@ -290,6 +319,7 @@ export function mountBleedingViewer(
   }
 
   function zoom(scale: number) {
+    pauseRotationForInspection()
     const target = transition?.center ?? controls.target.clone()
     const direction = transition?.direction ?? camera.position.clone().sub(controls.target).normalize()
     transition = { center: target, direction, span: THREE.MathUtils.clamp((transition?.span ?? span) * scale, 1.9, 17.5) }
@@ -312,8 +342,23 @@ export function mountBleedingViewer(
     if (hit) onPick(hit.object.userData.part as PartId)
   }
 
-  function cancelFocus() {
+  function setAutoRotation(enabled: boolean) {
+    if (autoRotate === enabled) return
+    autoRotate = enabled
+    idleElapsed = 0
+    lastIdleFrame = null
+    schedule()
+  }
+
+  function pauseRotationForInspection() {
+    if (!autoRotate || motion.matches || current.view !== 'overview' || current.part !== null) return
+    setAutoRotation(false)
+    onRotationPause()
+  }
+
+  function startManualRotation() {
     transition = null
+    pauseRotationForInspection()
   }
 
   function keyboard(event: KeyboardEvent) {
@@ -324,7 +369,7 @@ export function mountBleedingViewer(
     const direction = directions[event.key]
     if (!direction) return
     event.preventDefault()
-    cancelFocus()
+    startManualRotation()
     cameraOffset.setFromVector3(camera.position.clone().sub(controls.target))
     cameraOffset.theta += direction[0]
     cameraOffset.phi = THREE.MathUtils.clamp(cameraOffset.phi + direction[1], controls.minPolarAngle, controls.maxPolarAngle)
@@ -349,7 +394,7 @@ export function mountBleedingViewer(
   canvas.addEventListener('keydown', keyboard)
   canvas.addEventListener('webglcontextlost', contextLost)
   controls.addEventListener('change', schedule)
-  controls.addEventListener('start', cancelFocus)
+  controls.addEventListener('start', startManualRotation)
   motion.addEventListener('change', motionChanged)
 
   function dispose() {
@@ -377,5 +422,5 @@ export function mountBleedingViewer(
     renderer.dispose()
   }
 
-  return { select, setTelemetry, zoom, dispose }
+  return { select, setTelemetry, setAutoRotation, zoom, dispose }
 }
