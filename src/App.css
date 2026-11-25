@@ -2092,15 +2092,8 @@ input:focus-visible {
 }
 
 .artifact-viewer,
-.bleeding-iframe-stage,
 .cubesat-scene {
   position: relative;
-}
-
-.bleeding-iframe-stage {
-  min-height: 1120px;
-  overflow: hidden;
-  background: #fbfaf8;
 }
 
 .engineering-handoff {
@@ -6442,26 +6435,11 @@ input[type='range'] {
   font-weight: 500;
 }
 
-.bleeding-toolbar-tags {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.bleeding-toolbar-tags span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  color: #49606c;
-  font-size: 12px;
-  font-weight: 760;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid rgba(31, 47, 58, 0.12);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.66);
+.bleeding-console-placeholder {
+  display: grid;
+  min-height: 450px;
+  place-items: center;
+  color: #505c64;
 }
 
 .bleeding-embed-shell iframe {
@@ -10764,13 +10742,6 @@ input[type='range'] {
     padding: 16px;
   }
 
-  .bleeding-toolbar-tags {
-    justify-content: flex-start;
-  }
-
-  .bleeding-iframe-stage {
-    min-height: 1280px;
-  }
 }
 
 /* Mobile repair layer: keeps dense interactive sections inside the viewport. */

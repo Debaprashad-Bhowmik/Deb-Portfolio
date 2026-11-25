@@ -12,6 +12,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   AlertTriangle,
+  ArrowRight,
   ArrowUpRight,
   Box,
   BrainCircuit,
@@ -505,10 +506,22 @@ function Sparkline({
   )
 }
 
+const OPENING_TIMEOUT_MS = 20_000
+
 function App() {
-  const [waitForHeroScene] = useState(() => !window.location.hash || window.location.hash === '#top')
-  const [heroSceneSettled, setHeroSceneSettled] = useState(false)
-  const finishOpening = useCallback(() => setHeroSceneSettled(true), [])
+  const [prepareOpeningScenes] = useState(() => !window.location.hash || window.location.hash === '#top')
+  const [pendingScenes, setPendingScenes] = useState<Array<'robot' | 'engine'>>(
+    () => prepareOpeningScenes ? ['robot', 'engine'] : [],
+  )
+  const opening = pendingScenes.length > 0
+  const robotSettled = useCallback(() => setPendingScenes(pending => pending.filter(scene => scene !== 'robot')), [])
+  const engineSettled = useCallback(() => setPendingScenes(pending => pending.filter(scene => scene !== 'engine')), [])
+
+  useEffect(() => {
+    if (!opening) return
+    const deadline = window.setTimeout(() => setPendingScenes([]), OPENING_TIMEOUT_MS)
+    return () => window.clearTimeout(deadline)
+  }, [opening])
 
   useEffect(() => {
     let scrollFrame = 0
@@ -574,14 +587,14 @@ function App() {
   return (
     <>
       <MotionConfig reducedMotion="never">
-      <div className="site-shell" inert={waitForHeroScene && !heroSceneSettled}>
+      <div className="site-shell" inert={opening}>
         <Header />
         <main>
-          <Hero onSceneSettled={waitForHeroScene ? finishOpening : undefined} />
+          <Hero onSceneSettled={prepareOpeningScenes ? robotSettled : undefined} />
           <LunarNavigatorSection />
           <BrainArchitectureSection />
           <SnippingGPTSection />
-          <DigitalTwinSection />
+          <DigitalTwinSection onSceneSettled={prepareOpeningScenes ? engineSettled : undefined} />
           <CouplingBoltSection />
           <BleedingSimulatorSection />
           <HvacSection />
@@ -794,11 +807,11 @@ function CaseEvidenceArtifact({
   )
 }
 
-type HeroSceneProps = {
+type OpeningSceneProps = {
   onSceneSettled?: () => void
 }
 
-function Hero({ onSceneSettled }: HeroSceneProps) {
+function Hero({ onSceneSettled }: OpeningSceneProps) {
   return (
     <section id="top" className="hero-section">
       <div className="hero-grid">
@@ -855,7 +868,7 @@ function Hero({ onSceneSettled }: HeroSceneProps) {
   )
 }
 
-function EngineeringCore({ onSceneSettled }: HeroSceneProps) {
+function EngineeringCore({ onSceneSettled }: OpeningSceneProps) {
   const reduceMotion = useReducedMotion()
   const stageRef = useRef<HTMLDivElement | null>(null)
   const pillRefs = useRef<Record<CorePillId, HTMLButtonElement | null>>({
@@ -1392,7 +1405,7 @@ function CoreCommandPanelContent({ id }: { id: CorePillId }) {
   )
 }
 
-function SplineRobotViewer({ onSceneSettled }: HeroSceneProps) {
+function SplineRobotViewer({ onSceneSettled }: OpeningSceneProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const viewerRef = useRef<HTMLElement | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -1404,15 +1417,12 @@ function SplineRobotViewer({ onSceneSettled }: HeroSceneProps) {
     if (!shouldLoad || !viewer) return
     let disposed = false
     let readyFrame = 0
-    // Give the scene time to load while keeping the site reachable if Spline stalls.
-    const deadline = onSceneSettled ? window.setTimeout(onSceneSettled, 20_000) : undefined
 
     const markReady = () => {
       window.cancelAnimationFrame(readyFrame)
       // Spline reveals its canvas in the next task after dispatching load-complete.
       readyFrame = window.requestAnimationFrame(() => {
         readyFrame = window.requestAnimationFrame(() => {
-          window.clearTimeout(deadline)
           setStatus('ready')
           onSceneSettled?.()
         })
@@ -1420,7 +1430,6 @@ function SplineRobotViewer({ onSceneSettled }: HeroSceneProps) {
     }
     const markError = () => {
       window.cancelAnimationFrame(readyFrame)
-      window.clearTimeout(deadline)
       setStatus('error')
       onSceneSettled?.()
     }
@@ -1434,7 +1443,6 @@ function SplineRobotViewer({ onSceneSettled }: HeroSceneProps) {
     return () => {
       disposed = true
       window.cancelAnimationFrame(readyFrame)
-      window.clearTimeout(deadline)
       viewer.removeEventListener('load-complete', markReady)
       viewer.removeEventListener('error', markError)
     }
@@ -3114,7 +3122,7 @@ const dieselWhyCards = [
   },
 ]
 
-function DigitalTwinSection() {
+function DigitalTwinSection({ onSceneSettled }: OpeningSceneProps) {
   const [scenarioId, setScenarioId] = useState('turbo')
   const [activeTwinView, setActiveTwinView] = useState<TwinViewId>('overview')
   const [drawer, setDrawer] = useState<DieselDrawer | null>(null)
@@ -3657,7 +3665,7 @@ function DigitalTwinSection() {
             </nav>
 
             <div className={`engine-model-card ${activeTwinView === 'overview' ? '' : 'is-hidden'}`}>
-              <EngineModelViewer scenarioId={scenario.id} />
+              <EngineModelViewer scenarioId={scenario.id} onSceneSettled={onSceneSettled} />
               <div className="engine-stage-dots" aria-hidden="true">
                 <span />
                 <span />
@@ -3915,9 +3923,11 @@ function hasVisibleCanvasPixels(canvas: HTMLCanvasElement, gl: WebGLRenderingCon
   return false
 }
 
-function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
+function EngineModelViewer({ scenarioId, onSceneSettled }: { scenarioId: string } & OpeningSceneProps) {
   const mountRef = useRef<HTMLDivElement | null>(null)
-  const shouldLoad = useNearViewport(mountRef)
+  const nearViewport = useNearViewport(mountRef)
+  const warmUpOnOpening = Boolean(onSceneSettled)
+  const shouldLoad = warmUpOnOpening || nearViewport
   const scenarioRef = useRef(scenarioId)
   const [coachReady, setCoachReady] = useState(false)
   const [renderMode, setRenderMode] = useState<EngineRenderMode>('standard')
@@ -3927,6 +3937,10 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
   useEffect(() => {
     scenarioRef.current = scenarioId
   }, [scenarioId])
+
+  useEffect(() => {
+    if (renderStatus === 'loaded' || renderStatus === 'fallback') onSceneSettled?.()
+  }, [onSceneSettled, renderStatus])
 
   useEffect(() => {
     const mount = mountRef.current
@@ -4084,7 +4098,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       modelRoot.add(modelShell)
 
       const requestRecoveryOrFallback = () => {
-        if (cancelled || recoveryRequested || renderVerified) return
+        if (cancelled || recoveryRequested) return
         recoveryRequested = true
         if (renderMode === 'standard') {
           setRenderStatus('recovering')
@@ -4110,9 +4124,16 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       }
 
       const clock = new THREE.Clock()
+      // Render the first frame during startup, then stop drawing while the engine is offscreen.
+      const shouldRender = () => !cancelled && !recoveryRequested && (visible || (warmUpOnOpening && !renderVerified))
+
+      function scheduleFrame() {
+        if (!rafId && shouldRender()) rafId = window.requestAnimationFrame(animate)
+      }
+
       function animate() {
-        if (cancelled) return
-        if (!visible) return
+        rafId = 0
+        if (!shouldRender()) return
         const delta = Math.min(clock.getDelta(), 0.05)
         const elapsed = clock.elapsedTime
         if (!pointer.dragging) {
@@ -4126,17 +4147,21 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
         rimLight.color.set(scenarioRef.current === 'coolant' ? 0x4dbbff : scenarioRef.current === 'injector' ? 0xff735f : 0x4b7cff)
         renderer.render(scene, camera)
         verifyRenderedFrame()
-        rafId = window.requestAnimationFrame(animate)
+        scheduleFrame()
       }
 
-      rafId = window.requestAnimationFrame(animate)
+      scheduleFrame()
 
       const visibilityObserver = new IntersectionObserver(
         ([entry]) => {
           if (cancelled || visible === entry.isIntersecting) return
           visible = entry.isIntersecting
-          if (visible) rafId = window.requestAnimationFrame(animate)
-          else window.cancelAnimationFrame(rafId)
+          if (shouldRender()) {
+            scheduleFrame()
+          } else {
+            window.cancelAnimationFrame(rafId)
+            rafId = 0
+          }
         },
         { rootMargin: '200px' },
       )
@@ -4182,7 +4207,7 @@ function EngineModelViewer({ scenarioId }: { scenarioId: string }) {
       cancelled = true
       cleanup()
     }
-  }, [renderMode, shouldLoad])
+  }, [renderMode, shouldLoad, warmUpOnOpening])
 
   return (
     <div
@@ -4515,17 +4540,16 @@ const bleedingWhyCards = [
   },
 ]
 
+const BleedingConsole = React.lazy(() => import('./components/BleedingConsole'))
+
 function BleedingSimulatorSection() {
   const simulatorStage = useRef<HTMLDivElement>(null)
-  const simulatorResize = useRef<ResizeObserver | null>(null)
   const shouldLoadSimulator = useNearViewport(simulatorStage)
-
-  useEffect(() => () => simulatorResize.current?.disconnect(), [])
   const capabilityCards = [
     {
       icon: Droplets,
       label: 'Fluid path',
-      copy: 'Reservoir, pump, tubing, wound module, and return loop mapped as a visible training system.',
+      copy: 'Follow the fluid from the bag through the pump and inline sensors to the practice arm.',
     },
     {
       icon: Activity,
@@ -4535,12 +4559,12 @@ function BleedingSimulatorSection() {
     {
       icon: Cpu,
       label: 'Controller logic',
-      copy: 'Arduino-style state logic turns treatment inputs into clear coaching and performance signals.',
+      copy: 'An Arduino reads the sensors, switches the pump, and drives the status LEDs.',
     },
     {
       icon: MonitorUp,
       label: 'Instructor view',
-      copy: 'Live charts, intervention modes, and repeatable scenarios make the prototype easier to teach with.',
+      copy: 'A MATLAB dashboard displays pressure and flow so instructors can see how each attempt changes the readings.',
     },
   ]
 
@@ -4554,12 +4578,10 @@ function BleedingSimulatorSection() {
           <div className="bleeding-actions">
             <a
               className="bleeding-primary-action"
-              href="/bleeding-control-simulator-full/index.html"
-              target="_blank"
-              rel="noreferrer"
+              href="#bleeding-console"
             >
-              Open simulator
-              <ArrowUpRight size={16} aria-hidden="true" />
+              Explore 3D simulator
+              <ArrowRight size={16} aria-hidden="true" />
             </a>
             <a className="bleeding-secondary-action" href="#contact">
               Discuss build
@@ -4568,9 +4590,9 @@ function BleedingSimulatorSection() {
         </div>
         <div className="bleeding-summary-card">
           <p>
-            A portable first-aid training simulator that combines a prosthetic wound module,
-            recirculating fluid loop, pressure and flow sensing, controller logic, and a live
-            instructor dashboard.
+            Our four-person capstone team built a first-aid training prototype for BraveHeart First Aid.
+            A pump sends simulated blood through a prosthetic arm. Pressure and flow sensors show the
+            trainee and instructor how each intervention changes the flow.
           </p>
           <div className="bleeding-summary-metrics">
             <span>
@@ -4641,41 +4663,15 @@ function BleedingSimulatorSection() {
         </div>
       </section>
 
-      <div className="bleeding-embed-shell">
+      <div className="bleeding-embed-shell" id="bleeding-console" ref={simulatorStage}>
         <div className="bleeding-embed-toolbar">
-          <div>
-            <span className="eyebrow">Interactive build</span>
-            <h3>Simulator console</h3>
-          </div>
-          <div className="bleeding-toolbar-tags" aria-label="Simulator features">
-            <span>3D system</span>
-            <span>Live telemetry</span>
-            <span>Training feedback</span>
-          </div>
+          <h3>Inspect the prototype</h3>
         </div>
-        <div className="bleeding-iframe-stage" ref={simulatorStage}>
-          {shouldLoadSimulator && (
-            <iframe
-              title="Bleeding Control Simulator interactive demo"
-              src="/bleeding-control-simulator/index.html?embed=portfolio"
-              onLoad={(event) => {
-                const frame = event.currentTarget
-                simulatorResize.current?.disconnect()
-                const content = frame.contentDocument?.getElementById('root')
-                if (!content) return
-
-                const resize = () => {
-                  const height = Math.ceil(content.getBoundingClientRect().height)
-                  if (height > 0) frame.style.height = `${height}px`
-                }
-
-                resize()
-                simulatorResize.current = new ResizeObserver(resize)
-                simulatorResize.current.observe(content)
-              }}
-            />
-          )}
-        </div>
+        {shouldLoadSimulator ? (
+          <React.Suspense fallback={<div className="bleeding-console-placeholder" role="status">Loading 3D simulator…</div>}>
+            <BleedingConsole />
+          </React.Suspense>
+        ) : <div className="bleeding-console-placeholder" aria-hidden="true" />}
       </div>
 
       <div className="bleeding-evidence-grid">

@@ -1,0 +1,312 @@
+.bleeding-console {
+  padding: 16px clamp(10px, 2vw, 24px) 24px;
+  color: #223245;
+  --console-line: #d8d2c8;
+  --console-paper: #faf7f1;
+  --console-blue: #2258a3;
+}
+
+.bleeding-console-bar,
+.bleeding-system-views,
+.bleeding-viewer-controls,
+.bleeding-camera-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.bleeding-console-bar {
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.bleeding-system-views {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.bleeding-console button,
+.bleeding-dashboard-jump {
+  min-height: 42px;
+  border: 1px solid var(--console-line);
+  border-radius: 6px;
+  color: inherit;
+  background: #fffdf8;
+  font: inherit;
+  font-size: .83rem;
+  font-weight: 650;
+}
+
+.bleeding-console button {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.bleeding-console button:disabled {
+  opacity: .55;
+  cursor: default;
+}
+
+.bleeding-console button[aria-pressed="true"] {
+  border-color: #3564a3;
+  background: #e5edf9;
+  color: #18447e;
+}
+
+.bleeding-console button:hover:not(:disabled),
+.bleeding-dashboard-jump:hover {
+  border-color: #6990c2;
+  color: var(--console-blue);
+}
+
+.bleeding-console :is(button, a, canvas):focus-visible {
+  outline: 2px solid var(--console-blue);
+  outline-offset: 2px;
+}
+
+.bleeding-dashboard-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.bleeding-viewer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 25%);
+  overflow: hidden;
+  border: 1px solid var(--console-line);
+  border-radius: 8px;
+  background: var(--console-paper);
+}
+
+.bleeding-viewer {
+  min-width: 0;
+}
+
+.bleeding-viewer-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: clamp(380px, 36vw, 530px);
+  isolation: isolate;
+  background: #f1ece3;
+}
+
+.bleeding-viewer-stage canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+.bleeding-viewer-stage canvas:active {
+  cursor: grabbing;
+}
+
+.bleeding-viewer-stage canvas:focus-visible {
+  outline-offset: -4px;
+}
+
+.bleeding-viewer-stage[data-unavailable] canvas {
+  visibility: hidden;
+}
+
+.bleeding-viewer-fallback {
+  max-width: 32ch;
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+}
+
+.bleeding-viewer-controls {
+  min-height: 54px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px 6px 14px;
+  border-top: 1px solid var(--console-line);
+}
+
+.bleeding-viewer-controls p {
+  margin: 0;
+  color: #5a626a;
+  font-size: .81rem;
+}
+
+.bleeding-camera-buttons {
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.bleeding-camera-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 42px;
+  padding: 6px 8px;
+}
+
+.bleeding-parts-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 14px 14px;
+  border-left: 1px solid var(--console-line);
+}
+
+.bleeding-part-copy h4,
+.bleeding-training-controls h4 {
+  margin: 0;
+  color: #202931;
+  font: 500 clamp(23px, 2.2vw, 31px)/1.1 Georgia, serif;
+}
+
+.bleeding-part-copy p,
+.bleeding-training-controls > p {
+  margin: 10px 0 0;
+  color: #445464;
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.bleeding-part-copy .bleeding-part-detail {
+  color: #5a626a;
+  font-size: .82rem;
+}
+
+.bleeding-parts-list {
+  display: grid;
+  gap: 4px;
+}
+
+.bleeding-parts-list button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-inline: 10px;
+  text-align: left;
+}
+
+.bleeding-parts-list button::before {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border: 1px solid #637588;
+  border-radius: 50%;
+  content: '';
+}
+
+.bleeding-parts-list button[data-in-view]::before {
+  border-color: #337392;
+  background: #337392;
+}
+
+.bleeding-parts-list button[aria-pressed="true"]::before {
+  border-color: #205495;
+  background: #205495;
+}
+
+.bleeding-viewer-readings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 32px;
+  margin: 12px 0 0;
+  padding: 11px 0;
+  border-block-end: 1px solid var(--console-line);
+}
+
+.bleeding-viewer-readings div {
+  display: grid;
+  gap: 3px;
+}
+
+.bleeding-viewer-readings dt {
+  color: #5a626a;
+  font-size: .76rem;
+}
+
+.bleeding-viewer-readings dd {
+  margin: 0;
+  font-size: .96rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.bleeding-viewer-readings dd span {
+  color: #5a626a;
+  font-size: .78rem;
+  font-weight: 500;
+}
+
+.bleeding-training-controls {
+  padding-top: 20px;
+  scroll-margin-top: 90px;
+}
+
+.bleeding-training-controls iframe {
+  margin-top: 12px;
+}
+
+.bleeding-original-demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  color: var(--console-blue);
+  font-size: .84rem;
+  font-weight: 650;
+}
+
+@media (max-width: 850px) {
+  .bleeding-viewer-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bleeding-parts-panel {
+    border-left: 0;
+    border-top: 1px solid var(--console-line);
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .bleeding-part-copy {
+    min-height: 110px;
+  }
+
+  .bleeding-parts-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 530px) {
+  .bleeding-console-bar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .bleeding-system-views {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bleeding-viewer-stage {
+    height: clamp(230px, 72vw, 336px);
+  }
+
+  .bleeding-viewer-controls {
+    flex-wrap: wrap;
+    padding: 8px;
+  }
+
+  .bleeding-parts-list button {
+    min-height: 44px;
+    font-size: .77rem;
+  }
+}
